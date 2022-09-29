@@ -111,7 +111,7 @@ jobs:
         go-version: '1.17'
       env:
         GOPATH: /home/ec2-user/actions-runner/work/go
-    - uses: hashicorp/setup-terraform@v1
+    - uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ matrix.terraform }}
         terraform_wrapper: false
@@ -154,7 +154,7 @@ jobs:
       uses: actions/setup-node@v1
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-    - uses: hashicorp/setup-terraform@v1
+    - uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ matrix.terraform }}
         #terraform_wrapper: false
