@@ -1,0 +1,189 @@
+name: Tests
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+  push:
+    paths-ignore:
+      - 'README.md'
+jobs:
+  # ensure the code builds...
+  build:
+    name: Build
+    runs-on: [ self-hosted ]
+    timeout-minutes: 5
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+      id: go
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Debug
+      run: |
+        pwd
+        echo HOME ${HOME}
+        echo GITHUB_WORKSPACE ${GITHUB_WORKSPACE}
+        echo GOPATH ${GOPATH}
+        echo GOROOT ${GOROOT}
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: Get dependencies
+      run: |
+        go mod download
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: Build
+      run: |
+        go build -v .
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+        HOME: /home/ec2-user/actions-runner/_work/terraform-provider-wiz
+  lint:
+    name: go-lint
+    runs-on: [ self-hosted ]
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: check
+      uses: danhunsaker/golang-github-actions@v1.3.1
+      with:
+        run: lint
+        token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+  fmt:
+    name: go-fmt
+    runs-on: [ self-hosted ]
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: check
+      uses: danhunsaker/golang-github-actions@v1.3.1
+      with:
+        run: fmt
+        token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+  imports:
+    name: go-imports
+    runs-on: [ self-hosted ]
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: check
+      uses: danhunsaker/golang-github-actions@v1.3.1
+      with:
+        run: imports
+        token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+
+  generate:
+    runs-on: [ self-hosted ]
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ matrix.terraform }}
+        terraform_wrapper: false
+    - name: Setup Nodejs
+      uses: actions/setup-node@v1
+    - run: go generate ./...
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+        HOME: /home/ec2-user/actions-runner/_work/terraform-provider-wiz
+    - name: git diff
+      run: |
+        #git diff --compact-summary --exit-code || \
+        git diff --exit-code || \
+          (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
+  test:
+    name: Matrix Test
+    needs: build
+    runs-on: [ self-hosted ]
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # list whatever Terraform versions here you would like to support
+        terraform:
+          - '0.13.*'
+          - '0.14.*'
+          - '0.15.*'
+          - '1.0.*'
+          - '1.1.*'
+          - '1.2.*'
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+      id: go
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: Setup Nodejs
+      uses: actions/setup-node@v1
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+    - uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ matrix.terraform }}
+        #terraform_wrapper: false
+    - name: Terraform Format
+      id: fmt
+      run: terraform fmt -check
+    - name: Get dependencies
+      run: |
+        go mod download
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+    - name: TF acceptance tests
+      timeout-minutes: 10
+      env:
+        GOPATH: /home/ec2-user/actions-runner/work/go
+        TF_ACC: "1"
+        HOME: /home/ec2-user/actions-runner/_work/terraform-provider-wiz
+        TF_VAR_WIZ_URL: ${{ secrets.WIZ_URL }}
+        TF_VAR_WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
+        TF_VAR_WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
+        TF_VAR_PROXY: ${{ secrets.PROXY }}
+        TF_VAR_PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
+        TF_VAR_CA_CHAIN: ${{ secrets.CA_CHAIN }}
+        WIZ_URL: ${{ secrets.WIZ_URL }}
+        WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
+        WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
+        PROXY: ${{ secrets.PROXY }}
+        PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
+        CA_CHAIN: ${{ secrets.CA_CHAIN }}
+        CGO_ENABLED: 0
+      run: |
+        go test -v -cover ./internal/provider/
