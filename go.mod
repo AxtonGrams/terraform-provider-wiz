@@ -1,5 +1,7 @@
 module wiz.io/hashicorp/terraform-provider-wiz
 
+go 1.17
+
 require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
@@ -65,5 +67,3 @@ require (
 	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 )
-
-go 1.17

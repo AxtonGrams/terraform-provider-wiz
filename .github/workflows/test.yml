@@ -98,6 +98,8 @@ jobs:
           - '1.1.*'
           - '1.2.*'
     steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
@@ -105,8 +107,6 @@ jobs:
         cache: true
       id: go
     #- uses: actions/setup-node@v3
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v3
     - uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ matrix.terraform }}
