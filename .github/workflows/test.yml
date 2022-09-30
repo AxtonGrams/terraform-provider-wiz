@@ -71,11 +71,6 @@ jobs:
       with:
         go-version-file: 'go.mod'
         cache: true
-#    - uses: hashicorp/setup-terraform@v2
-#      with:
-#        terraform_version: ${{ matrix.terraform }}
-#        terraform_wrapper: false
-#    - uses: actions/setup-node@v3
     - run: go generate ./...
     - name: git diff
       run: |
@@ -106,7 +101,6 @@ jobs:
         go-version-file: 'go.mod'
         cache: true
       id: go
-    #- uses: actions/setup-node@v3
     - uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ matrix.terraform }}
@@ -118,16 +112,16 @@ jobs:
       timeout-minutes: 10
       env:
         TF_ACC: "1"
-        #TF_VAR_WIZ_URL: ${{ secrets.WIZ_URL }}
-        #TF_VAR_WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
-        #TF_VAR_WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
-        #TF_VAR_PROXY: ${{ secrets.PROXY }}
-        #TF_VAR_PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
-        #TF_VAR_CA_CHAIN: ${{ secrets.CA_CHAIN }}
-        #WIZ_URL: ${{ secrets.WIZ_URL }}
-        #WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
-        #WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
-        #PROXY: ${{ secrets.PROXY }}
-        #PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
-        #CA_CHAIN: ${{ secrets.CA_CHAIN }}
+        TF_VAR_WIZ_URL: ${{ secrets.WIZ_URL }}
+        TF_VAR_WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
+        TF_VAR_WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
+        TF_VAR_PROXY: ${{ secrets.PROXY }}
+        TF_VAR_PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
+        TF_VAR_CA_CHAIN: ${{ secrets.CA_CHAIN }}
+        WIZ_URL: ${{ secrets.WIZ_URL }}
+        WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
+        WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
+        PROXY: ${{ secrets.PROXY }}
+        PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
+        CA_CHAIN: ${{ secrets.CA_CHAIN }}
         CGO_ENABLED: 0
