@@ -77,34 +77,34 @@ resource "wiz_cicd_scan_policy" "vulnerabilities" {
 
 ### Required
 
-- `name` (String) Name of the Scan Policy.
+- **name** (String) Name of the Scan Policy.
 
 ### Optional
 
-- `description` (String) Description of the Scan Policy.
-- `disk_secrets_params` (Block Set, Max: 1) Secret scan parameters.
+- **description** (String) Description of the Scan Policy.
+- **disk_secrets_params** (Block Set, Max: 1) Secret scan parameters.
     - Required exactly one of: `[disk_vulnerabilities_params disk_secrets_params iac_params]`. (see [below for nested schema](#nestedblock--disk_secrets_params))
-- `disk_vulnerabilities_params` (Block Set, Max: 1) Vulnerability scan parameters.
+- **disk_vulnerabilities_params** (Block Set, Max: 1) Vulnerability scan parameters.
     - Required exactly one of: `[disk_vulnerabilities_params disk_secrets_params iac_params]`. (see [below for nested schema](#nestedblock--disk_vulnerabilities_params))
-- `iac_params` (Block Set, Max: 1) IaC scan parameters.
+- **iac_params** (Block Set, Max: 1) IaC scan parameters.
     - Required exactly one of: `[disk_vulnerabilities_params disk_secrets_params iac_params]`. (see [below for nested schema](#nestedblock--iac_params))
 
 ### Read-Only
 
-- `builtin` (Boolean)
-- `id` (String) Internal identifier
-- `type` (String) The scan policy type
+- **builtin** (Boolean)
+- **id** (String) Internal identifier
+- **type** (String) The scan policy type
 
 <a id="nestedblock--disk_secrets_params"></a>
 ### Nested Schema for `disk_secrets_params`
 
 Required:
 
-- `count_threshold` (Number)
+- **count_threshold** (Number)
 
 Optional:
 
-- `path_allow_list` (List of String)
+- **path_allow_list** (List of String)
 
 
 <a id="nestedblock--disk_vulnerabilities_params"></a>
@@ -112,10 +112,10 @@ Optional:
 
 Required:
 
-- `ignore_unfixed` (Boolean)
-- `package_allow_list` (List of String)
-- `package_count_threshold` (Number)
-- `severity` (String) Severity.
+- **ignore_unfixed** (Boolean)
+- **package_allow_list** (List of String)
+- **package_count_threshold** (Number)
+- **severity** (String) Severity.
     - Allowed values: 
         - INFORMATIONAL
         - LOW
@@ -129,8 +129,8 @@ Required:
 
 Required:
 
-- `count_threshold` (Number)
-- `severity_threshold` (String) Severity threshold.
+- **count_threshold** (Number)
+- **severity_threshold** (String) Severity threshold.
     - Allowed values: 
         - INFORMATIONAL
         - LOW
@@ -140,22 +140,22 @@ Required:
 
 Optional:
 
-- `builtin_ignore_tags_enabled` (Boolean)
-- `custom_ignore_tags` (Block Set) (see [below for nested schema](#nestedblock--iac_params--custom_ignore_tags))
-- `ignored_rules` (List of String)
-- `security_frameworks` (List of String)
+- **builtin_ignore_tags_enabled** (Boolean)
+- **custom_ignore_tags** (Block Set) (see [below for nested schema](#nestedblock--iac_params--custom_ignore_tags))
+- **ignored_rules** (List of String)
+- **security_frameworks** (List of String)
 
 <a id="nestedblock--iac_params--custom_ignore_tags"></a>
 ### Nested Schema for `iac_params.custom_ignore_tags`
 
 Required:
 
-- `key` (String)
-- `value` (String)
+- **key** (String)
+- **value** (String)
 
 Optional:
 
-- `ignore_all_rules` (Boolean)
-- `rule_ids` (List of String)
+- **ignore_all_rules** (Boolean)
+- **rule_ids** (List of String)
 
 

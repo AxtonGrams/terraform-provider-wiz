@@ -38,14 +38,14 @@ resource "wiz_automation_rule" "rule1" {
 
 ### Required
 
-- `action_id` (String) AutomationActions to execute once an automation rule event is triggered and passes the filters
-- `filters` (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
-- `name` (String)
-- `trigger_source` (String) Trigger source.
+- **action_id** (String) AutomationActions to execute once an automation rule event is triggered and passes the filters
+- **filters** (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
+- **name** (String)
+- **trigger_source** (String) Trigger source.
     - Allowed values: 
         - ISSUES
         - CLOUD_EVENTS
-- `trigger_type` (List of String) Trigger type.
+- **trigger_type** (List of String) Trigger type.
     - Allowed values: 
         - CREATED
         - UPDATED
@@ -54,17 +54,17 @@ resource "wiz_automation_rule" "rule1" {
 
 ### Optional
 
-- `description` (String) Description.
+- **description** (String) Description.
     - Defaults to ``.
-- `enabled` (Boolean) Enabled?
+- **enabled** (Boolean) Enabled?
     - Defaults to `true`.
-- `override_action_params` (String) Optional parameters that can override the default automationaction parameters that have been defined when the automationaction was created.  Value should be wrapped in jsonencode() to avoid diff detection.
+- **override_action_params** (String) Optional parameters that can override the default automationaction parameters that have been defined when the automationaction was created.  Value should be wrapped in jsonencode() to avoid diff detection.
     - Defaults to `{}`.
-- `project_id` (String)
+- **project_id** (String)
 
 ### Read-Only
 
-- `created_at` (String)
-- `id` (String) Wiz internal identifier.
+- **created_at** (String)
+- **id** (String) Wiz internal identifier.
 
 

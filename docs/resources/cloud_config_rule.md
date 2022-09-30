@@ -75,22 +75,22 @@ EOT
 
 ### Required
 
-- `description` (String) Detailed description for this rule. There is a defect in the API that makes this required; the description field cannot be nullified after one is defined, so we make it required.
-- `name` (String) Name of this rule, as appeared in the UI in the portal.
-- `remediation_instructions` (String) Steps to mitigate the issue that match this rule. If possible, include sample commands to execute in your cloud provider's console. Markdown formatting is supported.
-- `security_sub_categories` (Set of String) Associate this rule with security sub-categories to easily monitor your compliance. New Configuration Findings created by this rule will be tagged with the selected sub-categories. There is a defect in the API that makes this required; the security_sub_categories field cannot be nullified after one is defined, so we make it required.
-- `target_native_types` (Set of String) The identifier types of the resources targeted by this rule, as seen on the cloud provider service. e.g. 'ec2'
+- **description** (String) Detailed description for this rule. There is a defect in the API that makes this required; the description field cannot be nullified after one is defined, so we make it required.
+- **name** (String) Name of this rule, as appeared in the UI in the portal.
+- **remediation_instructions** (String) Steps to mitigate the issue that match this rule. If possible, include sample commands to execute in your cloud provider's console. Markdown formatting is supported.
+- **security_sub_categories** (Set of String) Associate this rule with security sub-categories to easily monitor your compliance. New Configuration Findings created by this rule will be tagged with the selected sub-categories. There is a defect in the API that makes this required; the security_sub_categories field cannot be nullified after one is defined, so we make it required.
+- **target_native_types** (Set of String) The identifier types of the resources targeted by this rule, as seen on the cloud provider service. e.g. 'ec2'
 
 ### Optional
 
-- `enabled` (Boolean) Enable/disable this rule.
+- **enabled** (Boolean) Enable/disable this rule.
     - Defaults to `true`.
-- `function_as_control` (Boolean) Make this rule function as a Control that creates Issues for new findings. By default only findings are created. If enabled=false, an error will be returned if this is set to true.
+- **function_as_control** (Boolean) Make this rule function as a Control that creates Issues for new findings. By default only findings are created. If enabled=false, an error will be returned if this is set to true.
     - Defaults to `false`.
-- `iac_matchers` (Block Set) OPA rego policies that this rule runs (Cloud / IaC rules). (see [below for nested schema](#nestedblock--iac_matchers))
-- `opa_policy` (String) OPA rego policy that defines this rule.
-- `scope_account_ids` (Set of String) Set the rule scope of cloud account IDs. Select only subscriptions matching to the rule cloud provider. To change scope to 'all relevant resources' set to empty array. This must be the Wiz internal identifier for the account(uuid format).
-- `severity` (String) Severity that will be set for findings of this rule.
+- **iac_matchers** (Block Set) OPA rego policies that this rule runs (Cloud / IaC rules). (see [below for nested schema](#nestedblock--iac_matchers))
+- **opa_policy** (String) OPA rego policy that defines this rule.
+- **scope_account_ids** (Set of String) Set the rule scope of cloud account IDs. Select only subscriptions matching to the rule cloud provider. To change scope to 'all relevant resources' set to empty array. This must be the Wiz internal identifier for the account(uuid format).
+- **severity** (String) Severity that will be set for findings of this rule.
     - Allowed values: 
         - INFORMATIONAL
         - LOW
@@ -102,15 +102,15 @@ EOT
 
 ### Read-Only
 
-- `id` (String) Wiz internal identifier.
+- **id** (String) Wiz internal identifier.
 
 <a id="nestedblock--iac_matchers"></a>
 ### Nested Schema for `iac_matchers`
 
 Required:
 
-- `rego_code` (String) Write code in the Rego query language. This code will be evaluated against the JSON representation of each resource of the selected Native Type to determine if it passes or fails the rule.
-- `type` (String) The type of resource that will be evaluated by the Rego Code.
+- **rego_code** (String) Write code in the Rego query language. This code will be evaluated against the JSON representation of each resource of the selected Native Type to determine if it passes or fails the rule.
+- **type** (String) The type of resource that will be evaluated by the Rego Code.
     - Allowed values: 
         - TERRAFORM
         - CLOUD_FORMATION

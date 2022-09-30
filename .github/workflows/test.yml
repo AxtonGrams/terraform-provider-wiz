@@ -10,7 +10,7 @@ jobs:
   # ensure the code builds...
   build:
     name: Build
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-latest ]
     timeout-minutes: 5
     steps:
     - name: Set up Go
@@ -44,7 +44,7 @@ jobs:
         HOME: /home/ec2-user/actions-runner/_work/terraform-provider-wiz
   lint:
     name: go-lint
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-latest ]
     steps:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
@@ -63,7 +63,7 @@ jobs:
         GOPATH: /home/ec2-user/actions-runner/work/go
   fmt:
     name: go-fmt
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-latest ]
     steps:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
@@ -82,7 +82,7 @@ jobs:
         GOPATH: /home/ec2-user/actions-runner/work/go
   imports:
     name: go-imports
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-latest ]
     steps:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
@@ -101,7 +101,7 @@ jobs:
         GOPATH: /home/ec2-user/actions-runner/work/go
 
   generate:
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-latest ]
     steps:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
@@ -129,7 +129,7 @@ jobs:
   test:
     name: Matrix Test
     needs: build
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-latest ]
     timeout-minutes: 15
     strategy:
       fail-fast: false
