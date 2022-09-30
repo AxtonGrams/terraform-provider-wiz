@@ -88,47 +88,31 @@ jobs:
           - '1.1.*'
           - '1.2.*'
     steps:
-    - name: Set up Go
-      uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: '1.17'
-      id: go
-      env:
-        GOPATH: /home/ec2-user/actions-runner/work/go
-    - name: Setup Nodejs
-      uses: actions/setup-node@v1
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-    - uses: hashicorp/setup-terraform@v1
+    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v3
+    - uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: ${{ matrix.terraform }}
         #terraform_wrapper: false
-    - name: Terraform Format
-      id: fmt
-      run: terraform fmt -check
-    - name: Get dependencies
-      run: |
-        go mod download
-      env:
-        GOPATH: /home/ec2-user/actions-runner/work/go
-    - name: TF acceptance tests
+    - run: terraform fmt -check
+    - run: go mod download
+    - run: go test -v -cover ./internal/provider/
       timeout-minutes: 10
       env:
-        GOPATH: /home/ec2-user/actions-runner/work/go
         TF_ACC: "1"
-        HOME: /home/ec2-user/actions-runner/_work/terraform-provider-wiz
-        TF_VAR_WIZ_URL: ${{ secrets.WIZ_URL }}
-        TF_VAR_WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
-        TF_VAR_WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
-        TF_VAR_PROXY: ${{ secrets.PROXY }}
-        TF_VAR_PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
-        TF_VAR_CA_CHAIN: ${{ secrets.CA_CHAIN }}
-        WIZ_URL: ${{ secrets.WIZ_URL }}
-        WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
-        WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
-        PROXY: ${{ secrets.PROXY }}
-        PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
-        CA_CHAIN: ${{ secrets.CA_CHAIN }}
+        #TF_VAR_WIZ_URL: ${{ secrets.WIZ_URL }}
+        #TF_VAR_WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
+        #TF_VAR_WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
+        #TF_VAR_PROXY: ${{ secrets.PROXY }}
+        #TF_VAR_PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
+        #TF_VAR_CA_CHAIN: ${{ secrets.CA_CHAIN }}
+        #WIZ_URL: ${{ secrets.WIZ_URL }}
+        #WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
+        #WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
+        #PROXY: ${{ secrets.PROXY }}
+        #PROXY_SERVER: ${{ secrets.PROXY_SERVER }}
+        #CA_CHAIN: ${{ secrets.CA_CHAIN }}
         CGO_ENABLED: 0
-      run: |
-        go test -v -cover ./internal/provider/
