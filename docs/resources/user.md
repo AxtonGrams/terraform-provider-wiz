@@ -26,18 +26,18 @@ resource "wiz_user" "psm" {
 
 ### Required
 
-- **email** (String) The Wiz role.
-- **name** (String) The user name.
-- **role** (String) Whether the project is archived/inactive
+- `email` (String) The Wiz role.
+- `name` (String) The user name.
+- `role` (String) Whether the project is archived/inactive
 
 ### Optional
 
-- **assigned_project_ids** (List of String) Assigned Project Identifiers.
-- **send_email_invite** (Boolean) Send email invite?
+- `assigned_project_ids` (List of String) Assigned Project Identifiers.
+- `send_email_invite` (Boolean) Send email invite?
     - Defaults to `true`.
 
 ### Read-Only
 
-- **id** (String) Unique identifier for the user
+- `id` (String) Unique identifier for the user
 
 

@@ -57,18 +57,18 @@ provider "wiz" {
 
 ### Optional
 
-- **ca_chain** (String) The CA chains to use when communicating with Wiz. If a proxy performs TLS interception/inspection, this will be the CA chain for the certificate used by the proxy.
-- **http_client_retry_max** (Number) Maximum retry attempts.
+- `ca_chain` (String) The CA chains to use when communicating with Wiz. If a proxy performs TLS interception/inspection, this will be the CA chain for the certificate used by the proxy.
+- `http_client_retry_max` (Number) Maximum retry attempts.
     - Defaults to `10`.
-- **http_client_retry_wait_max** (Number) Maximum time to wait before retrying, in seconds.
+- `http_client_retry_wait_max` (Number) Maximum time to wait before retrying, in nanoseconds.
     - Defaults to `10000000000`.
-- **http_client_retry_wait_min** (Number) Minimum time to wait before retrying, in seconds.
+- `http_client_retry_wait_min` (Number) Minimum time to wait before retrying, in nanoseconds.
     - Defaults to `1000000000`.
-- **proxy** (Boolean) Use an http proxy server?
-- **proxy_server** (String) Proxy server address.  Syntax: http[s]://[host]:[port]
-- **wiz_auth_audience** (String) Set this to 'beyond-api'.
-- **wiz_auth_client_id** (String) Your application's Client ID. You can find this value on the Settings > Service Accounts page.
-- **wiz_auth_client_secret** (String, Sensitive) Your application's Client Secret. You can find this value on the Settings > Service Accounts page.
-- **wiz_auth_grant_type** (String) Set this to 'client_credentials'.
-- **wiz_auth_url** (String) The authentication endpoint.
-- **wiz_url** (String) Wiz api endpoint.  This varies for each Wiz deployment.  See https://docs.wiz.io/wiz-docs/docs/using-the-wiz-api#the-graphql-endpoint
+- `proxy` (Boolean) Use an http proxy server?
+- `proxy_server` (String) Proxy server address.  Syntax: http[s]://[host]:[port]
+- `wiz_auth_audience` (String) Set this to 'beyond-api'.
+- `wiz_auth_client_id` (String) Your application's Client ID. You can find this value on the Settings > Service Accounts page.
+- `wiz_auth_client_secret` (String, Sensitive) Your application's Client Secret. You can find this value on the Settings > Service Accounts page.
+- `wiz_auth_grant_type` (String) Set this to 'client_credentials'.
+- `wiz_auth_url` (String) The authentication endpoint.
+- `wiz_url` (String) Wiz api endpoint.  This varies for each Wiz deployment.  See https://docs.wiz.io/wiz-docs/docs/using-the-wiz-api#the-graphql-endpoint

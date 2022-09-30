@@ -44,48 +44,48 @@ resource "wiz_security_framework" "test" {
 
 ### Required
 
-- **category** (Block Set, Min: 1) Security framework category. (see [below for nested schema](#nestedblock--category))
-- **name** (String) Name of the security framework.
+- `category` (Block Set, Min: 1) Security framework category. (see [below for nested schema](#nestedblock--category))
+- `name` (String) Name of the security framework.
 
 ### Optional
 
-- **description** (String) Description of the security framework.
-- **enabled** (Boolean) Whether to enable the security framework.
+- `description` (String) Description of the security framework.
+- `enabled` (Boolean) Whether to enable the security framework.
     - Defaults to `true`.
 
 ### Read-Only
 
-- **id** (String) Internal identifier for the Security Framework
+- `id` (String) Internal identifier for the Security Framework
 
 <a id="nestedblock--category"></a>
 ### Nested Schema for `category`
 
 Required:
 
-- **name** (String) Name fo the security category.
-- **sub_category** (Block Set, Min: 1) Security subcategory. (see [below for nested schema](#nestedblock--category--sub_category))
+- `name` (String) Name fo the security category.
+- `sub_category` (Block Set, Min: 1) Security subcategory. (see [below for nested schema](#nestedblock--category--sub_category))
 
 Optional:
 
-- **description** (String) Description of the security category.
+- `description` (String) Description of the security category.
 
 Read-Only:
 
-- **id** (String) Internal identifier for the security category. Specify an existing identifier to use an existing category. If not provided, a new category will be created.
+- `id` (String) Internal identifier for the security category. Specify an existing identifier to use an existing category. If not provided, a new category will be created.
 
 <a id="nestedblock--category--sub_category"></a>
 ### Nested Schema for `category.sub_category`
 
 Required:
 
-- **title** (String) Title of the security subcategory.
+- `title` (String) Title of the security subcategory.
 
 Optional:
 
-- **description** (String) Description of the security subcategory.
+- `description` (String) Description of the security subcategory.
 
 Read-Only:
 
-- **id** (String) Internal identifier for the security subcategory. Specify an existing identifier to use an existing subcategory. If not provided, a new subcategory will be created.
+- `id` (String) Internal identifier for the security subcategory. Specify an existing identifier to use an existing subcategory. If not provided, a new subcategory will be created.
 
 

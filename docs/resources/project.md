@@ -59,32 +59,32 @@ resource "wiz_project" "test" {
 
 ### Required
 
-- **name** (String) The project name to display in Wiz.
+- `name` (String) The project name to display in Wiz.
 
 ### Optional
 
-- **archived** (Boolean) Whether the project is archived/inactive
+- `archived` (Boolean) Whether the project is archived/inactive
     - Defaults to `false`.
-- **business_unit** (String) The business unit to which the project belongs.
-- **cloud_organization_link** (Block Set) Associate the project with the resources and subscriptions to organize all the resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_organization_link))
-- **description** (String) The project description.
-- **risk_profile** (Block List, Max: 1) Contains risk profile related properties for the project (see [below for nested schema](#nestedblock--risk_profile))
+- `business_unit` (String) The business unit to which the project belongs.
+- `cloud_organization_link` (Block Set) Associate the project with the resources and subscriptions to organize all the resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_organization_link))
+- `description` (String) The project description.
+- `risk_profile` (Block List, Max: 1) Contains risk profile related properties for the project (see [below for nested schema](#nestedblock--risk_profile))
 
 ### Read-Only
 
-- **id** (String) Unique identifier for the project
-- **slug** (String) Short identifier for the project. The value must be unique, even against archived projects, so a uuid is generated and used as the slug value.
+- `id` (String) Unique identifier for the project
+- `slug` (String) Short identifier for the project. The value must be unique, even against archived projects, so a uuid is generated and used as the slug value.
 
 <a id="nestedblock--cloud_organization_link"></a>
 ### Nested Schema for `cloud_organization_link`
 
 Required:
 
-- **cloud_organization** (String) The Wiz internal identifier for the Organizational Unit.
+- `cloud_organization` (String) The Wiz internal identifier for the Organizational Unit.
 
 Optional:
 
-- **environment** (String) The environment.
+- `environment` (String) The environment.
     - Allowed values: 
         - PRODUCTION
         - STAGING
@@ -93,8 +93,8 @@ Optional:
         - OTHER
 
     - Defaults to `PRODUCTION`.
-- **resource_tags** (Block Set) Provide a key and value pair for filtering resources. `shared` must be true to define resource_tags. (see [below for nested schema](#nestedblock--cloud_organization_link--resource_tags))
-- **shared** (Boolean) Subscriptions that host a few projects can be marked as ‘shared subscriptions’ and resources can be filtered by tags.
+- `resource_tags` (Block Set) Provide a key and value pair for filtering resources. `shared` must be true to define resource_tags. (see [below for nested schema](#nestedblock--cloud_organization_link--resource_tags))
+- `shared` (Boolean) Subscriptions that host a few projects can be marked as ‘shared subscriptions’ and resources can be filtered by tags.
     - Defaults to `true`.
 
 <a id="nestedblock--cloud_organization_link--resource_tags"></a>
@@ -102,8 +102,8 @@ Optional:
 
 Required:
 
-- **key** (String)
-- **value** (String)
+- `key` (String)
+- `value` (String)
 
 
 
@@ -112,54 +112,54 @@ Required:
 
 Optional:
 
-- **business_impact** (String) Business impact.
+- `business_impact` (String) Business impact.
     - Allowed values: 
         - LBI
         - MBI
         - HBI
-- **has_authentication** (String) Does the project require authentication?
+- `has_authentication` (String) Does the project require authentication?
     - Allowed values: 
         - YES
         - NO
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
-- **has_exposed_api** (String) Does the project expose an API?
+- `has_exposed_api` (String) Does the project expose an API?
     - Allowed values: 
         - YES
         - NO
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
-- **is_actively_developed** (String) Is the project under active development?
+- `is_actively_developed` (String) Is the project under active development?
     - Allowed values: 
         - YES
         - NO
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
-- **is_customer_facing** (String) Is the project customer facing?
+- `is_customer_facing` (String) Is the project customer facing?
     - Allowed values: 
         - YES
         - NO
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
-- **is_internet_facing** (String) Is the project Internet facing?
+- `is_internet_facing` (String) Is the project Internet facing?
     - Allowed values: 
         - YES
         - NO
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
-- **is_regulated** (String) Is the project regulated?
+- `is_regulated` (String) Is the project regulated?
     - Allowed values: 
         - YES
         - NO
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
-- **regulatory_standards** (List of String) Regulatory Standards.
+- `regulatory_standards` (List of String) Regulatory Standards.
     - Allowed values: 
         - ISO_20000_1_2011
         - ISO_22301
@@ -179,7 +179,7 @@ Optional:
         - SEC_REGULATION_SCI
         - SOX
         - GDPR
-- **sensitive_data_types** (List of String) Sensitive Data Types.
+- `sensitive_data_types` (List of String) Sensitive Data Types.
     - Allowed values: 
         - CLASSIFIED
         - HEALTH
@@ -187,7 +187,7 @@ Optional:
         - PCI
         - FINANCIAL
         - CUSTOMER
-- **stores_data** (String) Does the project store data?
+- `stores_data` (String) Does the project store data?
     - Allowed values: 
         - YES
         - NO

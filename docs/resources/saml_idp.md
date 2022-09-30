@@ -65,35 +65,35 @@ EOT
 
 ### Required
 
-- **certificate** (String) PEM certificate from IdP
-- **domains** (List of String) A list of domains the IdP handles.
-- **login_url** (String) IdP Login URL
-- **name** (String) IdP name to display in Wiz.
+- `certificate` (String) PEM certificate from IdP
+- `domains` (List of String) A list of domains the IdP handles.
+- `login_url` (String) IdP Login URL
+- `name` (String) IdP name to display in Wiz.
 
 ### Optional
 
-- **allow_manual_role_override** (Boolean) Allow manual override for role assignment? Must be set `true` if `use_provided_roles` is false.
+- `allow_manual_role_override` (Boolean) Allow manual override for role assignment? Must be set `true` if `use_provided_roles` is false.
     - Defaults to `true`.
-- **group_mapping** (Block Set) Group mappings (see [below for nested schema](#nestedblock--group_mapping))
-- **logout_url** (String) IdP Logout URL
-- **merge_groups_mapping_by_role** (Boolean) Manage group mapping by role?
-- **use_provider_managed_roles** (Boolean) Use provider managed roles?
+- `group_mapping` (Block Set) Group mappings (see [below for nested schema](#nestedblock--group_mapping))
+- `logout_url` (String) IdP Logout URL
+- `merge_groups_mapping_by_role` (Boolean) Manage group mapping by role?
+- `use_provider_managed_roles` (Boolean) Use provider managed roles?
     - Defaults to `false`.
 
 ### Read-Only
 
-- **id** (String) Internal identifier for the Saml Provider
+- `id` (String) Internal identifier for the Saml Provider
 
 <a id="nestedblock--group_mapping"></a>
 ### Nested Schema for `group_mapping`
 
 Required:
 
-- **provider_group_id** (String) Provider group ID
-- **role** (String) Wiz Role name
+- `provider_group_id` (String) Provider group ID
+- `role` (String) Wiz Role name
 
 Optional:
 
-- **projects** (List of String) Project mapping
+- `projects` (List of String) Project mapping
 
 

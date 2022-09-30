@@ -210,57 +210,57 @@ EOT
 
 ### Required
 
-- **is_accessible_to_all_projects** (Boolean)
-- **name** (String)
-- **type** (String) The automation action type
+- `is_accessible_to_all_projects` (Boolean)
+- `name` (String)
+- `type` (String) The automation action type
 
 ### Optional
 
-- **aws_message_params** (Block Set, Max: 1) If type is AWS_SNS, define these parameters
+- `aws_message_params` (Block Set, Max: 1) If type is AWS_SNS, define these parameters
     - Conflicts with `[azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--aws_message_params))
-- **azure_service_bus_params** (Block Set, Max: 1) If type is AZURE_SERVICE_BUS, define these parameters
+- `azure_service_bus_params` (Block Set, Max: 1) If type is AZURE_SERVICE_BUS, define these parameters
     - Conflicts with `[aws_message_params email_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--azure_service_bus_params))
-- **email_params** (Block Set, Max: 1) If type is EMAIL, define these paramemters.
+- `email_params` (Block Set, Max: 1) If type is EMAIL, define these paramemters.
     - Conflicts with `[aws_message_params azure_service_bus_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--email_params))
-- **google_chat_params** (Block Set, Max: 1) If type is GOOGLE_CHAT_MESSAGE, define these parameters
+- `google_chat_params` (Block Set, Max: 1) If type is GOOGLE_CHAT_MESSAGE, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_pub_sub_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--google_chat_params))
-- **google_pub_sub_params** (Block Set, Max: 1) If type is GOOGLE_PUB_SUB, define these parameters
+- `google_pub_sub_params` (Block Set, Max: 1) If type is GOOGLE_PUB_SUB, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--google_pub_sub_params))
-- **jira_params** (Block Set, Max: 1) If type is JIRA_TICKET, define these parameters
+- `jira_params` (Block Set, Max: 1) If type is JIRA_TICKET, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--jira_params))
-- **jira_transition_params** (Block Set, Max: 1) If type is JIRA_TICKET_TRANSITION, define these parameters
+- `jira_transition_params` (Block Set, Max: 1) If type is JIRA_TICKET_TRANSITION, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_params servicenow_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--jira_transition_params))
-- **project_id** (String)
-- **servicenow_params** (Block Set, Max: 1) If type is SERVICENOW_TICKET, define these parameters
+- `project_id` (String)
+- `servicenow_params` (Block Set, Max: 1) If type is SERVICENOW_TICKET, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_update_ticket_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--servicenow_params))
-- **servicenow_update_ticket_params** (Block Set, Max: 1) If type is SERVICENOW_UPDATE_TICKET, define these parameters
+- `servicenow_update_ticket_params` (Block Set, Max: 1) If type is SERVICENOW_UPDATE_TICKET, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_params slack_params webhook_params]`. (see [below for nested schema](#nestedblock--servicenow_update_ticket_params))
-- **slack_params** (Block Set, Max: 1) If type is SLACK_MESSAGE, define these parameters
+- `slack_params` (Block Set, Max: 1) If type is SLACK_MESSAGE, define these parameters
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params webhook_params]`. (see [below for nested schema](#nestedblock--slack_params))
-- **webhook_params** (Block Set, Max: 1) If type is WEBHOOK, define these parameters.
+- `webhook_params` (Block Set, Max: 1) If type is WEBHOOK, define these parameters.
     - Conflicts with `[aws_message_params azure_service_bus_params email_params google_chat_params google_pub_sub_params jira_params jira_transition_params servicenow_params servicenow_update_ticket_params slack_params]`. (see [below for nested schema](#nestedblock--webhook_params))
 
 ### Read-Only
 
-- **created_at** (String)
-- **id** (String) Wiz internal identifier.
+- `created_at` (String)
+- `id` (String) Wiz internal identifier.
 
 <a id="nestedblock--aws_message_params"></a>
 ### Nested Schema for `aws_message_params`
 
 Required:
 
-- **access_method** (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--aws_message_params--access_method))
-- **body** (String)
-- **sns_topic_arn** (String)
+- `access_method` (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--aws_message_params--access_method))
+- `body` (String)
+- `sns_topic_arn` (String)
 
 <a id="nestedblock--aws_message_params--access_method"></a>
 ### Nested Schema for `aws_message_params.access_method`
 
 Optional:
 
-- **connector_for_access** (String) Required if and only if access method is ASSUME_CONNECTOR_ROLE, this should be a valid existing AWS connector ID
-- **customer_role_arn** (String) Required if and only if access method is ASSUME_SPECIFIED_ROLE, this is the role that should be assumed, the ExternalID of the role must be your Wiz Tenant ID (a GUID)
+- `connector_for_access` (String) Required if and only if access method is ASSUME_CONNECTOR_ROLE, this should be a valid existing AWS connector ID
+- `customer_role_arn` (String) Required if and only if access method is ASSUME_SPECIFIED_ROLE, this is the role that should be assumed, the ExternalID of the role must be your Wiz Tenant ID (a GUID)
 
 
 
@@ -269,17 +269,17 @@ Optional:
 
 Required:
 
-- **access_method** (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--azure_service_bus_params--access_method))
-- **body** (String)
-- **queue_url** (String)
+- `access_method` (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--azure_service_bus_params--access_method))
+- `body` (String)
+- `queue_url` (String)
 
 <a id="nestedblock--azure_service_bus_params--access_method"></a>
 ### Nested Schema for `azure_service_bus_params.access_method`
 
 Optional:
 
-- **connection_string_with_sas** (String) Required if and only if access method is CONNECTION_STRING_WITH_SAS, this should be the connection string that contains the Shared access secret SAS For example: Endpoint=sb://my-sb-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey
-- **connector_for_access** (String) Required if and only if access method is CONNECTOR_CREDENTIALS, this should be a valid existing Azure connector ID
+- `connection_string_with_sas` (String) Required if and only if access method is CONNECTION_STRING_WITH_SAS, this should be the connection string that contains the Shared access secret SAS For example: Endpoint=sb://my-sb-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey
+- `connector_for_access` (String) Required if and only if access method is CONNECTOR_CREDENTIALS, this should be a valid existing Azure connector ID
 
 
 
@@ -288,13 +288,13 @@ Optional:
 
 Required:
 
-- **to** (List of String)
+- `to` (List of String)
 
 Optional:
 
-- **attach_evidence_csv** (Boolean)
-- **cc** (List of String)
-- **note** (String)
+- `attach_evidence_csv` (Boolean)
+- `cc` (List of String)
+- `note` (String)
 
 
 <a id="nestedblock--google_chat_params"></a>
@@ -302,11 +302,11 @@ Optional:
 
 Required:
 
-- **url** (String) google chat webhook url in the format: https://chat.googleapis.com/v1/spaces/AAAA0000000/messages?key=XXXXX&token=XXXXX; see https://developers.google.com/hangouts/chat/how-tos/webhooks#define_an_incoming_webhook
+- `url` (String) google chat webhook url in the format: https://chat.googleapis.com/v1/spaces/AAAA0000000/messages?key=XXXXX&token=XXXXX; see https://developers.google.com/hangouts/chat/how-tos/webhooks#define_an_incoming_webhook
 
 Optional:
 
-- **note** (String) This is an optional note which will be added to the message that will be sent to the google chat room it is a template that will be resolved with the following parameters: TBD, the format is Mustache
+- `note` (String) This is an optional note which will be added to the message that will be sent to the google chat room it is a template that will be resolved with the following parameters: TBD, the format is Mustache
 
 
 <a id="nestedblock--google_pub_sub_params"></a>
@@ -314,18 +314,18 @@ Optional:
 
 Required:
 
-- **access_method** (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--google_pub_sub_params--access_method))
-- **body** (String)
-- **project_id** (String)
-- **topic_id** (String)
+- `access_method` (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--google_pub_sub_params--access_method))
+- `body` (String)
+- `project_id` (String)
+- `topic_id` (String)
 
 <a id="nestedblock--google_pub_sub_params--access_method"></a>
 ### Nested Schema for `google_pub_sub_params.access_method`
 
 Optional:
 
-- **connector_for_access** (String) Required if and only if access method is CONNECTOR_CREDENTIALS, this should be a valid existing GCP connector ID
-- **service_account_key** (String, Sensitive) Required if and only if access method is SERVICE_ACCOUNT_KEY, this should be the Service account key JSON file you downloaded from GCP. Value should be wrapped in jsonencode() to prevent false diffs.
+- `connector_for_access` (String) Required if and only if access method is CONNECTOR_CREDENTIALS, this should be a valid existing GCP connector ID
+- `service_account_key` (String, Sensitive) Required if and only if access method is SERVICE_ACCOUNT_KEY, this should be the Service account key JSON file you downloaded from GCP. Value should be wrapped in jsonencode() to prevent false diffs.
 
 
 
@@ -334,38 +334,38 @@ Optional:
 
 Required:
 
-- **is_onprem** (Boolean) Is the Jira service is only accessible on-premise?
-- **server_url** (String)
-- **ticket_fields** (Block Set, Min: 1, Max: 1) Ticket fields (see [below for nested schema](#nestedblock--jira_params--ticket_fields))
-- **tls_config** (Block Set, Min: 1, Max: 1) custom TLS config (custom server CA, client certificate etc..) (see [below for nested schema](#nestedblock--jira_params--tls_config))
+- `is_onprem` (Boolean) Is the Jira service is only accessible on-premise?
+- `server_url` (String)
+- `ticket_fields` (Block Set, Min: 1, Max: 1) Ticket fields (see [below for nested schema](#nestedblock--jira_params--ticket_fields))
+- `tls_config` (Block Set, Min: 1, Max: 1) custom TLS config (custom server CA, client certificate etc..) (see [below for nested schema](#nestedblock--jira_params--tls_config))
 
 Optional:
 
-- **jira_authentication_basic** (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_params--jira_authentication_basic))
-- **jira_authentication_token** (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_params--jira_authentication_token))
-- **onprem_tunnel_domain** (String)
-- **onprem_tunnel_token** (String, Sensitive)
+- `jira_authentication_basic` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_params--jira_authentication_basic))
+- `jira_authentication_token` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_params--jira_authentication_token))
+- `onprem_tunnel_domain` (String)
+- `onprem_tunnel_token` (String, Sensitive)
 
 <a id="nestedblock--jira_params--ticket_fields"></a>
 ### Nested Schema for `jira_params.ticket_fields`
 
 Required:
 
-- **description** (String)
-- **issue_type** (String)
-- **project** (String)
-- **summary** (String)
+- `description` (String)
+- `issue_type` (String)
+- `project` (String)
+- `summary` (String)
 
 Optional:
 
-- **alternative_description_field** (String)
-- **assignee** (String)
-- **attach_evidence_csv** (Boolean) - Defaults to `false`.
-- **components** (List of String)
-- **custom_fields** (String) Value should be wrapped in jsonencode() to prevent false diffs.
-- **fix_version** (List of String)
-- **labels** (List of String)
-- **priority** (String)
+- `alternative_description_field` (String)
+- `assignee` (String)
+- `attach_evidence_csv` (Boolean) - Defaults to `false`.
+- `components` (List of String)
+- `custom_fields` (String) Value should be wrapped in jsonencode() to prevent false diffs.
+- `fix_version` (List of String)
+- `labels` (List of String)
+- `priority` (String)
 
 
 <a id="nestedblock--jira_params--tls_config"></a>
@@ -373,10 +373,10 @@ Optional:
 
 Optional:
 
-- **allow_insecure_tls** (Boolean) Setting this to true will ignore any TLS validation errors on the server side certificate Warning: should only be used to validate that the action works regardless of TLS validation, if for example your server is presenting self signed or expired TLS certificate
+- `allow_insecure_tls` (Boolean) Setting this to true will ignore any TLS validation errors on the server side certificate Warning: should only be used to validate that the action works regardless of TLS validation, if for example your server is presenting self signed or expired TLS certificate
     - Defaults to `false`.
-- **client_certificate_and_private_key** (String, Sensitive) a PEM of the client certificate as well as the certificate private key
-- **server_ca** (String) a PEM of the certificate authority that your server presents (if you use self signed, or custom CA)
+- `client_certificate_and_private_key` (String, Sensitive) a PEM of the client certificate as well as the certificate private key
+- `server_ca` (String) a PEM of the certificate authority that your server presents (if you use self signed, or custom CA)
 
 
 <a id="nestedblock--jira_params--jira_authentication_basic"></a>
@@ -384,8 +384,8 @@ Optional:
 
 Required:
 
-- **password** (String, Sensitive)
-- **username** (String)
+- `password` (String, Sensitive)
+- `username` (String)
 
 
 <a id="nestedblock--jira_params--jira_authentication_token"></a>
@@ -393,7 +393,7 @@ Required:
 
 Required:
 
-- **token** (String, Sensitive)
+- `token` (String, Sensitive)
 
 
 
@@ -402,32 +402,32 @@ Required:
 
 Required:
 
-- **is_onprem** (Boolean) Is the Jira service is only accessible on-premise?
-- **project** (String)
-- **server_url** (String)
-- **tls_config** (Block Set, Min: 1, Max: 1) custom TLS config (custom server CA, client certificate etc..) (see [below for nested schema](#nestedblock--jira_transition_params--tls_config))
-- **transition_id** (String) Transition Id or Name
+- `is_onprem` (Boolean) Is the Jira service is only accessible on-premise?
+- `project` (String)
+- `server_url` (String)
+- `tls_config` (Block Set, Min: 1, Max: 1) custom TLS config (custom server CA, client certificate etc..) (see [below for nested schema](#nestedblock--jira_transition_params--tls_config))
+- `transition_id` (String) Transition Id or Name
 
 Optional:
 
-- **comment** (String)
-- **comment_on_transition** (Boolean) Comment on transition?
+- `comment` (String)
+- `comment_on_transition` (Boolean) Comment on transition?
     - Defaults to `false`.
-- **fields** (String) JSON representation of field updates. Value should be wrapped in jsonencode() to prevent false diffs.
-- **jira_authentication_basic** (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_transition_params--jira_authentication_basic))
-- **jira_authentication_token** (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_transition_params--jira_authentication_token))
-- **onprem_tunnel_domain** (String)
-- **onprem_tunnel_token** (String, Sensitive)
+- `fields` (String) JSON representation of field updates. Value should be wrapped in jsonencode() to prevent false diffs.
+- `jira_authentication_basic` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_transition_params--jira_authentication_basic))
+- `jira_authentication_token` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--jira_transition_params--jira_authentication_token))
+- `onprem_tunnel_domain` (String)
+- `onprem_tunnel_token` (String, Sensitive)
 
 <a id="nestedblock--jira_transition_params--tls_config"></a>
 ### Nested Schema for `jira_transition_params.tls_config`
 
 Optional:
 
-- **allow_insecure_tls** (Boolean) Setting this to true will ignore any TLS validation errors on the server side certificate Warning: should only be used to validate that the action works regardless of TLS validation, if for example your server is presenting self signed or expired TLS certificate
+- `allow_insecure_tls` (Boolean) Setting this to true will ignore any TLS validation errors on the server side certificate Warning: should only be used to validate that the action works regardless of TLS validation, if for example your server is presenting self signed or expired TLS certificate
     - Defaults to `false`.
-- **client_certificate_and_private_key** (String, Sensitive) a PEM of the client certificate as well as the certificate private key
-- **server_ca** (String) a PEM of the certificate authority that your server presents (if you use self signed, or custom CA)
+- `client_certificate_and_private_key` (String, Sensitive) a PEM of the client certificate as well as the certificate private key
+- `server_ca` (String) a PEM of the certificate authority that your server presents (if you use self signed, or custom CA)
 
 
 <a id="nestedblock--jira_transition_params--jira_authentication_basic"></a>
@@ -435,8 +435,8 @@ Optional:
 
 Required:
 
-- **password** (String, Sensitive)
-- **username** (String)
+- `password` (String, Sensitive)
+- `username` (String)
 
 
 <a id="nestedblock--jira_transition_params--jira_authentication_token"></a>
@@ -444,7 +444,7 @@ Required:
 
 Required:
 
-- **token** (String, Sensitive)
+- `token` (String, Sensitive)
 
 
 
@@ -453,30 +453,30 @@ Required:
 
 Required:
 
-- **base_url** (String)
-- **password** (String, Sensitive)
-- **ticket_fields** (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--servicenow_params--ticket_fields))
-- **user** (String) Email of a Jira user with permissions to create tickets
+- `base_url` (String)
+- `password` (String, Sensitive)
+- `ticket_fields` (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--servicenow_params--ticket_fields))
+- `user` (String) Email of a Jira user with permissions to create tickets
 
 Optional:
 
-- **client_id** (String)
-- **client_secret** (String, Sensitive)
+- `client_id` (String)
+- `client_secret` (String, Sensitive)
 
 <a id="nestedblock--servicenow_params--ticket_fields"></a>
 ### Nested Schema for `servicenow_params.ticket_fields`
 
 Required:
 
-- **description** (String) Ticket description
-- **summary** (String) Ticket summary
-- **table_name** (String) Table name to which new tickets will be added to, e.g: 'Incident'
+- `description` (String) Ticket description
+- `summary` (String) Ticket summary
+- `table_name` (String) Table name to which new tickets will be added to, e.g: 'Incident'
 
 Optional:
 
-- **attach_evidence_csv** (Boolean) Attache evidence.
+- `attach_evidence_csv` (Boolean) Attache evidence.
     - Defaults to `false`.
-- **custom_fields** (String) Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Value should be wrapped in jsonencode() to prevent false diffs.
+- `custom_fields` (String) Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Value should be wrapped in jsonencode() to prevent false diffs.
 
 
 
@@ -485,16 +485,16 @@ Optional:
 
 Required:
 
-- **base_url** (String)
-- **password** (String, Sensitive)
-- **table_name** (String)
-- **user** (String) Email of a Jira user with permissions to create tickets
+- `base_url` (String)
+- `password` (String, Sensitive)
+- `table_name` (String)
+- `user` (String) Email of a Jira user with permissions to create tickets
 
 Optional:
 
-- **client_id** (String)
-- **client_secret** (String, Sensitive)
-- **fields** (String) Value should be wrapped in jsonencode() to prevent false diffs.
+- `client_id` (String)
+- `client_secret` (String, Sensitive)
+- `fields` (String) Value should be wrapped in jsonencode() to prevent false diffs.
 
 
 <a id="nestedblock--slack_params"></a>
@@ -502,12 +502,12 @@ Optional:
 
 Required:
 
-- **url** (String) slack url in the format: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX ; see https://api.slack.com/messaging/webhooks
+- `url` (String) slack url in the format: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX ; see https://api.slack.com/messaging/webhooks
 
 Optional:
 
-- **channel** (String) The slack webhook has default channel, you can specify a different channel here #your-public-channel, or a specific user with @ e.g: @myself
-- **note** (String) This is the message body that will be sent to the slack channel it is a template that will be resolved with the following parameters: TBD, the format is Mustache
+- `channel` (String) The slack webhook has default channel, you can specify a different channel here #your-public-channel, or a specific user with @ e.g: @myself
+- `note` (String) This is the message body that will be sent to the slack channel it is a template that will be resolved with the following parameters: TBD, the format is Mustache
 
 
 <a id="nestedblock--webhook_params"></a>
@@ -515,14 +515,14 @@ Optional:
 
 Required:
 
-- **body** (String)
-- **url** (String)
+- `body` (String)
+- `url` (String)
 
 Optional:
 
-- **auth_password** (String, Sensitive)
-- **auth_token** (String, Sensitive) For auth bearer specify token, do not specify username/password
-- **auth_username** (String) For basic authorization specify username and password, do NOT specify authToken
-- **client_certificate** (String) optional client cert
+- `auth_password` (String, Sensitive)
+- `auth_token` (String, Sensitive) For auth bearer specify token, do not specify username/password
+- `auth_username` (String) For basic authorization specify username and password, do NOT specify authToken
+- `client_certificate` (String) optional client cert
 
 

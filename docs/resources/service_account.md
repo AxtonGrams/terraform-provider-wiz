@@ -26,8 +26,8 @@ resource "wiz_service_account" "project_reader" {
 
 ### Required
 
-- **name** (String)
-- **scopes** (List of String) Scopes.
+- `name` (String)
+- `scopes` (List of String) Scopes.
     - Allowed values: 
         - admin:all
         - admin:audit
@@ -136,16 +136,16 @@ resource "wiz_service_account" "project_reader" {
 
 ### Optional
 
-- **assigned_projects** (List of String)
-- **recreate_if_rotated** (Boolean) Recreate the resource if rotated outside Terraform? This can be used to ensure the state contains valid authentication information. This option should be disabled if external tools are used to manage the credentials for this service account.
+- `assigned_projects` (List of String)
+- `recreate_if_rotated` (Boolean) Recreate the resource if rotated outside Terraform? This can be used to ensure the state contains valid authentication information. This option should be disabled if external tools are used to manage the credentials for this service account.
     - Defaults to `false`.
 
 ### Read-Only
 
-- **client_id** (String)
-- **client_secret** (String)
-- **created_at** (String)
-- **id** (String) Wiz internal identifier.
-- **last_rotated_at** (String) If a change is detected with this value, the service account will be recreated to ensure a valid secret is stored in Terraform state.
+- `client_id` (String)
+- `client_secret` (String)
+- `created_at` (String)
+- `id` (String) Wiz internal identifier.
+- `last_rotated_at` (String) If a change is detected with this value, the service account will be recreated to ensure a valid secret is stored in Terraform state.
 
 

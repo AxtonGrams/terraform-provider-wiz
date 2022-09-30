@@ -58,11 +58,11 @@ resource "wiz_control" "test" {
 
 ### Required
 
-- **name** (String) Name of the Control.
-- **query** (String) The query that the control runs.
-- **scope_query** (String) The query that represents the control's scope.
-- **security_sub_categories** (List of String) List of security sub-categories IDs. If unsure, use 'wsct-id-8', which is '1 Custom Controls'.
-- **severity** (String) Severity that will be set for this control.
+- `name` (String) Name of the Control.
+- `query` (String) The query that the control runs.
+- `scope_query` (String) The query that represents the control's scope.
+- `security_sub_categories` (List of String) List of security sub-categories IDs. If unsure, use 'wsct-id-8', which is '1 Custom Controls'.
+- `severity` (String) Severity that will be set for this control.
     - Allowed values: 
         - INFORMATIONAL
         - LOW
@@ -72,15 +72,15 @@ resource "wiz_control" "test" {
 
 ### Optional
 
-- **description** (String) Description of the Control.
-- **enabled** (Boolean) Whether to enable the Control.
+- `description` (String) Description of the Control.
+- `enabled` (Boolean) Whether to enable the Control.
     - Defaults to `true`.
-- **project_id** (String) Project scope of the control. Use '*' for all projects.
+- `project_id` (String) Project scope of the control. Use '*' for all projects.
     - Defaults to `*`.
-- **resolution_recommendation** (String) Guidance on how the user should address an issue that was created by this control.
+- `resolution_recommendation` (String) Guidance on how the user should address an issue that was created by this control.
 
 ### Read-Only
 
-- **id** (String) Internal identifier for the Control
+- `id` (String) Internal identifier for the Control
 
 

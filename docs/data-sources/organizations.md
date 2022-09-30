@@ -25,27 +25,27 @@ data "wiz_organizations" "root" {
 
 ### Required
 
-- **search** (String) Organization search string. Used to search all organization attributes.
+- `search` (String) Organization search string. Used to search all organization attributes.
 
 ### Optional
 
-- **first** (Number) How many matches to return.
+- `first` (Number) How many matches to return.
     - Defaults to `500`.
 
 ### Read-Only
 
-- **id** (String) Unique identifier for the search.  This is a sha1 hash of the search string. Changing the search string on this data source will result in a new data source state entry
-- **organizations** (Set of Object) (see [below for nested schema](#nestedatt--organizations))
+- `id` (String) Unique identifier for the search.  This is a sha1 hash of the search string. Changing the search string on this data source will result in a new data source state entry
+- `organizations` (Set of Object) (see [below for nested schema](#nestedatt--organizations))
 
 <a id="nestedatt--organizations"></a>
 ### Nested Schema for `organizations`
 
 Read-Only:
 
-- **cloud_provider** (String)
-- **external_id** (String)
-- **id** (String)
-- **name** (String)
-- **path** (String)
+- `cloud_provider` (String)
+- `external_id` (String)
+- `id` (String)
+- `name` (String)
+- `path` (String)
 
 
