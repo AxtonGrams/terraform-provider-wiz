@@ -238,14 +238,14 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"http_client_retry_wait_min": {
 					Type:        schema.TypeInt,
 					Optional:    true,
-					Default:     1000000000,
-					Description: "Minimum time to wait before retrying, in nanoseconds.",
+					Default:     1,
+					Description: "Minimum time to wait before retrying, in seconds.",
 				},
 				"http_client_retry_wait_max": {
 					Type:        schema.TypeInt,
 					Optional:    true,
-					Default:     10000000000,
-					Description: "Maximum time to wait before retrying, in nanoseconds.",
+					Default:     10,
+					Description: "Maximum time to wait before retrying, in seconds.",
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{

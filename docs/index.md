@@ -43,10 +43,10 @@ provider "wiz" {
 - `ca_chain` (String) The CA chains to use when communicating with Wiz. If a proxy performs TLS interception/inspection, this will be the CA chain for the certificate used by the proxy.
 - `http_client_retry_max` (Number) Maximum retry attempts.
     - Defaults to `10`.
-- `http_client_retry_wait_max` (Number) Maximum time to wait before retrying, in nanoseconds.
-    - Defaults to `10000000000`.
-- `http_client_retry_wait_min` (Number) Minimum time to wait before retrying, in nanoseconds.
-    - Defaults to `1000000000`.
+- `http_client_retry_wait_max` (Number) Maximum time to wait before retrying, in seconds.
+    - Defaults to `10`.
+- `http_client_retry_wait_min` (Number) Minimum time to wait before retrying, in seconds.
+    - Defaults to `1`.
 - `proxy` (Boolean) Use an http proxy server?
 - `proxy_server` (String) Proxy server address.  Syntax: http[s]://[host]:[port]
 - `wiz_auth_audience` (String) Set this to 'beyond-api'.

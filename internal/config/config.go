@@ -80,8 +80,8 @@ func GetHTTPClient(ctx context.Context, settings *Settings) *http.Client {
 
 	// override with the trusted certificate authorities
 	client.HTTPClient.Transport = transport
-	client.RetryWaitMin = time.Duration(settings.HTTPClientRetryWaitMin)
-	client.RetryWaitMax = time.Duration(settings.HTTPClientRetryWaitMax)
+	client.RetryWaitMin = time.Duration(settings.HTTPClientRetryWaitMin) * 1000000000
+	client.RetryWaitMax = time.Duration(settings.HTTPClientRetryWaitMax) * 1000000000
 	client.RetryMax = settings.HTTPClientRetryMax
 
 	return client.StandardClient()
