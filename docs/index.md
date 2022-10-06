@@ -4,7 +4,7 @@ description: |-
   Terraform provider to manage Wiz resources
 ---
 
-# 
+# terraform-provider-wiz
 
 The Wiz Terraform provider is designed to work with [Wiz](https://app.wiz.io/). 
 
