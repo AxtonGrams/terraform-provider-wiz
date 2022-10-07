@@ -1641,31 +1641,31 @@ type UpdateControlPayload struct {
 
 // UpdateControlsInput struct
 type UpdateControlsInput struct {
-	IDS                           []string            `json:"ids,omitempty"`
+	IDS                           []string             `json:"ids,omitempty"`
 	Filters                       *ControlFilters      `json:"filters,omitempty"`
 	Patch                         *UpdateControlsPatch `json:"patch,omitempty"`
-	SecuritySubCategoriesToAdd    []string            `json:"securitySubCategoriesToAdd,omitempty"`
-	SecuritySubCategoriesToRemove []string            `json:"securitySubCategoriesToRemove,omitempty"`
+	SecuritySubCategoriesToAdd    []string             `json:"securitySubCategoriesToAdd,omitempty"`
+	SecuritySubCategoriesToRemove []string             `json:"securitySubCategoriesToRemove,omitempty"`
 }
 
 // ControlFilters struct
 type ControlFilters struct {
-	ID                  []string     `json:"id,omitempty"`
-	Search              string       `json:"search,omitempty"`
-	Type                []string     `json:"type,omitempty"` // enum ControlType
-	Project             []string     `json:"project,omitempty"`
-	CreatedBy           string       `json:"createdBy,omitempty"` // enum ControlCreatorType
-	SecurityFramework   []string     `json:"securityFramework,omitempty"`
-	SecuritySubCategory []string     `json:"securitySubCategory,omitempty"`
-	SecurityCategory    []string     `json:"securityCategory,omitempty"`
-	FrameworkCategory   []string     `json:"frameworkCategory,omitempty"`
-	Tag                 string       `json:"tag,omitempty"`
-	EntityType          string       `json:"entityType,omitempty"` // scalar
-	Severity            string       `json:"severity,omitempty"`   // enum Severity
+	ID                  []string      `json:"id,omitempty"`
+	Search              string        `json:"search,omitempty"`
+	Type                []string      `json:"type,omitempty"` // enum ControlType
+	Project             []string      `json:"project,omitempty"`
+	CreatedBy           string        `json:"createdBy,omitempty"` // enum ControlCreatorType
+	SecurityFramework   []string      `json:"securityFramework,omitempty"`
+	SecuritySubCategory []string      `json:"securitySubCategory,omitempty"`
+	SecurityCategory    []string      `json:"securityCategory,omitempty"`
+	FrameworkCategory   []string      `json:"frameworkCategory,omitempty"`
+	Tag                 string        `json:"tag,omitempty"`
+	EntityType          string        `json:"entityType,omitempty"` // scalar
+	Severity            string        `json:"severity,omitempty"`   // enum Severity
 	WithIssues          *IssueFilters `json:"withIssues,omitempty"`
-	Enabled             *bool        `json:"enabled,omitempty"`
-	RiskEqualsAny       []string     `json:"riskEqualsAny,omitempty"`
-	RiskEqualsAll       []string     `json:"riskEqualsAll,omitempty"`
+	Enabled             *bool         `json:"enabled,omitempty"`
+	RiskEqualsAny       []string      `json:"riskEqualsAny,omitempty"`
+	RiskEqualsAll       []string      `json:"riskEqualsAll,omitempty"`
 }
 
 // IssueFilters struct

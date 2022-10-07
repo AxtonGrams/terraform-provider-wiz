@@ -96,7 +96,7 @@ type ReadSecuritySubCategoryPayload struct {
 
 // UpdateControls struct
 type UpdateControls struct {
-        UpdateControls vendor.UpdateControlsPayload `json:"updateControls"`
+	UpdateControls vendor.UpdateControlsPayload `json:"updateControls"`
 }
 
 func resourceWizSecuritySubCategoryAssociationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -209,7 +209,7 @@ func resourceWizSecuritySubCategoryAssociationCreate(ctx context.Context, d *sch
 			mvars.SecuritySubCategoriesToAdd = missing
 
 			// print the input variables
-			tflog.Debug(ctx, fmt.Sprintf("Updates: %S", utils.PrettyPrint(mvars)))
+			tflog.Debug(ctx, fmt.Sprintf("Updates: %s", utils.PrettyPrint(mvars)))
 
 			// process the request
 			mdata := &vendor.UpdateControlsPayload{}
