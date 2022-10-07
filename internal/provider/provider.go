@@ -21,7 +21,7 @@ func New(version string) func() *schema.Provider {
 				"wiz_url": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "Wiz api endpoint.  This varies for each Wiz deployment.  See https://docs.wiz.io/wiz-docs/docs/using-the-wiz-api#the-graphql-endpoint",
+					Description: "Wiz api endpoint.  This varies for each Wiz deployment.  See https://docs.wiz.io/wiz-docs/docs/using-the-wiz-api#the-graphql-endpoint. (default: none, environment variable: WIZ_URL)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_URL",
 						nil,
@@ -33,7 +33,7 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_url": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "The authentication endpoint.",
+					Description: "The authentication endpoint. (default: https://auth.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_URL",
 						"https://auth.wiz.io/oauth/token",
@@ -45,7 +45,7 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_grant_type": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "Set this to 'client_credentials'.",
+					Description: "Set this to 'client_credentials'. (default: client_credentials, environment variable: WIZ_AUTH_GRANT_TYPE)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_GRANT_TYPE",
 						"client_credentials",
@@ -54,7 +54,7 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_client_id": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "Your application's Client ID. You can find this value on the Settings > Service Accounts page.",
+					Description: "Your application's Client ID. You can find this value on the Settings > Service Accounts page. (default: none, environment variable: WIZ_AUTH_CLIENT_ID)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_CLIENT_ID",
 						nil,
@@ -63,7 +63,7 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_client_secret": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "Your application's Client Secret. You can find this value on the Settings > Service Accounts page.",
+					Description: "Your application's Client Secret. You can find this value on the Settings > Service Accounts page. (default: none, environment variable: WIZ_AUTH_CLIENT_SECRET)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_CLIENT_SECRET",
 						nil,
@@ -73,16 +73,16 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_audience": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "Set this to 'beyond-api'.",
+					Description: "Set this to 'beyond-api' if using auth0 and 'wiz-api' if using Cognito. (default: wiz-api, environment variable: WIZ_AUTH_AUDIENCE)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_AUDIENCE",
-						"beyond-api",
+						"wiz-api",
 					),
 				},
 				"proxy": {
 					Type:        schema.TypeBool,
 					Optional:    true,
-					Description: "Use an http proxy server?",
+					Description: "Use an http proxy server? (default: false, environment variable: PROXY)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"PROXY",
 						false,
@@ -91,7 +91,7 @@ func New(version string) func() *schema.Provider {
 				"proxy_server": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "Proxy server address.  Syntax: http[s]://[host]:[port]",
+					Description: "Proxy server address.  Syntax: http[s]://[host]:[port]. (default: none, environment variable: PROXY_SERVER)",
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.IsURLWithHTTPorHTTPS,
 					),
@@ -103,7 +103,7 @@ func New(version string) func() *schema.Provider {
 				"ca_chain": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "The CA chains to use when communicating with Wiz. If a proxy performs TLS interception/inspection, this will be the CA chain for the certificate used by the proxy.",
+					Description: "Base64 encoded PEM of the CA chain used when communicating with Wiz. If a proxy performs TLS interception/inspection, this will be the CA chain for the certificate used by the proxy. The default includes the CAs known to be used by Wiz: `C=IE, O=Baltimore, OU=CyberTrust, CN=Baltimore CyberTrust Root`, `C=US, O=Cloudflare, Inc., CN=Cloudflare Inc ECC CA-3`, `C=US, ST=Arizona, L=Scottsdale, O=Starfield Technologies, Inc., CN=Starfield Services Root Certificate Authority - G2`, `C=US, O=Amazon, CN=Amazon Root CA 1`, `C=US, O=Amazon, OU=Server CA 1B, CN=Amazon`. (environment variable: CA_CHAIN) ",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"CA_CHAIN",
 						`-----BEGIN CERTIFICATE-----
