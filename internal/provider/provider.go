@@ -20,7 +20,7 @@ func New(version string) func() *schema.Provider {
 			Schema: map[string]*schema.Schema{
 				"wiz_url": {
 					Type:        schema.TypeString,
-					Optional:    true,
+					Required:    true,
 					Description: "Wiz api endpoint.  This varies for each Wiz deployment.  See https://docs.wiz.io/wiz-docs/docs/using-the-wiz-api#the-graphql-endpoint. (default: none, environment variable: WIZ_URL)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_URL",
@@ -53,7 +53,7 @@ func New(version string) func() *schema.Provider {
 				},
 				"wiz_auth_client_id": {
 					Type:        schema.TypeString,
-					Optional:    true,
+					Required:    true,
 					Description: "Your application's Client ID. You can find this value on the Settings > Service Accounts page. (default: none, environment variable: WIZ_AUTH_CLIENT_ID)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_CLIENT_ID",
@@ -62,7 +62,7 @@ func New(version string) func() *schema.Provider {
 				},
 				"wiz_auth_client_secret": {
 					Type:        schema.TypeString,
-					Optional:    true,
+					Required:    true,
 					Description: "Your application's Client Secret. You can find this value on the Settings > Service Accounts page. (default: none, environment variable: WIZ_AUTH_CLIENT_SECRET)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_CLIENT_SECRET",
