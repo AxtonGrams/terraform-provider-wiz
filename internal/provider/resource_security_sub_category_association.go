@@ -89,14 +89,9 @@ func resourceWizSecuritySubCategoryAssociation() *schema.Resource {
 	}
 }
 
-// ReadSecurityFrameworkPayload struct -- updates
+// ReadSecuritySubCategoryPayload struct -- updates
 type ReadSecuritySubCategoryPayload struct {
 	SecuritySubCategory vendor.SecuritySubCategory `json:"securitySubCategory"`
-}
-
-// UpdateControls struct
-type UpdateControls struct {
-	UpdateControls vendor.UpdateControlsPayload `json:"updateControls"`
 }
 
 func resourceWizSecuritySubCategoryAssociationCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {

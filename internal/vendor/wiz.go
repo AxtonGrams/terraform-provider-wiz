@@ -1676,7 +1676,7 @@ type IssueFilters struct {
 	SecuritySubCategory []string           `json:"securitySubCategory,omitempty"`
 	SecurityCategory    []string           `json:"securityCategory,omitempty"`
 	FrameworkCategory   []string           `json:"frameworkCategory,omitempty"`
-	stackLayer          []string           `json:"stackLayer,omitempty"` // enum TechnologyStackLayer
+	StackLayer          []string           `json:"stackLayer,omitempty"` // enum TechnologyStackLayer
 	Project             []string           `json:"project,omitempty"`
 	Severity            string             `json:"severity,omitempty"` // enum Severity
 	Status              []string           `json:"status,omitempty"`   // enum IssueStatus
@@ -1697,8 +1697,8 @@ type IssueFilters struct {
 
 // IssueDateFilter struct
 type IssueDateFilter struct {
-	before string `json:"before,omitempty"`
-	after  string `json:"after,omitempty"`
+	Before string `json:"before,omitempty"`
+	After  string `json:"after,omitempty"`
 }
 
 // IssueEntityFilters struct
@@ -1708,8 +1708,8 @@ type IssueEntityFilters struct {
 	Type            string               `json:"type,omitempty"`   // scalar GraphEntityTypeValue
 	Status          []string             `json:"status,omitempty"` // enum CloudResourceStatus
 	Region          []string             `json:"region,omitempty"`
-	SubscriptionId  []string             `json:"subscriptionId,omitempty"`
-	ResourceGroupId []string             `json:"resourceGroupId,omitempty"`
+	SubscriptionID  []string             `json:"subscriptionId,omitempty"`
+	ResourceGroupID []string             `json:"resourceGroupId,omitempty"`
 	NativeType      []string             `json:"nativeType,omitempty"`
 	CloudPlatform   []string             `json:"cloudPlatform,omitempty"` // enum CloudPlatform
 	Tag             IssueEntityTagFilter `json:"tag,omitempty"`

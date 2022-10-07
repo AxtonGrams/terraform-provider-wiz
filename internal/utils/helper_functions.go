@@ -57,7 +57,7 @@ func Missing(a, b []string) []string {
 	return diffs
 }
 
-// Returns the unique values in a slice of strings
+// Unique returns the unique values in a slice of strings
 func Unique(s []string) []string {
 	inResult := make(map[string]bool)
 	var result []string
