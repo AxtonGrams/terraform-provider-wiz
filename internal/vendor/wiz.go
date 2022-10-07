@@ -1638,3 +1638,171 @@ type UpdateControlPatch struct {
 type UpdateControlPayload struct {
 	Control Control `json:"control,omitempty"`
 }
+
+// UpdateControlsInput struct
+type UpdateControlsInput struct {
+	IDS                           []string            `json:"ids,omitempty"`
+	Filters                       *ControlFilters      `json:"filters,omitempty"`
+	Patch                         *UpdateControlsPatch `json:"patch,omitempty"`
+	SecuritySubCategoriesToAdd    []string            `json:"securitySubCategoriesToAdd,omitempty"`
+	SecuritySubCategoriesToRemove []string            `json:"securitySubCategoriesToRemove,omitempty"`
+}
+
+// ControlFilters struct
+type ControlFilters struct {
+	ID                  []string     `json:"id,omitempty"`
+	Search              string       `json:"search,omitempty"`
+	Type                []string     `json:"type,omitempty"` // enum ControlType
+	Project             []string     `json:"project,omitempty"`
+	CreatedBy           string       `json:"createdBy,omitempty"` // enum ControlCreatorType
+	SecurityFramework   []string     `json:"securityFramework,omitempty"`
+	SecuritySubCategory []string     `json:"securitySubCategory,omitempty"`
+	SecurityCategory    []string     `json:"securityCategory,omitempty"`
+	FrameworkCategory   []string     `json:"frameworkCategory,omitempty"`
+	Tag                 string       `json:"tag,omitempty"`
+	EntityType          string       `json:"entityType,omitempty"` // scalar
+	Severity            string       `json:"severity,omitempty"`   // enum Severity
+	WithIssues          *IssueFilters `json:"withIssues,omitempty"`
+	Enabled             *bool        `json:"enabled,omitempty"`
+	RiskEqualsAny       []string     `json:"riskEqualsAny,omitempty"`
+	RiskEqualsAll       []string     `json:"riskEqualsAll,omitempty"`
+}
+
+// IssueFilters struct
+type IssueFilters struct {
+	ID                  []string           `json:"id,omitempty"`
+	Search              string             `json:"search,omitempty"`
+	SecurityFramework   string             `json:"securityFramework,omitempty"`
+	SecuritySubCategory []string           `json:"securitySubCategory,omitempty"`
+	SecurityCategory    []string           `json:"securityCategory,omitempty"`
+	FrameworkCategory   []string           `json:"frameworkCategory,omitempty"`
+	stackLayer          []string           `json:"stackLayer,omitempty"` // enum TechnologyStackLayer
+	Project             []string           `json:"project,omitempty"`
+	Severity            string             `json:"severity,omitempty"` // enum Severity
+	Status              []string           `json:"status,omitempty"`   // enum IssueStatus
+	RelatedEntity       IssueEntityFilters `json:"relatedEntity,omitempty"`
+	SourceSecurityScan  string             `json:"sourceSecurityScan,omitempty"`
+	SourceControl       []string           `json:"sourceControl,omitempty"`
+	CreatedAt           IssueDateFilter    `json:"createdAt,omitempty"`
+	ResolvedAt          IssueDateFilter    `json:"resolvedAt,omitempty"`
+	ResolutionReason    []string           `json:"resolutionReason,omitempty"` // enum IssueResolutionReason
+	DueAt               IssueDateFilter    `json:"dueAt,omitempty"`
+	HasServiceTicket    *bool              `json:"hasServiceTicket,omitempty"`
+	HasNote             *bool              `json:"hasNote,omitempty"`
+	HasRemediation      *bool              `json:"hasRemediation,,omitempty"`
+	SourceControlType   []string           `json:"sourceControlType"` // enum ControlType
+	RiskEqualsAny       []string           `json:"riskEqualsAny,omitempty"`
+	RiskEqualsAll       []string           `json:"riskEqualsAll,omitempty"`
+}
+
+// IssueDateFilter struct
+type IssueDateFilter struct {
+	before string `json:"before,omitempty"`
+	after  string `json:"after,omitempty"`
+}
+
+// IssueEntityFilters struct
+type IssueEntityFilters struct {
+	ID              string               `json:"id,omitempty"`
+	IDS             []string             `json:"ids,omitempty"`
+	Type            string               `json:"type,omitempty"`   // scalar GraphEntityTypeValue
+	Status          []string             `json:"status,omitempty"` // enum CloudResourceStatus
+	Region          []string             `json:"region,omitempty"`
+	SubscriptionId  []string             `json:"subscriptionId,omitempty"`
+	ResourceGroupId []string             `json:"resourceGroupId,omitempty"`
+	NativeType      []string             `json:"nativeType,omitempty"`
+	CloudPlatform   []string             `json:"cloudPlatform,omitempty"` // enum CloudPlatform
+	Tag             IssueEntityTagFilter `json:"tag,omitempty"`
+}
+
+// IssueEntityTagFilter struct
+type IssueEntityTagFilter struct {
+	ContainsAll       []IssueEntityTag `json:"containsAll,omitempty"`
+	ContainsAny       []IssueEntityTag `json:"IssueEntityTag,omitempty"`
+	DoesNotContainAll []IssueEntityTag `json:"doesNotContainAll,omitempty"`
+	DoesNotContainAny []IssueEntityTag `json:"doesNotContainAny,omitempty"`
+}
+
+// IssueEntityTag struct
+type IssueEntityTag struct {
+	Key   string `json:"key"`
+	Value string `json:"value,omitempty"`
+}
+
+// UpdateControlsPatch struct
+type UpdateControlsPatch struct {
+	Severity              string   `json:"severity,omitempty"`
+	Enabled               *bool    `json:"enabled,omitempty"`
+	SecuritySubCategories []string `json:"securitySubCategories,omitempty"`
+}
+
+// ControlCreatorType enum
+var ControlCreatorType = []string{
+	"USER",
+	"BUILTIN",
+}
+
+// TechnologyStackLayer enum
+var TechnologyStackLayer = []string{
+	"APPLICATION_AND_DATA",
+	"CI_CD",
+	"SECURITY_AND_IDENTITY",
+	"COMPUTE_PLATFORMS",
+	"CODE",
+	"CLOUD_ENTITLEMENTS",
+}
+
+// IssueStatus enum
+var IssueStatus = []string{
+	"OPEN",
+	"IN_PROGRESS",
+	"RESOLVED",
+	"REJECTED",
+}
+
+// IssueResolutionReason enum
+var IssueResolutionReason = []string{
+	"OBJECT_DELETED",
+	"ISSUE_FIXED",
+	"CONTROL_CHANGED",
+	"CONTROL_DISABLED",
+	"FALSE_POSITIVE",
+	"EXCEPTION",
+	"WONT_FIX",
+}
+
+// CloudResourceStatus enum
+var CloudResourceStatus = []string{
+	"Active",
+	"Inactive",
+	"Error",
+}
+
+// CloudPlatform enum
+var CloudPlatform = []string{
+	"GCP",
+	"AWS",
+	"Azure",
+	"OCI",
+	"Alibaba",
+	"vSphere",
+	"AKS",
+	"EKS",
+	"GKE",
+	"Kubernetes",
+	"OpenShift",
+	"OKE",
+}
+
+// UpdateControlsPayload struct
+type UpdateControlsPayload struct {
+	Errors       []UpdateControlsError `json:"errors,omitempty"`
+	FailCount    int                   `json:"failCount"`
+	SuccessCount int                   `json:"successCount"`
+}
+
+// UpdateControlsError struct
+type UpdateControlsError struct {
+	Control Control `json:"control"`
+	Reason  string  `json:"reason,omitempty"`
+}
