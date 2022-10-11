@@ -55,6 +55,74 @@ func resourceWizControlAssociations() *schema.Resource {
 	}
 }
 
+func validateControlExists(ctx context.Context, m interface{}, controlIDs []string) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "validateControlExists called...")
+
+	query := `query Control (
+	  $id: ID!
+	) {
+	  control(
+	    id: $id
+	  ) {
+	    id
+	  }
+	}`
+
+	for _, b := range controlIDs {
+		vars := &internal.QueryVariables{}
+		vars.ID = b
+
+		// process the request
+		data := &ReadControlPayload{}
+		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "control", "read")
+
+		// handle any errors
+		if len(requestDiags) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Control not found: %s", b))
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error when creating wiz_control_associations",
+				Detail:   fmt.Sprintf("Control not found: %s", b),
+			})
+		}
+	}
+	return diags
+}
+
+func validateSecuritySubCategoryExists(ctx context.Context, m interface{}, securitySubCategoryIDs []string) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "validateSecuritySubCategoryExists called...")
+
+	query := `query securitySubCategory  (
+	  $id: ID!
+	){
+	  securitySubCategory(
+	    id: $id
+	  ) {
+	    id
+	  }
+	}`
+
+	for _, b := range securitySubCategoryIDs {
+		vars := &internal.QueryVariables{}
+		vars.ID = b
+
+		// process the request
+		data := &ReadSecuritySubCategoryPayload{}
+		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "security_sub_category", "read")
+
+		// handle any errors
+		if len(requestDiags) > 0 {
+			tflog.Debug(ctx, fmt.Sprintf("Security sub-category not found: %s", b))
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error when creating control association",
+				Detail:   fmt.Sprintf("Security sub-category not found: %s", b),
+			})
+		}
+	}
+	return diags
+}
+
 // UpdateControls struct
 type UpdateControls struct {
 	UpdateControls vendor.UpdateControlsPayload `json:"updateControls"`
@@ -68,62 +136,15 @@ type ReadSecuritySubCategoryPayload struct {
 func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizControlAssociationsCreate called...")
 
-	// validate each control exists
-	queryControl := `query Control (
-	  $id: ID!
-	) {
-	  control(
-	    id: $id
-	  ) {
-	    id
-	  }
-	}`
+	// validate each control and security sub-category exists
+	controlDiags := validateControlExists(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
+	diags = append(diags, controlDiags...)
 
-	for _, b := range utils.ConvertListToString(d.Get("control_ids").([]interface{})) {
-		qcvars := &internal.QueryVariables{}
-		qcvars.ID = b
-		// process the request
-		data := &ReadControlPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, qcvars, data, queryControl, "control", "read")
-		diags = append(diags, requestDiags...)
-		// handle any errors
-		if len(diags) > 0 {
-			tflog.Debug(ctx, fmt.Sprintf("Control not found: %s", b))
-			return append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error when creating control association",
-				Detail:   fmt.Sprintf("Control not found: %s", b),
-			})
-		}
-	}
+	securitySubCategoryDiags := validateSecuritySubCategoryExists(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
+	diags = append(diags, securitySubCategoryDiags...)
 
-	// validate each security sub-category exists
-	querySecuritySubCategories := `query securitySubCategory  (
-	  $id: ID!
-	){
-	  securitySubCategory(
-	    id: $id
-	  ) {
-	    id
-	  }
-	}`
-
-	for _, b := range utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})) {
-		qsvars := &internal.QueryVariables{}
-		qsvars.ID = b
-		// process the request
-		data := &ReadSecuritySubCategoryPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, qsvars, data, querySecuritySubCategories, "security_sub_category", "read")
-		diags = append(diags, requestDiags...)
-		// handle any errors
-		if len(diags) > 0 {
-			tflog.Debug(ctx, fmt.Sprintf("Security sub-category not found: %s", b))
-			return append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error when creating control association",
-				Detail:   fmt.Sprintf("Security sub-category not found: %s", b),
-			})
-		}
+	if len(diags) > 0 {
+		return diags
 	}
 
 	// generate an id for this resource
@@ -190,10 +211,6 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 	// set the common parameters
 	err := d.Set("details", d.Get("details").(string))
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("security_sub_category_id", d.Get("security_sub_category_id").(string))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
