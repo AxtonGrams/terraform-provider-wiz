@@ -23,6 +23,7 @@ Manage associations between security sub-categories and policies. This resource 
 ### Optional
 
 - `details` (String) Details of the association. This information is not used to manage resources but can serve as notes or documentation for the associations.
+    - Defaults to `undefined`.
 
 ### Read-Only
 

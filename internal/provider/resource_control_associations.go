@@ -27,6 +27,7 @@ func resourceWizControlAssociations() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Details of the association. This information is not used to manage resources but can serve as notes or documentation for the associations.",
 				Optional:    true,
+				Default:     "undefined",
 			},
 			"control_ids": {
 				Type:        schema.TypeList,
@@ -55,8 +56,8 @@ func resourceWizControlAssociations() *schema.Resource {
 	}
 }
 
-func validateControlExists(ctx context.Context, m interface{}, controlIDs []string) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "validateControlExists called...")
+func validateControlsExist(ctx context.Context, m interface{}, controlIDs []string) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "validateControlsExist called...")
 
 	query := `query Control (
 	  $id: ID!
@@ -89,8 +90,8 @@ func validateControlExists(ctx context.Context, m interface{}, controlIDs []stri
 	return diags
 }
 
-func validateSecuritySubCategoryExists(ctx context.Context, m interface{}, securitySubCategoryIDs []string) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "validateSecuritySubCategoryExists called...")
+func validateSecuritySubCategoriesExist(ctx context.Context, m interface{}, securitySubCategoryIDs []string) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "validateSecuritySubCategoriesExist called...")
 
 	query := `query securitySubCategory  (
 	  $id: ID!
@@ -137,10 +138,12 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 	tflog.Info(ctx, "resourceWizControlAssociationsCreate called...")
 
 	// validate each control and security sub-category exists
-	controlDiags := validateControlExists(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
+	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate controls: %s", utils.ConvertListToString(d.Get("control_ids").([]interface{}))))
+	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
 	diags = append(diags, controlDiags...)
 
-	securitySubCategoryDiags := validateSecuritySubCategoryExists(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
+	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate sub categories: %s", utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))))
+	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
 	diags = append(diags, securitySubCategoryDiags...)
 
 	if len(diags) > 0 {
@@ -181,7 +184,7 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 
 	// process the request
 	mdata := &UpdateControls{}
-	mrequestDiags := client.ProcessRequest(ctx, m, mvars, mdata, mutation, "security_sub_category_association", "update")
+	mrequestDiags := client.ProcessRequest(ctx, m, mvars, mdata, mutation, "control_association", "create")
 	diags = append(diags, mrequestDiags...)
 	if len(diags) > 0 {
 		return diags
@@ -197,8 +200,7 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 		})
 	}
 
-	//return resourceWizControlRead(ctx, d, m)
-	return diags
+	return resourceWizControlAssociationsRead(ctx, d, m)
 }
 
 func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -209,37 +211,49 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 		return nil
 	}
 
-	// set the common parameters
+	// validate each control and security sub-category exists
+	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate controls: %s", utils.ConvertListToString(d.Get("control_ids").([]interface{}))))
+	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
+	diags = append(diags, controlDiags...)
+
+	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate sub categories: %s", utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))))
+	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
+	diags = append(diags, securitySubCategoryDiags...)
+
+	if len(diags) > 0 {
+		return diags
+	}
+
+	// set the parameters that are not stored in state
 	err := d.Set("details", d.Get("details").(string))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
 	// read current sub-categories for each control
-	// if a sub-category is missing from a control, taint the resource
+	// if a sub-category is missing from a control, taint the resource by removing the control from the state
 	tflog.Debug(ctx, fmt.Sprintf("Control IDs: %T %s", d.Get("control_ids"), utils.PrettyPrint(d.Get("control_ids"))))
 
 	// define the graphql query
 	query := `query Control (
-                  $id: ID!
-                ){
-                  control(
-                    id: $id
-                  ) {
-                    id
-                    name
-                    description
-                    enabled
-                    securitySubCategories {
-                      id
-                      title
-                    }
-                  }
-                }`
+          $id: ID!
+        ){
+          control(
+            id: $id
+          ) {
+            id
+            securitySubCategories {
+              id
+            }
+          }
+        }`
 
-	// iterate over each control id
-	for a, b := range d.Get("control_ids").([]interface{}) {
-		tflog.Debug(ctx, fmt.Sprintf("a: %T %d", a, a))
+	// declare a variable to store the control ids that have the desired security sub-categories
+	var cleanControls = make([]string, 0, 0)
+
+	// iterate over each control
+	tflog.Debug(ctx, fmt.Sprintf("control_ids for read: %s", d.Get("control_ids").([]interface{})))
+	for _, b := range d.Get("control_ids").([]interface{}) {
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, b))
 
 		// populate the graphql variables
@@ -248,17 +262,16 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 		// process the request
 		data := &ReadControlPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "security_sub_category_association", "read")
+		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "conrol_association", "read")
 		diags = append(diags, requestDiags...)
 		if len(diags) > 0 {
 			tflog.Error(ctx, "Error from API call, resource not found.")
 			if data.Control.ID == "" {
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Error,
-					Summary:  "Control not found",
+					Summary:  "Error reading control",
 					Detail:   fmt.Sprintf("Control ID: %s", b.(string)),
 				})
-
 				return diags
 			}
 		}
@@ -270,6 +283,20 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 			tflog.Debug(ctx, fmt.Sprintf("f: %T %s", f, utils.PrettyPrint(f)))
 			sscids = append(sscids, f.ID)
 		}
+
+		// compare the security sub-categories read with those defined in the hcl
+		missing := utils.Missing(sscids, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
+		tflog.Debug(ctx, fmt.Sprintf("Missing security sub-categories for control %s: %s", b.(string), missing))
+		if len(missing) == 0 {
+			cleanControls = append(cleanControls, b.(string))
+		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Clean controls from read operation: %T %s", cleanControls, utils.PrettyPrint(cleanControls)))
+
+	err = d.Set("control_ids", cleanControls)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
 	return diags
@@ -278,20 +305,66 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 func resourceWizControlAssociationsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizControlAssociationsUpdate called...")
 
-	// read current security sub-categories for the control
-	// determine which security sub-categories are defined in the tf resource but not in wiz
-	// compute a superset of security sub-categories
-	// issue the update
+	// validate each control and security sub-category exists
+	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
+	diags = append(diags, controlDiags...)
+
+	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
+	diags = append(diags, securitySubCategoryDiags...)
+
+	if len(diags) > 0 {
+		return diags
+	}
+
+	// define the graphql query
+	mutation := `mutation UpdateControls(
+	  $input: UpdateControlsInput!
+	) {
+	  updateControls(
+	    input: $input
+	  ) {
+	    successCount
+	    failCount
+	    errors {
+	      reason
+	      control {
+		id
+	      }
+	    }
+	  }
+	}`
+
+	// populate the graphql variables
+	mvars := &vendor.UpdateControlsInput{}
+	mvars.IDS = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
+	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
+
+	// print the input variables
+	tflog.Debug(ctx, fmt.Sprintf("UpdateControlsInput: %s", utils.PrettyPrint(mvars)))
+
+	// process the request
+	mdata := &UpdateControls{}
+	mrequestDiags := client.ProcessRequest(ctx, m, mvars, mdata, mutation, "control_association", "update")
+	diags = append(diags, mrequestDiags...)
+	if len(diags) > 0 {
+		return diags
+	}
+
+	// error handling
+	if mdata.UpdateControls.FailCount > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)))
+		return append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Error during UpdateControls: %d", mdata.UpdateControls.FailCount),
+			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)),
+		})
+	}
 
 	return resourceWizControlAssociationsRead(ctx, d, m)
 }
 
 func resourceWizControlAssociationsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizControlAssociationsDelete called...")
-
-	// read current security sub-categories for the control
-	// strip all security sub-categories defined in the tf resource from the list
-	// issue the update
 
 	return diags
 }
