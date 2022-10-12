@@ -78,7 +78,6 @@ EOT
 - `description` (String) Detailed description for this rule. There is a defect in the API that makes this required; the description field cannot be nullified after one is defined, so we make it required.
 - `name` (String) Name of this rule, as appeared in the UI in the portal.
 - `remediation_instructions` (String) Steps to mitigate the issue that match this rule. If possible, include sample commands to execute in your cloud provider's console. Markdown formatting is supported.
-- `security_sub_categories` (Set of String) Associate this rule with security sub-categories to easily monitor your compliance. New Configuration Findings created by this rule will be tagged with the selected sub-categories. There is a defect in the API that makes this required; the security_sub_categories field cannot be nullified after one is defined, so we make it required.
 - `target_native_types` (Set of String) The identifier types of the resources targeted by this rule, as seen on the cloud provider service. e.g. 'ec2'
 
 ### Optional
@@ -103,6 +102,7 @@ EOT
 ### Read-Only
 
 - `id` (String) Wiz internal identifier.
+- `security_sub_categories` (Set of String) Associate this rule with security sub-categories to easily monitor your compliance. New Configuration Findings created by this rule will be tagged with the selected sub-categories. There is a defect in the API that makes this required; the security_sub_categories field cannot be nullified after one is defined, so we make it required.
 
 <a id="nestedblock--iac_matchers"></a>
 ### Nested Schema for `iac_matchers`

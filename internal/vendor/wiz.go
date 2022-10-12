@@ -1149,6 +1149,7 @@ type CloudConfigurationRule struct {
 	Builtin                 *bool                            `json:"builtin"`
 	CloudProvider           string                           `json:"cloudProvider,omitempty"` // enum CloudProvider
 	Control                 *Control                         `json:"control,omitempty"`
+	CreatedBy               *User                            `json:"createdBy,omitempty"`
 	Description             string                           `json:"description,omitempty"`
 	Enabled                 *bool                            `json:"enabled"`
 	FunctionAsControl       *bool                            `json:"functionAsControl"`
@@ -1441,7 +1442,10 @@ var CloudProvider = []string{
 	"AWS",
 	"Azure",
 	"OCI",
+	"Alibaba",
+	"vSphere",
 	"OpenShift",
+	"Kubernetes",
 }
 
 // Control struct -- updates
@@ -1641,7 +1645,7 @@ type UpdateControlPayload struct {
 
 // UpdateControlsInput struct
 type UpdateControlsInput struct {
-	IDS                           []string             `json:"ids,omitempty"`
+	IDs                           []string             `json:"ids,omitempty"`
 	Filters                       *ControlFilters      `json:"filters,omitempty"`
 	Patch                         *UpdateControlsPatch `json:"patch,omitempty"`
 	SecuritySubCategoriesToAdd    []string             `json:"securitySubCategoriesToAdd,omitempty"`
@@ -1704,7 +1708,7 @@ type IssueDateFilter struct {
 // IssueEntityFilters struct
 type IssueEntityFilters struct {
 	ID              string               `json:"id,omitempty"`
-	IDS             []string             `json:"ids,omitempty"`
+	IDs             []string             `json:"ids,omitempty"`
 	Type            string               `json:"type,omitempty"`   // scalar GraphEntityTypeValue
 	Status          []string             `json:"status,omitempty"` // enum CloudResourceStatus
 	Region          []string             `json:"region,omitempty"`
@@ -1805,4 +1809,80 @@ type UpdateControlsPayload struct {
 type UpdateControlsError struct {
 	Control Control `json:"control"`
 	Reason  string  `json:"reason,omitempty"`
+}
+
+// UpdateCloudConfigurationRulesInput struct
+type UpdateCloudConfigurationRulesInput struct {
+	IDs                           []string                            `json:"ids,omitempty"`
+	Filters                       *CloudConfigurationRuleFilters      `json:"filters,omitempty"`
+	Patch                         *UpdateCloudConfigurationRulesPatch `json:"patch,omitempty"`
+	SecuritySubCategoriesToAdd    []string                            `json:"securitySubCategoriesToAdd,omitempty"`
+	SecuritySubCategoriesToRemove []string                            `json:"securitySubCategoriesToRemove,omitempty"`
+}
+
+// CloudConfigurationRuleFilters struct
+type CloudConfigurationRuleFilters struct {
+	Search              string   `json:"search,omitempty"`
+	ScopeAccountIDs     []string `json:"scopeAccountIds,omitempty"`
+	CloudProvider       []string `json:"cloudProvider,omitempty"`     // enum CloudProvider
+	ServiceType         []string `json:"serviceType,omitempty"`       // enum CloudConfigurationRuleServiceType
+	SubjectEntityType   []string `json:"subjectEntityType,omitempty"` // enum GraphEntityTypeValue
+	Severity            string   `json:"severity,omitempty"`          // enum Severity
+	Enabled             *bool    `json:"enabled,omitempty"`
+	HasAutoRemediation  *bool    `json:"hasAutoRemediation,omitempty"`
+	HasRemediation      *bool    `json:"hasRemediation,omitempty"`
+	Benchmark           []string `json:"benchmark,omitempty"` // enum ConfigurationBenchmarkTypeId
+	SecurityFramework   []string `json:"securityFramework,omitempty"`
+	SecuritySubCategory []string `json:"securitySubCategory,omitempty"`
+	SecurityCategory    []string `json:"securityCategory,omitempty"`
+	FrameworkCategory   []string `json:"frameworkCategory,omitempty"`
+	TargetNativeType    []string `json:"targetNativeType,omitempty"`
+	CreatedBy           []string `json:"createdBy,omitempty"`
+	IsOPAPolicy         *bool    `json:"isOPAPolicy,omitempty"`
+	Project             []string `json:"project,omitempty"`
+	MatcherType         []string `json:"matcherType,omitempty"` // enum CloudConfigurationRuleMatcherTypeFilter
+	ID                  []string `json:"id,omitempty"`
+	FunctionAsControl   *bool    `json:"functionAsControl,omitempty"`
+	RiskEqualsAny       []string `json:"riskEqualsAny,omitempty"`
+	RiskEqualsAll       []string `json:"riskEqualsAll,omitempty"`
+}
+
+// UpdateCloudConfigurationRulesPatch struct
+type UpdateCloudConfigurationRulesPatch struct {
+	Severity              string   `json:"severity,omitempty"` // enum Severity
+	Enabled               *bool    `json:"enabled,omitempty"`
+	FunctionAsControl     *bool    `json:"functionAsControl,omitempty"`
+	SecuritySubCategories []string `json:"securitySubCategories,omitempty"`
+}
+
+// ConfigurationBenchmarkTypeID enum
+var ConfigurationBenchmarkTypeID = []string{
+	"AWS_CIS_1_2_0",
+	"AWS_CIS_1_3_0",
+	"AZURE_CIS_1_1_0",
+	"AZURE_CIS_1_3_0",
+	"GCP_CIS_1_1_0",
+}
+
+// CloudConfigurationRuleMatcherTypeFilter enum
+var CloudConfigurationRuleMatcherTypeFilter = []string{
+	"CLOUD",
+	"TERRAFORM",
+	"CLOUD_FORMATION",
+	"KUBERNETES",
+	"AZURE_RESOURCE_MANAGER",
+	"DOCKER_FILE",
+}
+
+// UpdateCloudConfigurationRulesPayload struct
+type UpdateCloudConfigurationRulesPayload struct {
+	Errors       []UpdateCloudConfigurationRulesError `json:"errors,omitempty"`
+	FailCount    int                                  `json:"failCount"`
+	SuccessCount int                                  `json:"successCount"`
+}
+
+// UpdateCloudConfigurationRulesError struct
+type UpdateCloudConfigurationRulesError struct {
+	Reason string                 `json:"reason,omitempty"`
+	Rule   CloudConfigurationRule `json:"rule"`
 }

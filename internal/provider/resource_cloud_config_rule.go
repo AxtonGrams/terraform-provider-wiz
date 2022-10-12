@@ -91,7 +91,7 @@ func resourceWizCloudConfigurationRule() *schema.Resource {
 			},
 			"security_sub_categories": {
 				Type:        schema.TypeSet,
-				Required:    true,
+				Computed:    true,
 				Description: "Associate this rule with security sub-categories to easily monitor your compliance. New Configuration Findings created by this rule will be tagged with the selected sub-categories. There is a defect in the API that makes this required; the security_sub_categories field cannot be nullified after one is defined, so we make it required.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -195,7 +195,6 @@ func resourceWizCloudConfigurationRuleCreate(ctx context.Context, d *schema.Reso
 	vars.IACMatchers = getIACMatchers(ctx, d)
 	vars.ScopeAccountIDs = utils.ConvertListToString(d.Get("scope_account_ids").(*schema.Set).List())
 	vars.FunctionAsControl = utils.ConvertBoolToPointer(d.Get("function_as_control").(bool))
-	vars.SecuritySubCategories = utils.ConvertListToString(d.Get("security_sub_categories").(*schema.Set).List())
 
 	// process the request
 	data := &CreateCloudConfigurationRule{}
@@ -407,13 +406,6 @@ func resourceWizCloudConfigurationRuleUpdate(ctx context.Context, d *schema.Reso
 			targetNativeTypes = append(targetNativeTypes, j.(string))
 		}
 		vars.Patch.TargetNativeTypes = targetNativeTypes
-	}
-	if d.HasChange("security_sub_categories") {
-		securitySubCategories := make([]string, 0)
-		for _, j := range d.Get("security_sub_categories").(*schema.Set).List() {
-			securitySubCategories = append(securitySubCategories, j.(string))
-		}
-		vars.Patch.SecuritySubCategories = securitySubCategories
 	}
 	// include all optional fields in the patch in the event they were nullified
 	vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))

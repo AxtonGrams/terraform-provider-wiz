@@ -138,11 +138,9 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 	tflog.Info(ctx, "resourceWizControlAssociationsCreate called...")
 
 	// validate each control and security sub-category exists
-	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate controls: %s", utils.ConvertListToString(d.Get("control_ids").([]interface{}))))
 	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
 	diags = append(diags, controlDiags...)
 
-	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate sub categories: %s", utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))))
 	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
 	diags = append(diags, securitySubCategoryDiags...)
 
@@ -176,7 +174,7 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 
 	// populate the graphql variables
 	mvars := &vendor.UpdateControlsInput{}
-	mvars.IDS = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
+	mvars.IDs = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
 	// print the input variables
@@ -195,7 +193,7 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)))
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error during UpdateControls: %d", mdata.UpdateControls.FailCount),
+			Summary:  fmt.Sprintf("Error during CreateControlAssociations: %d", mdata.UpdateControls.FailCount),
 			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)),
 		})
 	}
@@ -212,11 +210,9 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	// validate each control and security sub-category exists
-	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate controls: %s", utils.ConvertListToString(d.Get("control_ids").([]interface{}))))
 	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
 	diags = append(diags, controlDiags...)
 
-	tflog.Debug(ctx, fmt.Sprintf("resourceWizControlAssociationsCreate sub categories: %s", utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))))
 	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
 	diags = append(diags, securitySubCategoryDiags...)
 
@@ -262,7 +258,7 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 		// process the request
 		data := &ReadControlPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "conrol_association", "read")
+		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "control_association", "read")
 		diags = append(diags, requestDiags...)
 		if len(diags) > 0 {
 			tflog.Error(ctx, "Error from API call, resource not found.")
@@ -336,7 +332,7 @@ func resourceWizControlAssociationsUpdate(ctx context.Context, d *schema.Resourc
 
 	// populate the graphql variables
 	mvars := &vendor.UpdateControlsInput{}
-	mvars.IDS = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
+	mvars.IDs = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
 	// print the input variables
@@ -355,7 +351,7 @@ func resourceWizControlAssociationsUpdate(ctx context.Context, d *schema.Resourc
 		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)))
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error during UpdateControls: %d", mdata.UpdateControls.FailCount),
+			Summary:  fmt.Sprintf("Error during UpdateControlAssociations: %d", mdata.UpdateControls.FailCount),
 			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)),
 		})
 	}
@@ -365,6 +361,50 @@ func resourceWizControlAssociationsUpdate(ctx context.Context, d *schema.Resourc
 
 func resourceWizControlAssociationsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizControlAssociationsDelete called...")
+
+	// define the graphql query
+	mutation := `mutation UpdateControls(
+          $input: UpdateControlsInput!
+        ) {
+          updateControls(
+            input: $input
+          ) {
+            successCount
+            failCount
+            errors {
+              reason
+              control {
+                id
+              }
+            }
+          }
+        }`
+
+	// populate the graphql variables
+	mvars := &vendor.UpdateControlsInput{}
+	mvars.IDs = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
+	mvars.SecuritySubCategoriesToRemove = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
+
+	// print the input variables
+	tflog.Debug(ctx, fmt.Sprintf("UpdateControlsInput: %s", utils.PrettyPrint(mvars)))
+
+	// process the request
+	mdata := &UpdateControls{}
+	mrequestDiags := client.ProcessRequest(ctx, m, mvars, mdata, mutation, "control_association", "delete")
+	diags = append(diags, mrequestDiags...)
+	if len(diags) > 0 {
+		return diags
+	}
+
+	// error handling
+	if mdata.UpdateControls.FailCount > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)))
+		return append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Error during DeleteControlAssociations: %d", mdata.UpdateControls.FailCount),
+			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)),
+		})
+	}
 
 	return diags
 }
