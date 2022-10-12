@@ -81,6 +81,6 @@ resource "wiz_control" "test" {
 ### Read-Only
 
 - `id` (String) Internal identifier for the Control
-- `security_sub_categories` (List of String) List of security sub-categories IDs. If unsure, use 'wsct-id-8', which is '1 Custom Controls'.
+- `security_sub_categories` (List of String) List of security sub-categories IDs.
 
 

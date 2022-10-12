@@ -13,7 +13,7 @@ Manage associations between host configuration rules and security sub-categories
 ## Example Usage
 
 ```terraform
-ource "wiz_host_config_rule_associations" "test" {
+resource "wiz_host_config_rule_associations" "test" {
   security_sub_category_ids = [
     "2e5bc0d5-835b-4b4c-99cf-b1c6ace90a52",
     "708ec4a1-1a5c-4cb3-9c52-511229c5bb35",

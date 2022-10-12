@@ -51,7 +51,7 @@ func resourceWizControl() *schema.Resource {
 			"security_sub_categories": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Description: "List of security sub-categories IDs. If unsure, use 'wsct-id-8', which is '1 Custom Controls'.",
+				Description: "List of security sub-categories IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

@@ -11,7 +11,7 @@ type CreateHostConfigurationRule struct {
 
 // ReadHostConfigurationRulePayload struct -- updates
 type ReadHostConfigurationRulePayload struct {
-	HostConfigurationRule vendor.HostConfigurationRule `json:"cloudConfigurationRule"`
+	HostConfigurationRule vendor.HostConfigurationRule `json:"hostConfigurationRule"`
 }
 
 // UpdateHostConfigurationRule struct

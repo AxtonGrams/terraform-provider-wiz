@@ -65,6 +65,9 @@ func validateHostConfigRulesExist(ctx context.Context, m interface{}, hostConfig
 	    id: $id
 	  ) {
 	    id
+	    securitySubCategories {
+	      id
+	    }
 	  }
 	}`
 
@@ -118,7 +121,7 @@ func resourceWizHostConfigRuleAssociationsCreate(ctx context.Context, d *schema.
 	mutation := `mutation UpdateHostConfigurationRules(
 	  $input: UpdateHostConfigurationRulesInput!
 	) {
-	  UpdateHostConfigurationRules(
+	  updateHostConfigurationRules(
 	    input: $input
 	  ) {
 	    successCount
@@ -193,7 +196,7 @@ func resourceWizHostConfigRuleAssociationsRead(ctx context.Context, d *schema.Re
 	  }
 	}`
 
-	// declare a variable to store the control ids that have the desired security sub-categories
+	// declare a variable to store the host config rule ids that have the desired security sub-categories
 	var cleanHostConfigRules = make([]string, 0, 0)
 
 	// iterate over each host config rule
@@ -214,8 +217,8 @@ func resourceWizHostConfigRuleAssociationsRead(ctx context.Context, d *schema.Re
 			if data.HostConfigurationRule.ID == "" {
 				diags = append(diags, diag.Diagnostic{
 					Severity: diag.Error,
-					Summary:  "Error reading control",
-					Detail:   fmt.Sprintf("Control ID: %s", b.(string)),
+					Summary:  "Error reading host configuration rule",
+					Detail:   fmt.Sprintf("Host configuration rule ID: %s", b.(string)),
 				})
 				return diags
 			}
@@ -285,6 +288,7 @@ func resourceWizHostConfigRuleAssociationsDelete(ctx context.Context, d *schema.
 	mvars.SecuritySubCategoriesToRemove = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
 	// print the input variables
+	tflog.Debug(ctx, fmt.Sprintf("UpdateHostConfigurationRulesInput IDs: %s", d.Get("host_config_rule_ids").([]interface{})))
 	tflog.Debug(ctx, fmt.Sprintf("UpdateHostConfigurationRulesInput: %s", utils.PrettyPrint(mvars)))
 
 	// process the request
