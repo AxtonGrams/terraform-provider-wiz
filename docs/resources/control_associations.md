@@ -3,12 +3,12 @@
 page_title: "wiz_control_associations Resource - terraform-provider-wiz"
 subcategory: ""
 description: |-
-  Manage associations between security sub-categories and policies. This resource can only be used with custom security sub-categories. Wiz managed or custom policies can be referenced. When the association is removed from state, all associations managed by this resource will be removed. Associations managed outside this resouce declaration will remain untouched through the lifecycle of this resource.
+  Manage associations between controls and security sub-categories. Associations defined outside this resouce will remain untouched through the lifecycle of this resource. Wiz managed controls cannot be associated to Wiz managed security sub-categories. This resource does not support imports; it can, however, overlay existing resources to bring them under management.
 ---
 
 # wiz_control_associations (Resource)
 
-Manage associations between security sub-categories and policies. This resource can only be used with custom security sub-categories. Wiz managed or custom policies can be referenced. When the association is removed from state, all associations managed by this resource will be removed. Associations managed outside this resouce declaration will remain untouched through the lifecycle of this resource.
+Manage associations between controls and security sub-categories. Associations defined outside this resouce will remain untouched through the lifecycle of this resource. Wiz managed controls cannot be associated to Wiz managed security sub-categories. This resource does not support imports; it can, however, overlay existing resources to bring them under management.
 
 ## Example Usage
 

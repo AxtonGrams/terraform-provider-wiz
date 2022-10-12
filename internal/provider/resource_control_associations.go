@@ -16,7 +16,7 @@ import (
 
 func resourceWizControlAssociations() *schema.Resource {
 	return &schema.Resource{
-		Description: "Manage associations between security sub-categories and policies. This resource can only be used with custom security sub-categories. Wiz managed or custom policies can be referenced. When the association is removed from state, all associations managed by this resource will be removed. Associations managed outside this resouce declaration will remain untouched through the lifecycle of this resource.",
+		Description: "Manage associations between controls and security sub-categories. Associations defined outside this resouce will remain untouched through the lifecycle of this resource. Wiz managed controls cannot be associated to Wiz managed security sub-categories. This resource does not support imports; it can, however, overlay existing resources to bring them under management.",
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -32,6 +32,7 @@ func resourceWizControlAssociations() *schema.Resource {
 			"control_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
+				ForceNew:    true,
 				Description: "List of control IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -40,6 +41,7 @@ func resourceWizControlAssociations() *schema.Resource {
 			"security_sub_category_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
+				ForceNew:    true,
 				Description: "List of security sub-category IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -50,9 +52,6 @@ func resourceWizControlAssociations() *schema.Resource {
 		ReadContext:   resourceWizControlAssociationsRead,
 		UpdateContext: resourceWizControlAssociationsUpdate,
 		DeleteContext: resourceWizControlAssociationsDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
 	}
 }
 
@@ -193,7 +192,7 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
 		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)))
 		return append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error during CreateControlAssociations: %d", mdata.UpdateControls.FailCount),
+			Summary:  fmt.Sprintf("Error during UpdateControls: %d", mdata.UpdateControls.FailCount),
 			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)),
 		})
 	}
@@ -209,18 +208,7 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 		return nil
 	}
 
-	// validate each control and security sub-category exists
-	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
-	diags = append(diags, controlDiags...)
-
-	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
-	diags = append(diags, securitySubCategoryDiags...)
-
-	if len(diags) > 0 {
-		return diags
-	}
-
-	// set the parameters that are not stored in state
+	// set each parameter. since the list of ids triggers a new resource, we can pass through
 	err := d.Set("details", d.Get("details").(string))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -301,59 +289,9 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 func resourceWizControlAssociationsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizControlAssociationsUpdate called...")
 
-	// validate each control and security sub-category exists
-	controlDiags := validateControlsExist(ctx, m, utils.ConvertListToString(d.Get("control_ids").([]interface{})))
-	diags = append(diags, controlDiags...)
-
-	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
-	diags = append(diags, securitySubCategoryDiags...)
-
-	if len(diags) > 0 {
-		return diags
-	}
-
-	// define the graphql query
-	mutation := `mutation UpdateControls(
-	  $input: UpdateControlsInput!
-	) {
-	  updateControls(
-	    input: $input
-	  ) {
-	    successCount
-	    failCount
-	    errors {
-	      reason
-	      control {
-		id
-	      }
-	    }
-	  }
-	}`
-
-	// populate the graphql variables
-	mvars := &vendor.UpdateControlsInput{}
-	mvars.IDs = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
-	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
-
-	// print the input variables
-	tflog.Debug(ctx, fmt.Sprintf("UpdateControlsInput: %s", utils.PrettyPrint(mvars)))
-
-	// process the request
-	mdata := &UpdateControls{}
-	mrequestDiags := client.ProcessRequest(ctx, m, mvars, mdata, mutation, "control_association", "update")
-	diags = append(diags, mrequestDiags...)
-	if len(diags) > 0 {
-		return diags
-	}
-
-	// error handling
-	if mdata.UpdateControls.FailCount > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)))
-		return append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error during UpdateControlAssociations: %d", mdata.UpdateControls.FailCount),
-			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateControls.Errors)),
-		})
+	err := d.Set("details", d.Get("details").(string))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
 	return resourceWizControlAssociationsRead(ctx, d, m)
