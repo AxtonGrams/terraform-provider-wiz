@@ -39,7 +39,7 @@ func resourceWizControl() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "Whether to enable the Control.",
+				Description: "Whether to enable the Control. This has a known defect where if set to false, it will be created as true because the API to create Controls does not accept this parameter.",
 			},
 			"project_id": {
 				Type:        schema.TypeString,
@@ -50,8 +50,8 @@ func resourceWizControl() *schema.Resource {
 			},
 			"security_sub_categories": {
 				Type:        schema.TypeList,
-				Required:    true,
-				Description: "List of security sub-categories IDs. If unsure, use 'wsct-id-8', which is '1 Custom Controls'.",
+				Computed:    true,
+				Description: "List of security sub-categories IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

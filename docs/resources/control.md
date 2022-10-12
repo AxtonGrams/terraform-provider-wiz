@@ -61,7 +61,6 @@ resource "wiz_control" "test" {
 - `name` (String) Name of the Control.
 - `query` (String) The query that the control runs.
 - `scope_query` (String) The query that represents the control's scope.
-- `security_sub_categories` (List of String) List of security sub-categories IDs. If unsure, use 'wsct-id-8', which is '1 Custom Controls'.
 - `severity` (String) Severity that will be set for this control.
     - Allowed values: 
         - INFORMATIONAL
@@ -73,7 +72,7 @@ resource "wiz_control" "test" {
 ### Optional
 
 - `description` (String) Description of the Control.
-- `enabled` (Boolean) Whether to enable the Control.
+- `enabled` (Boolean) Whether to enable the Control. This has a known defect where if set to false, it will be created as true because the API to create Controls does not accept this parameter.
     - Defaults to `true`.
 - `project_id` (String) Project scope of the control. Use '*' for all projects.
     - Defaults to `*`.
@@ -82,5 +81,6 @@ resource "wiz_control" "test" {
 ### Read-Only
 
 - `id` (String) Internal identifier for the Control
+- `security_sub_categories` (List of String) List of security sub-categories IDs.
 
 

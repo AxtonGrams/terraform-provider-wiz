@@ -36,3 +36,36 @@ func SliceOfStringToMDUList(input []string) string {
 	}
 	return output
 }
+
+// Missing returns the elements in a that are missing from b
+func Missing(a, b []string) []string {
+	type void struct{}
+
+	// create map with length of the 'a' slice
+	ma := make(map[string]void, len(a))
+	diffs := []string{}
+	// Convert first slice to map with empty struct (0 bytes)
+	for _, ka := range a {
+		ma[ka] = void{}
+	}
+	// find missing values in a
+	for _, kb := range b {
+		if _, ok := ma[kb]; !ok {
+			diffs = append(diffs, kb)
+		}
+	}
+	return diffs
+}
+
+// Unique returns the unique values in a slice of strings
+func Unique(s []string) []string {
+	inResult := make(map[string]bool)
+	var result []string
+	for _, str := range s {
+		if _, ok := inResult[str]; !ok {
+			inResult[str] = true
+			result = append(result, str)
+		}
+	}
+	return result
+}

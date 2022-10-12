@@ -1,5 +1,3 @@
-directive @apollo_studio_metadata(buildId: String, checkId: String, launchId: String) on SCHEMA
-
 directive @specifiedBy(url: String!) on SCALAR
 
 type _AuthStub {
@@ -58,6 +56,7 @@ input ActionTemplateParamsInput {
 
 enum ActionTemplateType {
   AWS_SNS
+  AWS_SECURITY_HUB
   AZURE_DEVOPS
   AZURE_LOGIC_APPS
   AZURE_SENTINEL
@@ -68,13 +67,12 @@ enum ActionTemplateType {
   EMAIL
   AWS_EVENT_BRIDGE
   GOOGLE_CHAT
-  GOOGLE_PUB_SUB
+  GCP_PUB_SUB
   JIRA_CREATE_TICKET
   JIRA_TRANSITION_TICKET
   MICROSOFT_TEAMS
   PAGER_DUTY_CREATE_INCIDENT
   PAGER_DUTY_RESOLVE_INCIDENT
-  SECURITY_HUB
   SERVICE_NOW_CREATE_TICKET
   SERVICE_NOW_UPDATE_TICKET
   SLACK
@@ -351,18 +349,32 @@ scalar AutomationActionTypeValue
 
 type AutomationRule implements Node {
   action: AutomationAction!
+  actions: [AutomationRuleAction!]
   createdAt: DateTime!
   createdBy: User!
   description: String
   enabled: Boolean!
   filters: JSON
   id: ID!
+  lastExecutionError: String
   name: String!
   overrideActionParams: JSON
   project: Project
   triggerSource: AutomationRuleTriggerSource!
   triggerType: [AutomationRuleTriggerType!]!
   updatedAt: DateTime!
+}
+
+type AutomationRuleAction {
+  actionTemplateParams: ActionTemplateParams!
+  actionTemplateType: ActionTemplateType!
+  integration: Integration!
+}
+
+input AutomationRuleActionInput {
+  integrationId: ID!
+  actionTemplateParams: ActionTemplateParamsInput!
+  actionTemplateType: ActionTemplateType!
 }
 
 input AutomationRuleCloudEventFilters {
@@ -385,6 +397,7 @@ input AutomationRuleFilters {
   search: String
   triggerSource: [AutomationRuleTriggerSource!]
   action: [String!]
+  integration: [String!]
   enabled: Boolean
 }
 
@@ -539,6 +552,7 @@ type BillableWorkloadSample implements Node {
   containerHostCount: Int!
   ecsCount: Int! @deprecated(reason: "License page using serverless containers instead of ecs containers")
   id: ID!
+  registryContainerImageScanCount: Int!
   serverlessContainerCount: Int!
   serverlessCount: Int!
   timestamp: DateTime!
@@ -549,6 +563,7 @@ type BillableWorkloadSample implements Node {
 type BillableWorkloadTrendData {
   averageContainerHostCount: Int!
   averageECSCount: Int! @deprecated(reason: "License page using serverless containers instead of ecs containers")
+  averageRegistryContainerImageScanCount: Int!
   averageServerlessContainerCount: Int!
   averageServerlessCount: Int!
   averageVirtualMachineCount: Int!
@@ -586,6 +601,7 @@ enum BuiltInUserRoleId {
   GLOBAL_READER
   GLOBAL_LIMITED_RESPONDER
   GLOBAL_RESPONDER
+  GLOBAL_POLICY_MANAGER
   GLOBAL_CONTRIBUTOR
   GLOBAL_GRAPH_READER
   CONNECTOR_ADMIN
@@ -594,6 +610,7 @@ enum BuiltInUserRoleId {
   PROJECT_MEMBER
   PROJECT_READER
   PROJECT_GRAPH_READER
+  PROJECT_EXTERNAL_DIGITAL_TRUST_READER
   SETTINGS_ADMIN
   DOCUMENTATION_READER
 }
@@ -848,9 +865,10 @@ type CICDScanPolicyParamsIAC {
   builtinIgnoreTagsEnabled: Boolean!
   countThreshold: Int!
   customIgnoreTags: [CICDPolicyCustomIgnoreTag!]!
-  ignoredRules: [CloudConfigurationRule!]!
+  ignoredRules: [CloudConfigurationRule!]! @deprecated(reason: "Use validatableIgnoredRules instead")
   securityFrameworks: [SecurityFramework!]
   severityThreshold: IACScanSeverity!
+  validatableIgnoredRules: [ValidatableCloudConfigurationRule!]!
 }
 
 type CICDScanPolicyParamsSecrets {
@@ -1074,6 +1092,7 @@ input CloudAccountWithComplianceAnalyticsFilters {
   projectId: [String!]
   search: String
   cloudAccountId: [String!]
+  policyTypes: [SecurityFrameworkPolicyType!]
 }
 
 input CloudAccountWithComplianceAnalyticsOrder {
@@ -1612,7 +1631,7 @@ type CompleteAuthMigrationStatusPayload {
   authMigration: AuthMigration!
 }
 
-union ComplianceAnalyticsDataPointPolicy = Control | CloudConfigurationRule
+union ComplianceAnalyticsDataPointPolicy = Control | CloudConfigurationRule | HostConfigurationRule
 
 type ComplianceAnalyticsOverview {
   dataPoints: [ComplianceAnalyticsOverviewDataPoint!]!
@@ -2810,6 +2829,7 @@ input CreateAutomationRuleInput {
   overrideActionParams: JSON
   enabled: Boolean = true
   projectId: String
+  actions: [AutomationRuleActionInput!]
 }
 
 type CreateAutomationRulePayload {
@@ -2996,6 +3016,19 @@ input CreateGooglePubSubAutomationActionParamsInput {
   accessMethod: GooglePubSubAutomationActionAccessMethodInput!
 }
 
+input CreateHostConfigurationRuleInput {
+  name: String!
+  description: String
+  directOVAL: String!
+  targetPlatformIds: [String!]
+  enabled: Boolean
+  securitySubCategories: [String!]
+}
+
+type CreateHostConfigurationRulePayload {
+  rule: HostConfigurationRule
+}
+
 input CreateIntegrationInput {
   name: String!
   type: IntegrationType!
@@ -3081,6 +3114,7 @@ input CreateOutpostClusterInput {
   outpostId: ID!
   region: String!
   httpProxyConfig: OutpostClusterHttpProxyConfigInput
+  internetAccessCertificates: OutpostClusterInternetAccessCertificatesInput
   selfManagedOutpostCluster: SelfManagedOutpostClusterInput
   byonOutpostCluster: BYONOutpostClusterInput
   config: OutpostClusterConfigInput
@@ -3107,6 +3141,7 @@ input CreateOutpostInput {
   managedConfig: CreateOutpostManagedConfigInput
   clusterNamespacePrefix: String
   podAnnotations: [CreateOutpostCustomTagInput!]
+  externalInternetAccess: OutpostExternalInternetAccess
   selfManaged: Boolean = false
   customConfig: OutpostCustomConfigInput
   config: OutpostConfigInput
@@ -3124,11 +3159,11 @@ type CreateOutpostPayload {
 }
 
 input CreateOutpostSelfManagedConfigInput {
-  externalInternetAccess: OutpostExternalInternetAccess!
   imageRepository: String
   imagePullSecret: String
   versionID: ID
   disableAutomaticConfigurationBucketSync: Boolean
+  externalInternetAccess: OutpostExternalInternetAccess
 }
 
 input CreatePagerDutyIntegrationParamsInput {
@@ -3180,8 +3215,6 @@ input CreateReportGraphQueryPropertyOptions {
 }
 
 input CreateReportHostConfigurationParamsInput {
-  subscriptionIds: [String!]
-  frameworkCategory: [String!]
   hostConfigurationRuleAssessmentsFilters: HostConfigurationRuleAssessmentFilters
 }
 
@@ -3192,7 +3225,6 @@ input CreateReportInput {
   runIntervalHours: Int
   runStartsAt: DateTime
   emailTargetParams: EmailTargetParams
-  params: CreateReportParams
   graphQueryParams: CreateReportGraphQueryParamsInput
   vulnerabilityParams: CreateReportVulnerabilityParamsInput
   complianceExecutiveSummaryParams: CreateReportComplianceExecutiveSummaryParamsInput
@@ -3241,13 +3273,6 @@ input CreateReportVulnerabilityParamsInput {
   type: VulnerabilityReportType
   assetType: VulnerableAssetObjectType
   filters: VulnerabilityFindingFilters
-  assetObjectType: VulnerabilityReportGraphEntityType
-  subscriptionIds: [String!]
-  entityIds: [String!]
-  since: DateTime
-  updatedAfter: DateTime
-  vulnerabilityIds: [String!]
-  vendorSeverity: [VulnerabilitySeverity!]
 }
 
 input CreateSAMLIdentityProviderInput {
@@ -3605,6 +3630,14 @@ type DeleteCustomIPRangePayload {
   _stub: String!
 }
 
+input DeleteHostConfigurationRuleInput {
+  id: ID!
+}
+
+type DeleteHostConfigurationRulePayload {
+  _stub: String!
+}
+
 input DeleteIntegrationInput {
   id: ID!
 }
@@ -3715,6 +3748,12 @@ enum DeploymentModel {
   VIRTUAL_APPLIANCE
 }
 
+type DigitalTrustDashboardSettings {
+  brandColor: String
+  brandLogo: String
+  enabled: Boolean!
+}
+
 type DirectoryUser implements Node {
   email: String!
   id: ID!
@@ -3816,6 +3855,15 @@ enum DiskScanVulnerabilitySeverity {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+input DuplicateHostConfigurationRuleInput {
+  name: String!
+  ruleID: String!
+}
+
+type DuplicateHostConfigurationRulePayload {
+  rule: HostConfigurationRule
 }
 
 input DuplicateSecurityFrameworkInput {
@@ -3991,6 +4039,7 @@ type GEAccessKey {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   kubernetes: GEKubernetesIAMExtraData
   lastUsedAt: DateTime
@@ -4006,6 +4055,7 @@ type GEAccessKey {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4043,6 +4093,7 @@ type GEAccessRole {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPartialAnalysis: Boolean
   kubernetes: GEKubernetesIAMExtraData
   name: String
@@ -4057,6 +4108,7 @@ type GEAccessRole {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4091,6 +4143,7 @@ type GEAccessRoleBinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPartialAnalysis: Boolean
   kubernetes: GEKubernetesIAMExtraData
   name: String
@@ -4105,6 +4158,7 @@ type GEAccessRoleBinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4155,6 +4209,7 @@ type GEAccessRolePermission {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kubernetes: GEKubernetesIAMExtraData
   name: String
   namespace: String
@@ -4168,6 +4223,7 @@ type GEAccessRolePermission {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4219,7 +4275,7 @@ type GEAllowedHostPath {
   vertexId: ID!
 }
 
-union GEAny = GEAPIGateway | GEAccessKey | GEAccessRole | GEAccessRoleBinding | GEAccessRolePermission | GEApplication | GEAuthenticationConfiguration | GEAuthenticationPolicy | GEBackendBucket | GEBackupService | GEBranchPackage | GEBucket | GECdn | GECICDService | GECallCenterService | GECertificate | GECloudLogConfiguration | GECloudOrganization | GEComputeInstanceGroup | GEConfigMap | GEConfigurationFinding | GEConfigurationRule | GEConfigurationScan | GEContainer | GEContainerGroup | GEContainerImage | GEContainerRegistry | GEContainerRepository | GEContainerService | GEControllerRevision | GEDBServer | GEDNSRecord | GEDNSZone | GEDaemonSet | GEDataFinding | GEDataInventory | GEDataSchema | GEDataStore | GEDataWorkflow | GEDataWorkload | GEDatabase | GEDeployment | GEDomain | GEEmailService | GEEncryptionKey | GEEndpoint | GEExcessiveAccessFinding | GEFileDescriptor | GEFileDescriptorFinding | GEFileSystemService | GEFirewall | GEGateway | GEGovernancePolicy | GEGovernancePolicyGroup | GEGroup | GEHostedApplication | GEHostedTechnology | GEIACDeclarationInstance | GEIACResourceDeclaration | GEIACStateInstance | GEIAMBinding | GEIPRange | GEIdentityProvider | GEKubernetesCluster | GEKubernetesCronJob | GEKubernetesIngress | GEKubernetesIngressController | GEKubernetesJob | GEKubernetesNetworkPolicy | GEKubernetesNode | GEKubernetesPersistentVolume | GEKubernetesPersistentVolumeClaim | GEKubernetesPodSecurityPolicy | GEKubernetesService | GEKubernetesStorageClass | GEKubernetesVolume | GELastLogin | GELateralMovementFinding | GELoadBalancer | GELocalUser | GEMalware | GEMalwareInstance | GEManagedCertificate | GEManagementService | GEMapReduceCluster | GEMessagingService | GENamespace | GENat | GENetworkAddress | GENetworkInterface | GENetworkRoutingRule | GENetworkSecurityRule | GEPackage | GEPeering | GEPod | GEPortRange | GEPredefinedGroup | GEPrivateEndpoint | GEPrivateLink | GEProject | GEProductKubernetesCluster | GEProductOrganization | GEProxy | GEProxyRule | GERawAccessPolicy | GERegion | GERegisteredDomain | GEReplicaSet | GERepository | GERepositoryBranch | GERepositoryTag | GEResourceGroup | GERouteTable | GESearchIndex | GESecret | GESecretContainer | GESecretData | GESecretInstance | GESecurityEventFinding | GESecurityToolFinding | GESecurityToolFindingType | GESecurityToolScan | GEServerless | GEServerlessPackage | GEServiceAccount | GEServiceConfiguration | GEServiceUsageTechnology | GEStatefulSet | GEStorageAccount | GESubnet | GESubscription | GETechnology | GEUserAccount | GEVirtualDesktop | GEVirtualMachine | GEVirtualMachineImage | GEVirtualNetwork | GEVolume | GEVulnerability | GEWeakness | GEWebService
+union GEAny = GEAPIGateway | GEAccessKey | GEAccessRole | GEAccessRoleBinding | GEAccessRolePermission | GEApplication | GEAuthenticationConfiguration | GEAuthenticationPolicy | GEBackendBucket | GEBackupService | GEBranchPackage | GEBucket | GECdn | GECICDService | GECallCenterService | GECertificate | GECloudLogConfiguration | GECloudOrganization | GEComputeInstanceGroup | GEConfigMap | GEConfigurationFinding | GEConfigurationRule | GEConfigurationScan | GEContainer | GEContainerGroup | GEContainerImage | GEContainerRegistry | GEContainerRepository | GEContainerService | GEControllerRevision | GEDBServer | GEDNSRecord | GEDNSZone | GEDaemonSet | GEDataFinding | GEDataInventory | GEDataSchema | GEDataStore | GEDataWorkflow | GEDataWorkload | GEDatabase | GEDeployment | GEDomain | GEEmailService | GEEncryptionKey | GEEndpoint | GEExcessiveAccessFinding | GEFileDescriptor | GEFileDescriptorFinding | GEFileSystemService | GEFirewall | GEGateway | GEGovernancePolicy | GEGovernancePolicyGroup | GEGroup | GEHostedApplication | GEHostedTechnology | GEIACDeclarationInstance | GEIACResourceDeclaration | GEIACStateInstance | GEIAMBinding | GEIPRange | GEIdentityProvider | GEKubernetesCluster | GEKubernetesCronJob | GEKubernetesIngress | GEKubernetesIngressController | GEKubernetesJob | GEKubernetesNetworkPolicy | GEKubernetesNode | GEKubernetesPersistentVolume | GEKubernetesPersistentVolumeClaim | GEKubernetesPodSecurityPolicy | GEKubernetesService | GEKubernetesStorageClass | GEKubernetesVolume | GELastLogin | GELateralMovementFinding | GELoadBalancer | GELocalUser | GEMalware | GEMalwareInstance | GEManagedCertificate | GEManagementService | GEMapReduceCluster | GEMessagingService | GENamespace | GENat | GENetworkAddress | GENetworkInterface | GENetworkRoutingRule | GENetworkSecurityRule | GEPackage | GEPeering | GEPod | GEPortRange | GEPredefinedGroup | GEPrivateEndpoint | GEPrivateLink | GEProject | GEProductKubernetesCluster | GEProductOrganization | GEProxy | GEProxyRule | GERawAccessPolicy | GERegion | GERegisteredDomain | GEReplicaSet | GERepository | GERepositoryBranch | GERepositoryTag | GEResourceGroup | GERouteTable | GESearchIndex | GESecret | GESecretContainer | GESecretData | GESecretInstance | GESecurityEventFinding | GESecurityToolFinding | GESecurityToolFindingType | GESecurityToolScan | GEServerless | GEServerlessPackage | GEServiceAccount | GEServiceConfiguration | GEServiceUsageTechnology | GEStatefulSet | GEStorageAccount | GESubnet | GESubscription | GESwitch | GETechnology | GEUserAccount | GEVirtualDesktop | GEVirtualMachine | GEVirtualMachineImage | GEVirtualNetwork | GEVolume | GEVulnerability | GEWeakness | GEWebService
 
 type GEAPIGateway {
   accessibleFrom: GEScopeToBool
@@ -4242,6 +4298,7 @@ type GEAPIGateway {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4253,6 +4310,7 @@ type GEAPIGateway {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4292,6 +4350,7 @@ type GEApplication {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4303,6 +4362,7 @@ type GEApplication {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4361,6 +4421,7 @@ type GEAuthenticationConfiguration {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   keyHash: String
   maxPasswordAge: Int
   minPasswordAge: Int
@@ -4376,6 +4437,7 @@ type GEAuthenticationConfiguration {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   owner: String
   passwordAuthentication: Boolean
@@ -4421,6 +4483,7 @@ type GEAuthenticationPolicy {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kubernetes: GEKubernetesIAMExtraData
   name: String
   namespace: String
@@ -4434,6 +4497,7 @@ type GEAuthenticationPolicy {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4510,6 +4574,7 @@ type GEBackendBucket {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4521,6 +4586,7 @@ type GEBackendBucket {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4559,6 +4625,7 @@ type GEBackupService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4570,6 +4637,7 @@ type GEBackupService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4604,6 +4672,7 @@ type GEBranchPackage {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -4614,6 +4683,7 @@ type GEBranchPackage {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   path: String
   portValidationResult: GEPortValidationResult
@@ -4650,6 +4720,7 @@ type GEBucket {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPublic: Boolean
   loggingEnabled: Boolean
   name: String
@@ -4663,6 +4734,7 @@ type GEBucket {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4727,6 +4799,7 @@ type GECallCenterService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4738,6 +4811,7 @@ type GECallCenterService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4786,6 +4860,7 @@ type GECdn {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   loggingEnabled: Boolean
   name: String
   nativeType: String
@@ -4798,6 +4873,7 @@ type GECdn {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4859,6 +4935,7 @@ type GECertificate {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4870,6 +4947,7 @@ type GECertificate {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -4914,6 +4992,7 @@ type GECICDService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -4925,6 +5004,7 @@ type GECICDService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5000,6 +5080,7 @@ type GECloudLogConfiguration {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -5011,6 +5092,7 @@ type GECloudLogConfiguration {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5050,6 +5132,7 @@ type GECloudOrganization {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -5061,6 +5144,7 @@ type GECloudOrganization {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   path: String
   portValidationResult: GEPortValidationResult
@@ -5100,6 +5184,7 @@ type GEComputeInstanceGroup {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   matchedTags: JSON
   name: String
   nativeType: String
@@ -5112,6 +5197,7 @@ type GEComputeInstanceGroup {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5171,6 +5257,7 @@ type GEConfigMap {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   immutable: Boolean
   kind: String
   kubernetes: GEKubernetesBaseExtraData
@@ -5187,6 +5274,7 @@ type GEConfigMap {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5272,6 +5360,7 @@ type GEConfigurationFinding {
   hasRemediationInstructions: Boolean
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -5282,6 +5371,7 @@ type GEConfigurationFinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5323,6 +5413,7 @@ type GEConfigurationRule {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -5333,6 +5424,7 @@ type GEConfigurationRule {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5364,6 +5456,7 @@ type GEConfigurationScan {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -5374,6 +5467,7 @@ type GEConfigurationScan {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5441,6 +5535,7 @@ type GEContainer {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   image: String
   imagePullPolicy: String
   isDefaultSecurityContext: Boolean
@@ -5456,6 +5551,7 @@ type GEContainer {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5509,6 +5605,7 @@ type GEContainerGroup {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isDefaultSecurityContext: Boolean
   name: String
   nativeType: String
@@ -5521,6 +5618,7 @@ type GEContainerGroup {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5569,6 +5667,7 @@ type GEContainerImage {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   imageTags: [String!]
   kubernetes: GEContainerImageKubernetesExtraData
   lastUpdated: DateTime
@@ -5583,6 +5682,7 @@ type GEContainerImage {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5645,6 +5745,7 @@ type GEContainerRegistry {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isManaged: Boolean
   isPaaS: Boolean
   name: String
@@ -5658,6 +5759,7 @@ type GEContainerRegistry {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5695,6 +5797,7 @@ type GEContainerRepository {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -5706,6 +5809,7 @@ type GEContainerRepository {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5747,6 +5851,7 @@ type GEContainerService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isLatestVersion: Boolean
   isManaged: Boolean
   isPaaS: Boolean
@@ -5766,6 +5871,7 @@ type GEContainerService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5818,6 +5924,7 @@ type GEControllerRevision {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -5833,6 +5940,7 @@ type GEControllerRevision {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -5972,6 +6080,7 @@ type GEDaemonSet {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -5987,6 +6096,7 @@ type GEDaemonSet {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6056,6 +6166,7 @@ type GEDatabase {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   name: String
   nativeType: String
@@ -6068,6 +6179,7 @@ type GEDatabase {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6113,6 +6225,7 @@ type GEDataFinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -6123,6 +6236,7 @@ type GEDataFinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   percentWithContext: Int
   percentWithValidator: Int
@@ -6154,6 +6268,7 @@ type GEDataInventory {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPartial: Boolean
   name: String
   numAddressesOpenForHTTP: Int
@@ -6165,6 +6280,7 @@ type GEDataInventory {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6205,6 +6321,7 @@ type GEDataSchema {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -6215,6 +6332,7 @@ type GEDataSchema {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6244,6 +6362,7 @@ type GEDataStore {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isStructured: Boolean
   kind: GEDataStoreKind
   lastModified: DateTime
@@ -6262,6 +6381,7 @@ type GEDataStore {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6303,6 +6423,7 @@ enum GEDataType {
   SECRET_TYPE_DB_CONNECTION_STRING
   SECRET_TYPE_GIT_CREDENTIAL
   SECRET_TYPE_PRESIGNED_URL
+  SECRET_TYPE_SAAS_API_KEY
 }
 
 type GEDataWorkflow {
@@ -6314,6 +6435,7 @@ type GEDataWorkflow {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  encrypted: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6326,6 +6448,7 @@ type GEDataWorkflow {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -6337,6 +6460,7 @@ type GEDataWorkflow {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6375,6 +6499,7 @@ type GEDataWorkload {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inTransitEncryption: Boolean
   kind: String
   name: String
@@ -6388,6 +6513,7 @@ type GEDataWorkload {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6427,6 +6553,7 @@ type GEDBServer {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isManaged: Boolean
   isPaaS: Boolean
   kind: String
@@ -6441,6 +6568,7 @@ type GEDBServer {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6488,6 +6616,7 @@ type GEDeployment {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -6503,6 +6632,7 @@ type GEDeployment {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6597,6 +6727,7 @@ type GEDNSRecord {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -6608,6 +6739,7 @@ type GEDNSRecord {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6670,6 +6802,7 @@ type GEDNSZone {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPublic: Boolean
   name: String
   nativeType: String
@@ -6682,6 +6815,7 @@ type GEDNSZone {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6719,6 +6853,7 @@ type GEDomain {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -6730,6 +6865,7 @@ type GEDomain {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6786,6 +6922,7 @@ type GEEmailService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -6797,6 +6934,7 @@ type GEEmailService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -6841,6 +6979,7 @@ type GEEncryptionKey {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   managementType: GEManagementType
   name: String
   nativeType: String
@@ -6853,6 +6992,7 @@ type GEEncryptionKey {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   pendingDeletion: Boolean
   portValidationResult: GEPortValidationResult
@@ -6896,6 +7036,7 @@ type GEEndpoint {
   host: String
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -6907,6 +7048,7 @@ type GEEndpoint {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   path: String
   port: Int
@@ -7021,6 +7163,7 @@ type GEExcessiveAccessFinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -7031,6 +7174,7 @@ type GEExcessiveAccessFinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7111,6 +7255,7 @@ type GEFileDescriptor {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -7121,6 +7266,7 @@ type GEFileDescriptor {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
@@ -7154,6 +7300,7 @@ type GEFileDescriptorFinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   modificationTime: DateTime
   name: String
   numAddressesOpenForHTTP: Int
@@ -7165,6 +7312,7 @@ type GEFileDescriptorFinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   path: String
@@ -7213,6 +7361,7 @@ type GEFileSystemService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inTransitEncryption: Boolean
   name: String
   nativeType: String
@@ -7225,6 +7374,7 @@ type GEFileSystemService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7263,6 +7413,7 @@ type GEFirewall {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isDefault: Boolean
   name: String
   nativeType: String
@@ -7275,6 +7426,7 @@ type GEFirewall {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7362,6 +7514,7 @@ type GEGateway {
   hasRouteTable: Boolean
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -7373,6 +7526,7 @@ type GEGateway {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7440,6 +7594,7 @@ type GEGovernancePolicy {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -7451,6 +7606,7 @@ type GEGovernancePolicy {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7492,6 +7648,7 @@ type GEGovernancePolicyGroup {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -7503,6 +7660,7 @@ type GEGovernancePolicyGroup {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7542,6 +7700,7 @@ type GEGroup {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   kubernetes: GEKubernetesIAMExtraData
   name: String
@@ -7556,6 +7715,7 @@ type GEGroup {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   partialMemberVisibility: Boolean
   portValidationResult: GEPortValidationResult
@@ -7606,6 +7766,7 @@ type GEHostedApplication {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -7617,6 +7778,7 @@ type GEHostedApplication {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   path: String
   portValidationResult: GEPortValidationResult
@@ -7700,6 +7862,7 @@ type GEHostedTechnology {
   hostname: String
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   installedPackages: [String!]
   installedPrograms: [String!]
   isAppliance: Boolean
@@ -7723,6 +7886,7 @@ type GEHostedTechnology {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7859,6 +8023,7 @@ type GEIAMBinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isCrossSubscriptionAccess: Boolean
   isOutsideOrganizationAccess: Boolean
   isPublicAccess: Boolean
@@ -7875,6 +8040,7 @@ type GEIAMBinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -7908,6 +8074,7 @@ type GEIdentityProvider {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   kubernetes: GEKubernetesIAMExtraData
   lastModified: DateTime
@@ -7923,6 +8090,7 @@ type GEIdentityProvider {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8010,6 +8178,7 @@ type GEIPRange {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -8021,6 +8190,7 @@ type GEIPRange {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8130,6 +8300,7 @@ type GEKubernetesCluster {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isLatestVersion: Boolean
   isManaged: Boolean
   isPaaS: Boolean
@@ -8150,6 +8321,7 @@ type GEKubernetesCluster {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8256,6 +8428,7 @@ type GEKubernetesCronJob {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8271,6 +8444,7 @@ type GEKubernetesCronJob {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8342,6 +8516,7 @@ type GEKubernetesIngress {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8357,6 +8532,7 @@ type GEKubernetesIngress {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8398,6 +8574,7 @@ type GEKubernetesIngressController {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -8409,6 +8586,7 @@ type GEKubernetesIngressController {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8466,6 +8644,7 @@ type GEKubernetesJob {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8481,6 +8660,7 @@ type GEKubernetesJob {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8556,6 +8736,7 @@ type GEKubernetesNetworkPolicy {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8571,6 +8752,7 @@ type GEKubernetesNetworkPolicy {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8630,6 +8812,7 @@ type GEKubernetesNode {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8645,6 +8828,7 @@ type GEKubernetesNode {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8731,6 +8915,7 @@ type GEKubernetesPersistentVolume {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8746,6 +8931,7 @@ type GEKubernetesPersistentVolume {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8794,6 +8980,7 @@ type GEKubernetesPersistentVolumeClaim {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8809,6 +8996,7 @@ type GEKubernetesPersistentVolumeClaim {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -8915,6 +9103,7 @@ type GEKubernetesPodSecurityPolicy {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -8930,6 +9119,7 @@ type GEKubernetesPodSecurityPolicy {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9103,6 +9293,7 @@ type GEKubernetesService {
   hasPublicAddress: Boolean
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -9118,6 +9309,7 @@ type GEKubernetesService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9195,6 +9387,7 @@ type GEKubernetesStorageClass {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -9211,6 +9404,7 @@ type GEKubernetesStorageClass {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   parameters: JSON
   portValidationResult: GEPortValidationResult
@@ -9255,6 +9449,7 @@ type GEKubernetesVolume {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kinds: [String!]
   name: String
   nativeType: String
@@ -9267,6 +9462,7 @@ type GEKubernetesVolume {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9419,6 +9615,7 @@ type GELastLogin {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   ipAddress: String
   name: String
   nativeType: String
@@ -9431,6 +9628,7 @@ type GELastLogin {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9469,6 +9667,7 @@ type GELateralMovementFinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isCrossCloud: Boolean
   isCrossOrganization: Boolean
   isCrossSubscription: Boolean
@@ -9486,6 +9685,7 @@ type GELateralMovementFinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   permissionCombination: [String!]
   portValidationResult: GEPortValidationResult
@@ -9538,6 +9738,7 @@ type GELoadBalancer {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -9549,6 +9750,7 @@ type GELoadBalancer {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9608,6 +9810,7 @@ type GELocalUser {
   homeDirectory: String
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   isPasswordEmpty: Boolean
   kubernetes: GEKubernetesIAMExtraData
@@ -9625,6 +9828,7 @@ type GELocalUser {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   passwordEnabled: Boolean
   passwordLocked: Boolean
@@ -9667,6 +9871,7 @@ type GEMalware {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isGeneric: Boolean
   md5: String
   name: String
@@ -9679,6 +9884,7 @@ type GEMalware {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   platform: String
@@ -9721,6 +9927,7 @@ type GEMalwareInstance {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isGeneric: Boolean
   md5: String
   modificationTime: DateTime
@@ -9734,6 +9941,7 @@ type GEMalwareInstance {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   path: String
@@ -9783,6 +9991,7 @@ type GEManagedCertificate {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   issuer: String
   name: String
   nativeType: String
@@ -9795,6 +10004,7 @@ type GEManagedCertificate {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9835,6 +10045,7 @@ type GEManagementService {
   hasIssues: Boolean
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   name: String
   nativeType: String
@@ -9847,6 +10058,7 @@ type GEManagementService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9890,6 +10102,7 @@ type GEMapReduceCluster {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inTransitEncryption: Boolean
   name: String
   nativeType: String
@@ -9902,6 +10115,7 @@ type GEMapReduceCluster {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9942,6 +10156,7 @@ type GEMessagingService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isManaged: Boolean
   isPaaS: Boolean
   kind: String
@@ -9956,6 +10171,7 @@ type GEMessagingService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -9994,6 +10210,7 @@ type GENamespace {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kubernetes: GEKubernetesNamespaceExtraData
   name: String
   nativeType: String
@@ -10006,6 +10223,7 @@ type GENamespace {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10043,6 +10261,7 @@ type GENat {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -10054,6 +10273,7 @@ type GENat {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10104,6 +10324,7 @@ type GENetworkAddress {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isDynamic: Boolean
   isPublic: Boolean
   isSecondary: Boolean
@@ -10118,6 +10339,7 @@ type GENetworkAddress {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10163,6 +10385,7 @@ type GENetworkInterface {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   macAddress: String
   name: String
   nativeType: String
@@ -10175,6 +10398,7 @@ type GENetworkInterface {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10258,6 +10482,7 @@ type GENetworkRoutingRule {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -10269,6 +10494,7 @@ type GENetworkRoutingRule {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10316,6 +10542,7 @@ type GENetworkSecurityRule {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inbound: Boolean
   name: String
   nativeType: String
@@ -10329,6 +10556,7 @@ type GENetworkSecurityRule {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   priority: Int
@@ -10492,6 +10720,7 @@ type GEPeering {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -10503,6 +10732,7 @@ type GEPeering {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10609,6 +10839,7 @@ type GEPod {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isDefaultSecurityContext: Boolean
   kind: String
   kubernetes: GEKubernetesBaseExtraData
@@ -10625,6 +10856,7 @@ type GEPod {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10790,6 +11022,7 @@ type GEPortRange {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -10801,6 +11034,7 @@ type GEPortRange {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10863,6 +11097,7 @@ type GEPredefinedGroup {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   kubernetes: GEKubernetesIAMExtraData
   name: String
@@ -10877,6 +11112,7 @@ type GEPredefinedGroup {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10929,6 +11165,7 @@ type GEPrivateEndpoint {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -10940,6 +11177,7 @@ type GEPrivateEndpoint {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -10978,6 +11216,7 @@ type GEPrivateLink {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -10989,6 +11228,7 @@ type GEPrivateLink {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11157,6 +11397,7 @@ type GEProxy {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kinds: [String!]
   name: String
   nativeType: String
@@ -11169,6 +11410,7 @@ type GEProxy {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11225,6 +11467,7 @@ type GEProxyRule {
   httpGETStatusCode: Int
   httpMethodMatchType: String
   httpMethodTypes: [String!]
+  httpTitleSnippet: String
   isSourceNAT: Boolean
   name: String
   nativeType: String
@@ -11237,6 +11480,7 @@ type GEProxyRule {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   pathConditions: [String!]
   portValidationResult: GEPortValidationResult
@@ -11302,6 +11546,7 @@ type GERawAccessPolicy {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kubernetes: GEKubernetesIAMExtraData
   name: String
   namespace: String
@@ -11315,6 +11560,7 @@ type GERawAccessPolicy {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11395,6 +11641,7 @@ type GERegion {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -11406,6 +11653,7 @@ type GERegion {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11445,6 +11693,7 @@ type GERegisteredDomain {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -11456,6 +11705,7 @@ type GERegisteredDomain {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11522,6 +11772,7 @@ type GEReplicaSet {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -11537,6 +11788,7 @@ type GEReplicaSet {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11592,6 +11844,7 @@ type GERepository {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   labels: [String!]
   languages: [String!]
   lastPushedAt: DateTime
@@ -11605,6 +11858,7 @@ type GERepository {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   private: Boolean
@@ -11636,6 +11890,7 @@ type GERepositoryBranch {
   headCommitTimestamp: DateTime
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -11646,6 +11901,7 @@ type GERepositoryBranch {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11674,6 +11930,7 @@ type GERepositoryTag {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -11684,6 +11941,7 @@ type GERepositoryTag {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11722,6 +11980,7 @@ type GEResourceGroup {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -11733,6 +11992,7 @@ type GEResourceGroup {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11799,6 +12059,7 @@ type GERouteTable {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -11810,6 +12071,7 @@ type GERouteTable {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11918,6 +12180,7 @@ type GESearchIndex {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -11929,6 +12192,7 @@ type GESearchIndex {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -11975,6 +12239,7 @@ type GESecret {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kubernetes: GEKubernetesSecretDetails
   labels: [String!]
   managed: GESecretManagedSecretDetails
@@ -11989,6 +12254,7 @@ type GESecret {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12029,6 +12295,7 @@ type GESecretContainer {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   name: String
   nativeType: String
@@ -12041,6 +12308,7 @@ type GESecretContainer {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12080,6 +12348,7 @@ type GESecretData {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isEncrypted: Boolean
   isManaged: Boolean
   isPrivate: Boolean
@@ -12094,6 +12363,7 @@ type GESecretData {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   password: GESecretDataPasswordDetails
   portValidationResult: GEPortValidationResult
@@ -12103,6 +12373,7 @@ type GESecretData {
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
   publicKey: GESecretDataPKIKeyDetails
+  saasApiKey: GESecretDataSaasAPIKeyDetails
   sha256: String
   sshAuthorizedKey: GESecretDataSSHAuthorizedKeyDetails
   type: GEDataType
@@ -12173,6 +12444,11 @@ type GESecretDataPresignedURLDetails {
   vertexId: ID!
 }
 
+type GESecretDataSaasAPIKeyDetails {
+  serviceName: String
+  vertexId: ID!
+}
+
 type GESecretDataSSHAuthorizedKeyDetails {
   algo: String
   comment: String
@@ -12208,6 +12484,7 @@ type GESecretInstance {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   lastModified: DateTime
   lineNumber: Int
   name: String
@@ -12220,6 +12497,7 @@ type GESecretInstance {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   packageName: String
   path: String
@@ -12346,6 +12624,7 @@ type GESecurityToolFinding {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPotentiallyHidden: Boolean
   name: String
   numAddressesOpenForHTTP: Int
@@ -12357,6 +12636,7 @@ type GESecurityToolFinding {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
@@ -12387,6 +12667,7 @@ type GESecurityToolFindingExtraInfo {
   fixedVersion: String
   fqdn: String
   host: String
+  id: String
   language: String
   libraryName: String
   libraryVersion: String
@@ -12438,6 +12719,7 @@ type GESecurityToolFindingType {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -12448,6 +12730,7 @@ type GESecurityToolFindingType {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
@@ -12487,6 +12770,8 @@ type GESecurityToolScan {
   hostInfo: GESecurityToolScanHostInfo
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
+  lastSuccess: DateTime
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -12497,6 +12782,7 @@ type GESecurityToolScan {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
@@ -12572,6 +12858,7 @@ type GEServerless {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   name: String
   nativeType: String
@@ -12584,6 +12871,7 @@ type GEServerless {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12634,6 +12922,7 @@ type GEServerlessPackage {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -12645,6 +12934,7 @@ type GEServerlessPackage {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12688,6 +12978,7 @@ type GEServiceAccount {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   kubernetes: GEKubernetesIAMExtraData
   name: String
@@ -12702,6 +12993,7 @@ type GEServiceAccount {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12744,6 +13036,7 @@ type GEServiceConfiguration {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -12755,6 +13048,7 @@ type GEServiceConfiguration {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12802,6 +13096,7 @@ type GEServiceUsageTechnology {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -12813,6 +13108,7 @@ type GEServiceUsageTechnology {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12876,6 +13172,7 @@ type GEStatefulSet {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   kind: String
   kubernetes: GEKubernetesBaseExtraData
   labels: JSON
@@ -12891,6 +13188,7 @@ type GEStatefulSet {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -12963,6 +13261,7 @@ type GEStorageAccount {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -12974,6 +13273,7 @@ type GEStorageAccount {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -13030,6 +13330,7 @@ type GESubnet {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -13041,6 +13342,7 @@ type GESubnet {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -13079,6 +13381,7 @@ type GESubscription {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -13090,6 +13393,7 @@ type GESubscription {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -13111,6 +13415,56 @@ type GESupplementalGroupsStrategyOptions {
   ranges: [GEIDRange!]
   rule: String
   vertexId: ID!
+}
+
+type GESwitch {
+  accessibleFrom: GEScopeToBool
+  accessibleFromScopes: [String!]
+  allowsExternalRead: Boolean
+  allowsExternalWrite: Boolean
+  cloudPlatform: String
+  cloudProviderURL: String
+  containsContainerHosts: Boolean
+  creationDate: DateTime
+  externalId: String
+  externalOwners: [String!]
+  hasAdminKubernetesPrivileges: Boolean
+  hasAdminPrivileges: Boolean
+  hasHighKubernetesPrivileges: Boolean
+  hasHighPrivileges: Boolean
+  hasIAMAccessFromExternalSubscription: [GEAccessType!]
+  hasIAMAccessFromOutsideOrganization: [GEAccessType!]
+  hasIAMAccessToExternalSubscription: [GEAccessType!]
+  hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpGETStatus: String
+  httpGETStatusCode: Int
+  httpTitleSnippet: String
+  name: String
+  nativeType: String
+  numAddressesOpenForHTTP: Int
+  numAddressesOpenForHTTPS: Int
+  numAddressesOpenForNonStandardPorts: Int
+  numAddressesOpenForRDP: Int
+  numAddressesOpenForSSH: Int
+  numAddressesOpenForWINRM: Int
+  numAddressesOpenTo: GEScopeToInt
+  numPortsOpenTo: GEScopeToInt
+  openPorts: [Int!]
+  openToAllInternet: Boolean
+  openToEntireInternet: Boolean
+  portValidationResult: GEPortValidationResult
+  privateIPRangesWithAccess: [String!]
+  providerUniqueId: String
+  publicAccessTypes: [GEAccessType!]
+  publicIPRangesWithAccess: [String!]
+  region: String
+  resourceGroupExternalId: String
+  status: String
+  subscriptionExternalId: String
+  tags: JSON
+  vertexId: ID!
+  wizMockResource: Boolean
+  zone: String
 }
 
 type GESysctl {
@@ -13259,6 +13613,7 @@ type GEUserAccount {
   homeDirectory: String
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   inactiveInLast90Days: Boolean
   jobTitle: String
   kubernetes: GEKubernetesIAMExtraData
@@ -13280,6 +13635,7 @@ type GEUserAccount {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   otherMails: [String!]
   passwordEnabled: Boolean
@@ -13323,6 +13679,7 @@ type GEVirtualDesktop {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   name: String
   nativeType: String
   numAddressesOpenForHTTP: Int
@@ -13334,6 +13691,7 @@ type GEVirtualDesktop {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -13373,6 +13731,7 @@ type GEVirtualMachine {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isContainerHost: Boolean
   isEphemeral: Boolean
   isFromAWSMarketplace: Boolean
@@ -13390,6 +13749,7 @@ type GEVirtualMachine {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   operatingSystem: String
   passwordAuthDisabled: Boolean
@@ -13433,6 +13793,7 @@ type GEVirtualMachineImage {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isPublic: Boolean
   name: String
   nativeType: String
@@ -13445,6 +13806,7 @@ type GEVirtualMachineImage {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -13471,6 +13833,7 @@ type GEVirtualMachineImageExtraDataAzureExtraData {
   osType: GEVMOperatingSystem
   sourceBlobUri: String
   sourceDiskId: String
+  sourceGalleryImageVersionId: String
   sourceImageId: String
   sourceSnapshotId: String
   sourceStorageAccountId: String
@@ -13506,6 +13869,7 @@ type GEVirtualNetwork {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isDefault: Boolean
   name: String
   nativeType: String
@@ -13518,6 +13882,7 @@ type GEVirtualNetwork {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -13563,6 +13928,7 @@ type GEVolume {
   hasRecentSnapshot: Boolean
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isManaged: Boolean
   isOs: Boolean
   name: String
@@ -13576,6 +13942,7 @@ type GEVolume {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   partitionsEncryptionSecretVersion: [String!]
   portValidationResult: GEPortValidationResult
@@ -13740,6 +14107,7 @@ type GEWebService {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   httpGETStatus: String
   httpGETStatusCode: Int
+  httpTitleSnippet: String
   isManaged: Boolean
   kind: String
   name: String
@@ -13753,6 +14121,7 @@ type GEWebService {
   numAddressesOpenTo: GEScopeToInt
   numPortsOpenTo: GEScopeToInt
   openPorts: [Int!]
+  openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
@@ -14017,6 +14386,7 @@ enum GraphEntityType {
   STORAGE_ACCOUNT
   SUBNET
   SUBSCRIPTION
+  SWITCH
   TECHNOLOGY
   USER_ACCOUNT
   VIRTUAL_DESKTOP
@@ -14152,6 +14522,7 @@ enum GraphRelationshipType {
   INSIDE
   INSTANCE_OF
   INVOKES
+  LOGS_DATA_FOR
   MANAGES
   MOUNTS
   OWNS
@@ -14216,6 +14587,7 @@ type HostConfigurationRule implements Node {
   analytics: HostConfigurationRuleAnalytics!
   builtin: Boolean!
   description: String
+  directOVAL: String
   enabled: Boolean!
   externalId: String
   id: ID!
@@ -14338,6 +14710,10 @@ enum HostConfigurationRuleOrderField {
   NAME
 }
 
+input HostConfigurationTargetPlatformsFilters {
+  customRuleSupported: Boolean
+}
+
 type IaCFileConversionResult {
   resourceJSONs: [JSON!]!
 }
@@ -14438,12 +14814,17 @@ type Integration implements Node {
   createdAt: DateTime!
   id: ID!
   isAccessibleToAllProjects: Boolean
-  lastExecutionStatus: IntegrationStatus
   name: String!
   params: IntegrationParams!
   project: Project
   type: IntegrationType!
   updatedAt: DateTime!
+  usedByRules: [AutomationRule!]!
+}
+
+type IntegrationActionTestResult {
+  reason: String
+  success: Boolean!
 }
 
 type IntegrationConnection {
@@ -14466,11 +14847,6 @@ input IntegrationFilters {
 
 union IntegrationParams = AwsSNSIntegrationParams | AzureServiceBusIntegrationParams | GcpPubSubIntegrationParams | JiraIntegrationParams | PagerDutyIntegrationParams | ServiceNowIntegrationParams | WebhookIntegrationParams | SlackIntegrationParams
 
-enum IntegrationStatus {
-  SUCCESS
-  FAILURE
-}
-
 input IntegrationTLSConfigInput {
   allowInsecureTLS: Boolean
   serverCA: String
@@ -14478,6 +14854,7 @@ input IntegrationTLSConfigInput {
 }
 
 enum IntegrationType {
+  AWS_SECURITY_HUB
   AWS_SNS
   AZURE_DEVOPS
   AZURE_LOGIC_APPS
@@ -14489,11 +14866,10 @@ enum IntegrationType {
   EMAIL
   AWS_EVENT_BRIDGE
   GOOGLE_CHAT
-  GOOGLE_PUB_SUB
+  GCP_PUB_SUB
   JIRA
   MICROSOFT_TEAMS
   PAGER_DUTY
-  SECURITY_HUB
   SERVICE_NOW
   SLACK
   SNOWFLAKE
@@ -14502,6 +14878,8 @@ enum IntegrationType {
   TORQ
   WEBHOOK
 }
+
+scalar IntegrationTypeValue
 
 type IPRestrictions {
   allowedIPs: [String!]!
@@ -14515,6 +14893,7 @@ type Issue implements Node {
   dueAt: DateTime
   entity: GraphEntity
   entitySnapshot: IssueEntitySnapshot!
+  evidenceQuery: GraphEntityQueryValue!
   id: ID!
   note: String @deprecated(reason: "Deprecated property, use notes")
   notes: [IssueNote!]
@@ -14767,6 +15146,11 @@ enum IssuesGroupedByEntityOrderField {
   SEVERITY
 }
 
+enum IssuesIntegrationRunStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
 enum IssueStatus {
   OPEN
   IN_PROGRESS
@@ -14843,17 +15227,28 @@ type JiraAutomationActionParams {
   user: String @deprecated(reason: "Use authentication")
 }
 
+union JiraIntegrationAuthorization = JiraIntegrationBasicAuthorization | JiraIntegrationTokenBearerAuthorization
+
 input JiraIntegrationAuthorizationInput {
-  user: String!
+  username: String
+  password: String
+  personalAccessToken: String
+}
+
+type JiraIntegrationBasicAuthorization {
   password: String!
+  username: String!
 }
 
 type JiraIntegrationParams {
+  authorization: JiraIntegrationAuthorization!
   onPremConfig: OnPremIntegrationConfig
-  password: String!
   tlsConfig: AutomationActionTLSConfig
   url: String!
-  user: String!
+}
+
+type JiraIntegrationTokenBearerAuthorization {
+  token: String!
 }
 
 type JiraTicketFields {
@@ -15120,6 +15515,7 @@ type Mutation {
   createContainerImageScanPolicy(input: CreateContainerImageScanPolicyInput!): CreateContainerImageScanPolicyPayload! @deprecated(reason: "Use createCICDScanPolicy instead")
   createControl(input: CreateControlInput!): CreateControlPayload!
   createCustomIPRange(input: CreateCustomIPRangeInput!): CreateCustomIPRangePayload!
+  createHostConfigurationRule(input: CreateHostConfigurationRuleInput!): CreateHostConfigurationRulePayload!
   createIntegration(input: CreateIntegrationInput!): CreateIntegrationPayload!
   createMalwareExclusion(input: CreateMalwareExclusionInput!): CreateMalwareExclusionPayload!
   createOutpost(input: CreateOutpostInput!): CreateOutpostPayload!
@@ -15146,6 +15542,7 @@ type Mutation {
   deleteContainerImageScanPolicy(input: DeleteContainerImageScanPolicyInput!): DeleteContainerImageScanPolicyPayload! @deprecated(reason: "Use deleteCICDScanPolicy instead")
   deleteControl(input: DeleteControlInput!): DeleteControlPayload!
   deleteCustomIPRange(input: DeleteCustomIPRangeInput!): DeleteCustomIPRangePayload!
+  deleteHostConfigurationRule(input: DeleteHostConfigurationRuleInput!): DeleteHostConfigurationRulePayload!
   deleteIntegration(input: DeleteIntegrationInput!): DeleteIntegrationPayload!
   deleteMalwareExclusion(input: DeleteMalwareExclusionInput!): DeleteMalwareExclusionPayload!
   deleteOutpost(input: DeleteOutpostInput!): DeleteOutpostPayload!
@@ -15160,6 +15557,7 @@ type Mutation {
   deleteServiceAccount(input: DeleteServiceAccountInput!): DeleteServiceAccountPayload!
   deleteUser(input: DeleteUserInput!): DeleteUserPayload!
   disassociateServiceTicket(serviceTicketId: ID!): DisassociateServiceTicketPayload!
+  duplicateHostConfigurationRule(input: DuplicateHostConfigurationRuleInput!): DuplicateHostConfigurationRulePayload!
   duplicateSecurityFramework(input: DuplicateSecurityFrameworkInput!): DuplicateSecurityFrameworkPayload!
   finalizeCICDScan(input: FinalizeCICDScanInput!): CICDScan!
   generateWizContainerRegistryToken(input: GenerateWizContainerRegistryTokenInput): GenerateWizContainerRegistryTokenPayload!
@@ -15182,6 +15580,7 @@ type Mutation {
   runControl(input: RunControlInput!): RunControlPayload!
   runIssueAutomationAction(input: RunIssueAutomationActionInput!): RunIssueAutomationActionPayload!
   runIssuesAutomationAction(input: RunIssuesAutomationActionInput!): RunIssuesAutomationActionPayload!
+  runIssuesIntegrationAction(input: RunIssuesIntegrationInput!): RunIssuesIntegrationPayload!
   sendUserEmailInvite(input: SendUserEmailInviteInput!): SendUserEmailInvitePayload!
   uninstallOutpost(input: UninstallOutpostInput!): UninstallOutpostPayload!
   updateAutomationAction(input: UpdateAutomationActionInput!): UpdateAutomationActionPayload!
@@ -15197,10 +15596,12 @@ type Mutation {
   updateControl(input: UpdateControlInput!): UpdateControlPayload!
   updateControls(input: UpdateControlsInput!): UpdateControlsPayload!
   updateCustomIPRange(input: UpdateCustomIPRangeInput!): UpdateCustomIPRangePayload!
+  updateDigitalTrustDashboardSettings(input: UpdateDigitalTrustDashboardSettingsInput!): UpdateDigitalTrustDashboardSettingsPayload!
   updateExternalExposureScannerSettings(input: UpdateExternalExposureScannerSettingsInput!): UpdateExternalExposureScannerSettingsPayload!
   updateGraphEntity(input: UpdateGraphEntityInput!): UpdateGraphEntityPayload!
   updateHostConfigurationRule(input: UpdateHostConfigurationRuleInput!): UpdateHostConfigurationRulePayload!
   updateHostConfigurationRules(input: UpdateHostConfigurationRulesInput!): UpdateHostConfigurationRulesPayload!
+  updateIntegration(input: UpdateIntegrationInput!): UpdateIntegrationPayload!
   updateIPRestrictions(input: UpdateIPRestrictionsInput!): UpdateIPRestrictionsPayload!
   updateIssue(input: UpdateIssueInput!): UpdateIssuePayload!
   updateIssues(input: UpdateIssuesInput!): UpdateIssuesPayload!
@@ -15225,6 +15626,7 @@ type Mutation {
   updateTechnology(input: UpdateTechnologyInput!): UpdateTechnologyPayload!
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
   updateViewerPreferences(input: UpdateViewerPreferencesInput!): UpdateViewerPreferencesPayload!
+  updateVulnerability(input: UpdateVulnerabilityInput!): UpdateVulnerabilityPayload!
 }
 
 type NetworkExposure implements Node {
@@ -15435,6 +15837,7 @@ type Outpost implements Node {
   customConfig: OutpostCustomConfig @deprecated(reason: "All customConfig fields were moved to the outpost itself")
   enabled: Boolean!
   errorCode: OutpostErrorCode
+  externalInternetAccess: OutpostExternalInternetAccess!
   id: ID!
   managedConfig: OutpostManagedConfig
   name: String!
@@ -15589,6 +15992,10 @@ input OutpostClusterHttpProxyConfigInput {
   httpsProxyURL: String!
   vpcCIDRs: [String!]
   vpcCIDR: String
+}
+
+input OutpostClusterInternetAccessCertificatesInput {
+  skipSslValidation: Boolean
 }
 
 type OutpostClusterOCIConfig {
@@ -15801,7 +16208,7 @@ input PolicyAssessmentFilters {
   cloudAccount: [String!]
 }
 
-union PolicyAssessmentOutput = Issue | ConfigurationFinding
+union PolicyAssessmentOutput = Issue | ConfigurationFinding | HostConfigurationRuleAssessment
 
 type PolicyAssessmentResource implements Node {
   id: ID!
@@ -15826,7 +16233,7 @@ type PolicyAssessmentsConnection {
   totalCount: Int!
 }
 
-union PolicyAssessmentSource = Control | CloudConfigurationRule
+union PolicyAssessmentSource = Control | CloudConfigurationRule | HostConfigurationRule
 
 type PolicyComplianceAnalytics {
   assessedCount: Int
@@ -15834,6 +16241,7 @@ type PolicyComplianceAnalytics {
   control: Control
   errorCount: Int!
   failCount: Int
+  hostConfigurationRule: HostConfigurationRule
   noResourceToAsses: Boolean!
   notAssessedCount: Int!
   passCount: Int
@@ -15883,6 +16291,7 @@ enum ProductFeature {
   THIRD_PARTY_SCANS
   CONTAINER_REGISTRY_SCANNING
   ATTACK_PATH_ANALYSIS
+  CUSTOM_HOST_CONFIGURATION_RULES
   CLOUD_EVENTS_AND_DETECTION
   HOST_FORENSICS
   ACTIVE_SCANNER
@@ -16143,6 +16552,7 @@ input ProjectWithComplianceAnalyticsFilters {
   businessImpact: [BusinessImpactFilter!]
   search: String
   impact: [BusinessImpact!]
+  policyTypes: [SecurityFrameworkPolicyType!]
 }
 
 input ProjectWithComplianceAnalyticsOrder {
@@ -16186,7 +16596,7 @@ type Query {
   cloudAccount(id: ID!): CloudAccount
   cloudAccounts(after: String, filterBy: CloudAccountFilters, first: Int): CloudAccountConnection!
   cloudAccountsWithComplianceAnalytics(after: String, filterBy: CloudAccountWithComplianceAnalyticsFilters, first: Int, orderBy: CloudAccountWithComplianceAnalyticsOrder): CloudAccountWithComplianceAnalyticsConnection!
-  cloudConfigurationRule(id: ID!): CloudConfigurationRule
+  cloudConfigurationRule(id: ID!): CloudConfigurationRule @deprecated(reason: "use validatableCloudConfigurationRule query instead")
   cloudConfigurationRuleIaCTest(IaCFileContent: String!, rule: String!, type: CloudConfigurationRuleMatcherType!): cloudConfigurationRuleIaCTest!
   cloudConfigurationRuleJsonTest(json: JSON!, rule: String!): CloudConfigurationRuleJsonTest!
   cloudConfigurationRules(after: String, filterBy: CloudConfigurationRuleFilters, first: Int, orderBy: CloudConfigurationRuleOrder): CloudConfigurationRuleConnection!
@@ -16221,6 +16631,7 @@ type Query {
   customIPRanges(after: String, filterBy: CustomIPRangeFilters, first: Int): CustomIPRangeConnection!
   dashboard(id: ID!): Dashboard
   dashboards(after: String, filterBy: DashboardFilters, first: Int): DashboardConnection!
+  digitalTrustDashboardSettings: DigitalTrustDashboardSettings!
   directoryUser(id: ID!): DirectoryUser
   directoryUsers(after: String, first: Int, search: String): DirectoryUserConnection!
   externalExposureScannerSettings: ExternalExposureScannerSettings!
@@ -16229,7 +16640,7 @@ type Query {
   hostConfigurationRule(id: ID!): HostConfigurationRule
   hostConfigurationRuleAssessments(after: String, filterBy: HostConfigurationRuleAssessmentFilters, first: Int, orderBy: HostConfigurationRuleAssessmentOrder): HostConfigurationRuleAssessmentConnection!
   hostConfigurationRules(after: String, filterBy: HostConfigurationRuleFilters, first: Int, orderBy: HostConfigurationRuleOrder): HostConfigurationRuleConnection!
-  hostConfigurationTargetPlatforms: [Technology!]!
+  hostConfigurationTargetPlatforms(filterBy: HostConfigurationTargetPlatformsFilters): [Technology!]!
   integration(id: ID!): Integration!
   integrations(after: String, filterBy: IntegrationFilters, first: Int): IntegrationConnection!
   ipRestrictions: IPRestrictions
@@ -16307,12 +16718,17 @@ type Query {
   tenantIdentityClient(cloudProvider: CloudProvider!): TenantIdentityClient
   testAutomationAction(id: ID!): AutomationActionTestResult!
   testConnectorConfig(authParams: JSON!, type: ID!): ConnectorConfigTestResult!
+  testIntegrationAction(input: TestIntegrationActionInput!): IntegrationActionTestResult!
   user(id: ID!): User
   userRoles(after: String, first: Int): UserRoleConnection!
   users(after: String, filterBy: UserFilters, first: Int): UserConnection!
+  validatableCloudConfigurationRule(id: ID!): ValidatableCloudConfigurationRule!
   viewer: User!
   vulnerabilities(after: String, filterBy: VulnerabilityFilters, first: Int, orderBy: VulnerabilityOrder): VulnerabilityConnection!
   vulnerability(id: ID!): Vulnerability
+  vulnerabilityByExternalId(externalId: String!): Vulnerability
+  vulnerabilityByName(name: String!): Vulnerability @deprecated(reason: "use vulnerabilityByExternalId instead")
+  vulnerabilityFinding(id: ID!): VulnerabilityFinding
   vulnerabilityFindings(after: String, filterBy: VulnerabilityFindingFilters, first: Int, orderBy: VulnerabilityFindingOrder): VulnerabilityFindingConnection!
   vulnerabilityVendorAdvisories(after: String, filterBy: VulnerabilityVendorAdvisoryFilters, first: Int): VulnerabilityVendorAdvisoryConnection!
   vulnerabilityVendorAdvisory(id: ID!): VulnerabilityVendorAdvisory!
@@ -16415,9 +16831,9 @@ type ReportParamsGraphQuery {
 }
 
 type ReportParamsHostConfiguration {
-  frameworkCategory: [String!]
+  frameworkCategory: [String!] @deprecated(reason: "Use the field inside hostConfigurationRuleAssessmentsFilters")
   hostConfigurationRuleAssessmentsFilters: JSON
-  subscriptionIds: [String!]
+  subscriptionIds: [String!] @deprecated(reason: "Use the field inside hostConfigurationRuleAssessmentsFilters")
 }
 
 type ReportParamsIssue {
@@ -16437,15 +16853,15 @@ type ReportParamsSecurityFramework {
 }
 
 type ReportParamsVulnerabilities {
-  assetObjectType: VulnerabilityReportGraphEntityType
+  assetObjectType: VulnerabilityReportGraphEntityType @deprecated(reason: "Use 'assetType' instead")
   assetType: VulnerableAssetObjectType
-  entities: [GraphEntity]
+  entities: [GraphEntity] @deprecated(reason: "Use 'filters.assetId' instead")
   filters: JSON
-  since: DateTime
-  subscriptions: [GraphEntity]
+  since: DateTime @deprecated(reason: "Use 'filters.createdAfter' instead")
+  subscriptions: [GraphEntity] @deprecated(reason: "Use 'filters.subscriptionExternalId' instead")
   type: VulnerabilityReportType
-  vendorSeverity: [VulnerabilitySeverity!]
-  vulnerabilityIds: [String!]
+  vendorSeverity: [VulnerabilitySeverity!] @deprecated(reason: "Use 'filters.vendorSeverity' instead")
+  vulnerabilityIds: [String!] @deprecated(reason: "Use 'filters.vulnerabilityId' instead")
 }
 
 type ReportRun implements Node {
@@ -16679,6 +17095,25 @@ type RunIssuesAutomationActionPayload {
   failCount: Int!
   serviceTickets: [ServiceTicket!]
   successCount: Int!
+}
+
+input RunIssuesIntegrationInput {
+  issueIds: [String!]
+  issueFilters: IssueFilters
+  integrationId: ID!
+  actionTemplateType: ActionTemplateType!
+  actionTemplateParams: ActionTemplateParamsInput!
+}
+
+type RunIssuesIntegrationPayload {
+  results: [RunIssuesIntegrationResult!]
+  status: IssuesIntegrationRunStatus!
+}
+
+type RunIssuesIntegrationResult {
+  issue: Issue!
+  reason: String
+  serviceTicket: ServiceTicket
 }
 
 type SAMLGroupMapping {
@@ -17228,6 +17663,7 @@ type ServiceTicket implements Node {
   action: AutomationAction
   externalId: ID!
   id: ID!
+  integration: Integration
   name: String!
   url: String!
 }
@@ -17279,6 +17715,11 @@ type SlackMessageAutomationActionParams {
   channel: String
   note: String
   url: String!
+}
+
+type SmoochAuth {
+  externalId: String!
+  token: String!
 }
 
 type StaticDataPayload {
@@ -17366,7 +17807,7 @@ type SystemActivityConnectorSnapshot {
   type: ConnectorType!
 }
 
-union SystemActivityContext = SystemActivityAutomationActionContext | SystemActivityScanContext | SystemActivityAnalyzerContext | SystemActivityUninstallOutpostContext | SystemActivityReassessIssueContext
+union SystemActivityContext = SystemActivityAutomationActionContext | SystemActivityIntegrationActionContext | SystemActivityScanContext | SystemActivityAnalyzerContext | SystemActivityUninstallOutpostContext | SystemActivityReassessIssueContext
 
 type SystemActivityEdge {
   cursor: String!
@@ -17396,6 +17837,27 @@ type SystemActivityGraphEntitySnapshot {
   name: String!
   nativeType: String!
   type: GraphEntityTypeValue!
+}
+
+type SystemActivityIntegrationActionContext {
+  action: SystemActivityIntegrationActionSnapshot!
+  entity: SystemActivityGraphEntitySnapshot!
+  integration: SystemActivityIntegrationSnapshot!
+  issue: SystemActivityIssueSnapshot!
+  project: Project
+  rule: SystemActivityAutomationRuleSnapshot
+}
+
+type SystemActivityIntegrationActionSnapshot {
+  id: String!
+  params: JSON!
+  type: String!
+}
+
+type SystemActivityIntegrationSnapshot {
+  id: String!
+  name: String!
+  type: IntegrationTypeValue!
 }
 
 type SystemActivityIssueSnapshot {
@@ -17478,6 +17940,7 @@ enum SystemActivityType {
   SCAN
   UNINSTALLER
   ASSESSMENT
+  INTEGRATION_ACTION
 }
 
 type SystemActivityUninstallOutpostContext {
@@ -17715,6 +18178,12 @@ enum TenantStatus {
   TRIAL
 }
 
+input TestIntegrationActionInput {
+  id: ID!
+  actionTemplateType: ActionTemplateType!
+  params: ActionTemplateParamsInput!
+}
+
 enum TimeInterval {
   DAY
   WEEK
@@ -17781,6 +18250,7 @@ input UpdateAutomationRulePatch {
   actionId: String
   overrideActionParams: JSON
   enabled: Boolean
+  actions: [AutomationRuleActionInput!]
 }
 
 type UpdateAutomationRulePayload {
@@ -17793,10 +18263,20 @@ input UpdateAwsMessageAutomationActionParamsInput {
   accessMethod: AwsMessageAutomationActionAccessMethodInput
 }
 
+input UpdateAwsSNSIntegrationParamsInput {
+  topicARN: String
+  accessMethod: AwsSNSIntegrationAccessMethodInput
+}
+
 input UpdateAzureServiceBusAutomationActionParamsInput {
   queueUrl: String
   body: String
   accessMethod: AzureServiceBusAutomationActionAccessMethodInput
+}
+
+input UpdateAzureServiceBusIntegrationParamsInput {
+  queueUrl: String
+  accessMethod: AzureServiceBusIntegrationAccessMethodInput
 }
 
 input UpdateBasicAuthSettingsInput {
@@ -18033,6 +18513,20 @@ type UpdateCustomIPRangePayload {
   customIPRange: CustomIPRange
 }
 
+input UpdateDigitalTrustDashboardSettingsInput {
+  override: UpdateDigitalTrustDashboardSettingsOverride!
+}
+
+input UpdateDigitalTrustDashboardSettingsOverride {
+  enabled: Boolean!
+  brandLogo: String
+  brandColor: String
+}
+
+type UpdateDigitalTrustDashboardSettingsPayload {
+  digitalTrustDashboardSettings: DigitalTrustDashboardSettings!
+}
+
 input UpdateEmailAutomationActionParamsInput {
   note: String
   to: [String!]
@@ -18053,6 +18547,12 @@ input UpdateExternalExposureScannerSettingsPatch {
 
 type UpdateExternalExposureScannerSettingsPayload {
   externalExposureScannerSettings: ExternalExposureScannerSettings!
+}
+
+input UpdateGcpPubSubIntegrationParamsInput {
+  projectId: String
+  topicId: String
+  accessMethod: GooglePubSubIntegrationAccessMethodInput
 }
 
 input UpdateGoogleChatMessageAutomationActionParamsInput {
@@ -18099,6 +18599,10 @@ input UpdateHostConfigurationRuleInput {
 input UpdateHostConfigurationRulePatch {
   enabled: Boolean
   securitySubCategories: [String!]
+  name: String
+  description: String
+  directOVAL: String
+  targetPlatformIds: [String!]
 }
 
 type UpdateHostConfigurationRulePayload {
@@ -18127,6 +18631,31 @@ type UpdateHostConfigurationRulesPayload {
   errors: [UpdateHostConfigurationRulesError!]
   failCount: Int!
   successCount: Int!
+}
+
+input UpdateIntegrationInput {
+  id: ID!
+  patch: UpdateIntegrationPatch!
+}
+
+input UpdateIntegrationPatch {
+  name: String
+  params: UpdateIntegrationPatchParams
+}
+
+input UpdateIntegrationPatchParams {
+  awsSNS: UpdateAwsSNSIntegrationParamsInput
+  webhook: UpdateWebhookIntegrationParamsInput
+  slack: UpdateSlackIntegrationParamsInput
+  azureServiceBus: UpdateAzureServiceBusIntegrationParamsInput
+  gcpPubSub: UpdateGcpPubSubIntegrationParamsInput
+  pagerDuty: UpdatePagerDutyIntegrationParamsInput
+  jira: UpdateJiraIntegrationParamsInput
+  serviceNow: UpdateServiceNowIntegrationParamsInput
+}
+
+type UpdateIntegrationPayload {
+  integration: Integration!
 }
 
 input UpdateIPRestrictionsInput {
@@ -18202,6 +18731,13 @@ input UpdateJiraAutomationActionParamInput {
   token: String
   personalAccessToken: String
   ticketFields: UpdateJiraTicketFieldsInput
+}
+
+input UpdateJiraIntegrationParamsInput {
+  serverUrl: String
+  isOnPrem: Boolean
+  tlsConfig: IntegrationTLSConfigInput
+  authorization: JiraIntegrationAuthorizationInput
 }
 
 input UpdateJiraTicketFieldsInput {
@@ -18331,6 +18867,10 @@ input UpdateOutpostSelfManagedConfigInput {
   disableAutomaticConfigurationBucketSync: Boolean
 }
 
+input UpdatePagerDutyIntegrationParamsInput {
+  integrationKey: String!
+}
+
 input UpdatePortalInactivityTimeoutSettingsInput {
   patch: PortalInactivityTimeoutSettingsPatch!
 }
@@ -18404,8 +18944,6 @@ input UpdateReportGraphQueryPropertyOptions {
 }
 
 input UpdateReportHostConfigurationParamsInput {
-  subscriptionIds: [String!]
-  frameworkCategory: [String!]
   hostConfigurationRuleAssessmentsFilters: HostConfigurationRuleAssessmentFilters
 }
 
@@ -18450,13 +18988,6 @@ input UpdateReportVulnerabilityParamsInput {
   type: VulnerabilityReportType
   assetType: VulnerableAssetObjectType
   filters: VulnerabilityFindingFilters
-  assetObjectType: VulnerabilityReportGraphEntityType
-  subscriptionIds: [String!]
-  entityIds: [String!]
-  since: DateTime
-  updatedAfter: DateTime
-  vulnerabilityIds: [String!]
-  vendorSeverity: [VulnerabilitySeverity!]
 }
 
 input UpdateSAMLIdentityProviderInput {
@@ -18465,6 +18996,7 @@ input UpdateSAMLIdentityProviderInput {
 }
 
 input UpdateSAMLIdentityProviderPatch {
+  name: String
   issuerURL: String
   loginURL: String
   logoutURL: String
@@ -18622,6 +19154,11 @@ input UpdateServiceNowFieldsInput {
   attachEvidenceCSV: Boolean
 }
 
+input UpdateServiceNowIntegrationParamsInput {
+  url: String
+  authorization: ServiceNowIntegrationAuthorizationInput
+}
+
 input UpdateServiceNowUpdateTicketAutomationActionParamInput {
   baseUrl: String
   user: String
@@ -18638,6 +19175,11 @@ input UpdateSessionLifetimeSettingsInput {
 
 type UpdateSessionLifetimeSettingsPayload {
   sessionLifetimeSettings: SessionLifetimeSettings!
+}
+
+input UpdateSlackIntegrationParamsInput {
+  url: String
+  channel: String
 }
 
 input UpdateSlackMessageAutomationActionParamsInput {
@@ -18690,6 +19232,20 @@ type UpdateViewerPreferencesPayload {
   userPreferences: UserPreferences
 }
 
+input UpdateVulnerabilityInput {
+  id: ID
+  externalId: String
+  patch: UpdateVulnerabilityPatch!
+}
+
+input UpdateVulnerabilityPatch {
+  severity: VulnerabilitySeverity
+}
+
+type UpdateVulnerabilityPayload {
+  vulnerability: Vulnerability
+}
+
 input UpdateWebhookAutomationActionParamsInput {
   url: String
   body: String
@@ -18700,6 +19256,14 @@ input UpdateWebhookAutomationActionParamsInput {
   isOnPrem: Boolean
   tlsConfig: AutomationActionTLSConfigInput
   headers: [WebhookHeaderInput!]
+}
+
+input UpdateWebhookIntegrationParamsInput {
+  url: String
+  isOnPrem: Boolean
+  authorization: WebhookIntegrationAuthorizationInput
+  headers: [WebhookHeaderInput!]
+  tlsConfig: IntegrationTLSConfigInput
 }
 
 type User implements Node {
@@ -18726,6 +19290,7 @@ type User implements Node {
   preferences: UserPreferences
   readmeAuthToken: String
   role: UserRole @deprecated
+  smoochAuth: SmoochAuth
   tenant: Tenant!
   updatedAt: DateTime!
   zendeskAuthToken: String
@@ -18783,6 +19348,12 @@ type UserRoleEdge {
   node: UserRole!
 }
 
+type ValidatableCloudConfigurationRule implements Node {
+  id: ID!
+  isValid: Boolean!
+  rule: CloudConfigurationRule
+}
+
 type Vulnerability implements Node {
   affectedTechnologies: [Technology!]
   baseScore: Float
@@ -18793,6 +19364,7 @@ type Vulnerability implements Node {
   description: String
   exploitabilityScore: Float
   exploitable: Boolean
+  externalId: String!
   hasCisaKevExploit: Boolean!
   id: ID!
   name: String!
@@ -18885,13 +19457,17 @@ type VulnerabilityEdge {
 
 input VulnerabilityFilters {
   search: String
+  externalId: [String!]
+  name: [String!]
   vendorAdvisory: [String!]
   affectedTechnology: [String!]
   severity: [VulnerabilitySeverity!]
+  modifiedSeverity: Boolean
   publishedAt: VulnerabilityDateFilters
   hasExploit: Boolean
   hasFix: Boolean
   hasCisaKevExploit: Boolean
+  hasSupportedDetectionMethod: Boolean
 }
 
 type VulnerabilityFinding {
@@ -18916,6 +19492,8 @@ type VulnerabilityFinding {
   score: Float
   vendorSeverity: VulnerabilitySeverity
   version: String
+  vulnerabilityExternalId: String
+  vulnerabilityId: ID
   vulnerableAsset: VulnerableAsset
 }
 
@@ -18933,9 +19511,10 @@ type VulnerabilityFindingEdge {
 }
 
 input VulnerabilityFindingFilters {
+  id: [ID!]
   subscriptionExternalId: [String!]
-  createdAfter: DateTime
-  updatedAfter: DateTime
+  firstSeenAt: VulnerabilityDateFilters
+  updatedAt: VulnerabilityDateFilters
   assetType: [VulnerableAssetObjectType!]
   vendorSeverity: [VulnerabilitySeverity!]
   assetId: [String!]
@@ -18947,10 +19526,10 @@ input VulnerabilityFindingFilters {
   detectionMethod: [VulnerabilityDetectionMethod!]
   projectId: [String!]
   isAssetAccessibleFromInternet: Boolean
+  isAssetOpenToAllInternet: Boolean
   assetHasHighPrivileges: Boolean
   assetHasAdminPrivileges: Boolean
   assetStatus: [CloudResourceStatus!]
-  isExploitable: Boolean
 }
 
 input VulnerabilityFindingOrder {
@@ -18977,8 +19556,9 @@ enum VulnerabilityOrderField {
 
 enum VulnerabilityReportGraphEntityType {
   VIRTUAL_MACHINE
-  CONTAINER_IMAGE
   SERVERLESS
+  CONTAINER_IMAGE
+  CONTAINER
 }
 
 enum VulnerabilityReportType {
@@ -19025,7 +19605,7 @@ input VulnerabilityVendorAdvisoryFilters {
   search: String
 }
 
-union VulnerableAsset = VulnerableAssetVirtualMachine | VulnerableAssetContainerImage | VulnerableAssetServerless
+union VulnerableAsset = VulnerableAssetVirtualMachine | VulnerableAssetServerless | VulnerableAssetContainerImage | VulnerableAssetContainer
 
 interface VulnerableAssetBase {
   cloudPlatform: CloudPlatform
@@ -19040,6 +19620,27 @@ interface VulnerableAssetBase {
   subscriptionName: String
   tags: JSON
   type: VulnerableAssetObjectType!
+}
+
+type VulnerableAssetContainer implements VulnerableAssetBase {
+  cloudPlatform: CloudPlatform
+  cloudProviderURL: String
+  id: ID!
+  ImageExternalId: String
+  name: String
+  NodeName: String
+  PodName: String
+  PodNamespace: String
+  providerUniqueId: String!
+  region: String
+  ServerlessContainer: Boolean
+  status: CloudResourceStatus
+  subscriptionExternalId: String
+  subscriptionId: String
+  subscriptionName: String
+  tags: JSON
+  type: VulnerableAssetObjectType!
+  VmExternalId: String
 }
 
 type VulnerableAssetContainerImage implements VulnerableAssetBase {
@@ -19060,8 +19661,9 @@ type VulnerableAssetContainerImage implements VulnerableAssetBase {
 
 enum VulnerableAssetObjectType {
   VIRTUAL_MACHINE
-  CONTAINER_IMAGE
   SERVERLESS
+  CONTAINER_IMAGE
+  CONTAINER
 }
 
 type VulnerableAssetServerless implements VulnerableAssetBase {
