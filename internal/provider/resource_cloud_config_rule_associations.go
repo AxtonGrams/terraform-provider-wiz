@@ -16,7 +16,7 @@ import (
 
 func resourceWizCloudConfigRuleAssociations() *schema.Resource {
 	return &schema.Resource{
-		Description: "Manage associations between security sub-categories and policies. This resource can only be used with custom security sub-categories. Wiz managed or custom policies can be referenced. When the association is removed from state, all associations managed by this resource will be removed. Associations managed outside this resouce declaration will remain untouched through the lifecycle of this resource.",
+		Description: "Manage associations between cloud configuration rules and security sub-categories. Associations defined outside this resouce will remain untouched through the lifecycle of this resource. Wiz managed cloud configuration rules cannot be associated to Wiz managed security sub-categories. This resource does not support imports; it can, however, overlay existing resources to bring them under management.",
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -32,6 +32,7 @@ func resourceWizCloudConfigRuleAssociations() *schema.Resource {
 			"cloud_config_rule_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
+				ForceNew:    true,
 				Description: "List of cloud configuration rule IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -40,6 +41,7 @@ func resourceWizCloudConfigRuleAssociations() *schema.Resource {
 			"security_sub_category_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
+				ForceNew:    true,
 				Description: "List of security sub-category IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -50,9 +52,6 @@ func resourceWizCloudConfigRuleAssociations() *schema.Resource {
 		ReadContext:   resourceWizCloudConfigRuleAssociationsRead,
 		UpdateContext: resourceWizCloudConfigRuleAssociationsUpdate,
 		DeleteContext: resourceWizCloudConfigRuleAssociationsDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
 	}
 }
 
@@ -174,18 +173,7 @@ func resourceWizCloudConfigRuleAssociationsRead(ctx context.Context, d *schema.R
 		return nil
 	}
 
-	// validate each cloud_config_rule and security sub-category exists
-	cloudConfigRuleDiags := validateCloudConfigRulesExist(ctx, m, utils.ConvertListToString(d.Get("cloud_config_rule_ids").([]interface{})))
-	diags = append(diags, cloudConfigRuleDiags...)
-
-	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
-	diags = append(diags, securitySubCategoryDiags...)
-
-	if len(diags) > 0 {
-		return diags
-	}
-
-	// set the parameters that are not stored in state
+	// set each parameter. since the list of ids triggers a new resource, we can pass through
 	err := d.Set("details", d.Get("details").(string))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -266,59 +254,9 @@ func resourceWizCloudConfigRuleAssociationsRead(ctx context.Context, d *schema.R
 func resourceWizCloudConfigRuleAssociationsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizCloudConfigRuleAssociationsUpdate called...")
 
-	// validate each cloud_config_rule and security sub-category exists
-	cloudConfigRuleDiags := validateCloudConfigRulesExist(ctx, m, utils.ConvertListToString(d.Get("cloud_config_rule_ids").([]interface{})))
-	diags = append(diags, cloudConfigRuleDiags...)
-
-	securitySubCategoryDiags := validateSecuritySubCategoriesExist(ctx, m, utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{})))
-	diags = append(diags, securitySubCategoryDiags...)
-
-	if len(diags) > 0 {
-		return diags
-	}
-
-	// define the graphql query
-	mutation := `mutation UpdateCloudConfigurationRulesInput(
-	  $input: UpdateCloudConfigurationRulesInput!
-	) {
-	  updateCloudConfigurationRules(
-	    input: $input
-	  ) {
-	    successCount
-	    failCount
-	    errors {
-	      reason
-	      rule {
-	        id
-	      }
-	    }
-	  }
-	}`
-
-	// populate the graphql variables
-	mvars := &vendor.UpdateCloudConfigurationRulesInput{}
-	mvars.IDs = utils.ConvertListToString(d.Get("cloud_config_rule_ids").([]interface{}))
-	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
-
-	// print the input variables
-	tflog.Debug(ctx, fmt.Sprintf("UpdateCloudConfigRulesInput: %s", utils.PrettyPrint(mvars)))
-
-	// process the request
-	mdata := &UpdateCloudConfigurationRules{}
-	mrequestDiags := client.ProcessRequest(ctx, m, mvars, mdata, mutation, "cloud_config_rule_association", "update")
-	diags = append(diags, mrequestDiags...)
-	if len(diags) > 0 {
-		return diags
-	}
-
-	// error handling
-	if mdata.UpdateCloudConfigurationRules.FailCount > 0 {
-		tflog.Debug(ctx, fmt.Sprintf("Error encountered during operation: %s", utils.PrettyPrint(mdata.UpdateCloudConfigurationRules.Errors)))
-		return append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error during UpdateCloudConfigurationRules: %d", mdata.UpdateCloudConfigurationRules.FailCount),
-			Detail:   fmt.Sprintf("Details: %s", utils.PrettyPrint(mdata.UpdateCloudConfigurationRules.Errors)),
-		})
+	err := d.Set("details", d.Get("details").(string))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
 	}
 
 	return resourceWizCloudConfigRuleAssociationsRead(ctx, d, m)
