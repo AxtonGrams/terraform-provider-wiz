@@ -18,11 +18,11 @@ Query cloud accounts (subscriptions).
 ### Optional
 
 - `filters` (Block Set) (see [below for nested schema](#nestedblock--filters))
-- `id` (String) Internal identifier for the Control
 
 ### Read-Only
 
 - `cloud_accounts` (Block Set) (see [below for nested schema](#nestedblock--cloud_accounts))
+- `id` (String) Internal identifier for the data.
 
 <a id="nestedblock--filters"></a>
 ### Nested Schema for `filters`

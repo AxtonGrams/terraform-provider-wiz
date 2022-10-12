@@ -22,8 +22,8 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Internal identifier for the Control",
+				Computed:    true,
+				Description: "Internal identifier for the data.",
 			},
 			"filters": {
 				Type:     schema.TypeSet,
