@@ -49,8 +49,9 @@ Read-Only:
 - `cloud_provider` (String)
 - `external_id` (String) External subscription id from cloud provider (subscriptionId in security graph).
 - `id` (String) Internal Wiz ID.
+- `linked_project_ids` (List of String) Projects list this cloud account is assigned to/
 - `name` (String) Display name for this account.
-- `source_connectors` (List of String) Connectors detected this cloud account.
+- `source_connector_ids` (List of String) Connectors detected this cloud account.
 - `status` (String) Cloud Account connectivity status as affected by configured connectors.
 
 

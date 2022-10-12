@@ -128,7 +128,7 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"source_connectors": {
+						"source_connector_ids": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Description: "Connectors detected this cloud account.",
@@ -140,6 +140,14 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Cloud Account connectivity status as affected by configured connectors.",
+						},
+						"linked_project_ids": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "Projects list this cloud account is assigned to/",
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
