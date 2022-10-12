@@ -337,15 +337,18 @@ var CloudAccountStatus = []string{
 
 // CloudAccount struct
 type CloudAccount struct {
-	CloudProvider       string    `json:"cloudProvider"` // enum CloudProvider
-	ContainerCount      int       `json:"containerCount"`
-	ExternalID          string    `json:"externalId"`
-	ID                  string    `json:"id"`
-	LinkedProjects      []Project `json:"linkedProjects"`
-	Name                string    `json:"name"`
-	ResourceCount       int       `json:"resourceCount"`
-	Status              string    `json:"CloudAccountStatus"` // enum CloudAccountStatus
-	VirtualMachineCount int       `json:"virtualMachineCount"`
+	CloudProvider       string      `json:"cloudProvider"` // enum CloudProvider
+	ContainerCount      int         `json:"containerCount"`
+	ExternalID          string      `json:"externalId"`
+	FirstScannedAt      string      `json:"firstScannedAt"`
+	ID                  string      `json:"id"`
+	LastScannedAt       string      `json:"lastScannedAt"`
+	LinkedProjects      []Project   `json:"linkedProjects"`
+	Name                string      `json:"name"`
+	ResourceCount       int         `json:"resourceCount"`
+	SourceConnectors    []Connector `json:"sourceConnectors"`
+	Status              string      `json:"CloudAccountStatus"` // enum CloudAccountStatus
+	VirtualMachineCount int         `json:"virtualMachineCount"`
 }
 
 // ProjectEntrypoint struct
@@ -2086,4 +2089,31 @@ type DeleteHostConfigurationRulePayload struct {
 // UpdateHostConfigurationRulePayload struct
 type UpdateHostConfigurationRulePayload struct {
 	Rule HostConfigurationRule `json:"rule,omitempty"`
+}
+
+// CloudAccountFilters struct
+type CloudAccountFilters struct {
+	ID                          []string `json:"id,omitempty"`
+	Search                      []string `json:"search,omitempty"`
+	ProjectID                   string   `json:"projectId,omitempty"`
+	CloudProvider               []string `json:"cloudProvider,omitempty"` // enum CloudProvider
+	Status                      []string `json:"status,omitempty"`        // enum CloudAccountStatus
+	ConnectorID                 []string `json:"connectorId,omitempty"`
+	ConnectorIssueID            []string `json:"connectorIssueId,omitempty"`
+	AssignedToProject           *bool    `json:"assignedToProject,omitempty"`
+	HasMultipleConnectorSources *bool    `json:"hasMultipleConnectorSources"`
+}
+
+// CloudAccountConnection struct
+type CloudAccountConnection struct {
+	Edges      []CloudAccountEdge `json:"edges,omitempty"`
+	Nodes      []CloudAccount     `json:"nodes,omitempty"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+// CloudAccountEdge struct
+type CloudAccountEdge struct {
+	Cursor string       `json:"cursor"`
+	Node   CloudAccount `json:"node"`
 }
