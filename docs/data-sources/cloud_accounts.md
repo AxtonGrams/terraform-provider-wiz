@@ -17,29 +17,21 @@ Query cloud accounts (subscriptions).
 
 ### Optional
 
-- `filters` (Block Set) (see [below for nested schema](#nestedblock--filters))
-- `first` (Number) How many results to return
-
-### Read-Only
-
-- `cloud_accounts` (Block Set) (see [below for nested schema](#nestedblock--cloud_accounts))
-- `id` (String) Internal identifier for the data.
-
-<a id="nestedblock--filters"></a>
-### Nested Schema for `filters`
-
-Optional:
-
 - `assigned_to_project` (Boolean) QueryQuery cloud accounts by project assignment state.
 - `cloud_provider` (String) Query cloud accounts of specific cloud provider.
 - `connector_id` (List of String) Query cloud accounts by specific connector ID.
 - `connector_issue_id` (List of String) Query cloud accounts by specific connector issue ID.
+- `first` (Number) How many results to return
 - `has_multiple_connector_source` (Boolean) QueryQuery cloud accounts by project assignment state.
 - `ids` (List of String) Get specific Cloud Accounts by their IDs.
 - `project_id` (String) Query cloud accounts of a specific linked project, given its id.
 - `search` (String) Free text search on cloud account name or tags or external-id.
 - `status` (String) Query cloud accounts by it's status.
 
+### Read-Only
+
+- `cloud_accounts` (Block Set) (see [below for nested schema](#nestedblock--cloud_accounts))
+- `id` (String) Internal identifier for the data.
 
 <a id="nestedblock--cloud_accounts"></a>
 ### Nested Schema for `cloud_accounts`

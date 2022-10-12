@@ -2,9 +2,10 @@ package internal
 
 // QueryVariables struct
 type QueryVariables struct {
-	ID       string   `json:"id,omitempty"`
-	FilterBy FilterBy `json:"filterBy,omitempty"`
-	First    int      `json:"first,omitempty"`
+	ID       string      `json:"id,omitempty"`
+	FilterBy interface{} `json:"filterBy,omitempty"`
+	After    string      `json:"after,omitempty"`
+	First    int         `json:"first,omitempty"`
 }
 
 // FilterBy struct
