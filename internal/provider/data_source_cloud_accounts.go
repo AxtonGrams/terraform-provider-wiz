@@ -25,6 +25,11 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 				Computed:    true,
 				Description: "Internal identifier for the data.",
 			},
+			"first": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "How many results to return",
+			},
 			"filters": {
 				Type:     schema.TypeSet,
 				Optional: true,

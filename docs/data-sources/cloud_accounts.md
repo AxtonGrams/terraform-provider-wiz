@@ -18,6 +18,7 @@ Query cloud accounts (subscriptions).
 ### Optional
 
 - `filters` (Block Set) (see [below for nested schema](#nestedblock--filters))
+- `first` (Number) How many results to return
 
 ### Read-Only
 
