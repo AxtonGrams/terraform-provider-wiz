@@ -249,7 +249,8 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"wiz_organizations": dataSourceWizOrganizations(),
+				"wiz_cloud_accounts": dataSourceWizCloudAccounts(),
+				"wiz_organizations":  dataSourceWizOrganizations(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"wiz_automation_action":              resourceWizAutomationAction(),

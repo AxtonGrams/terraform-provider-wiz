@@ -109,7 +109,9 @@ func dataSourceWizOrganizationsRead(ctx context.Context, d *schema.ResourceData,
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
 	tflog.Debug(ctx, fmt.Sprintf("search strings (%T) %s", d.Get("search"), d.Get("search").(string)))
-	vars.FilterBy.Search = append(vars.FilterBy.Search, d.Get("search").(string))
+	filterBy := &vendor.CloudOrganizationFilters{}
+	filterBy.Search = append(filterBy.Search, d.Get("search").(string))
+	vars.FilterBy = filterBy
 
 	// process the request
 	data := &ReadCloudOrganizations{}
