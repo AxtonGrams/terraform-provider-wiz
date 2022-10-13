@@ -322,7 +322,10 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if b {
 		filterBy.Search = utils.ConvertListToString(a.([]interface{}))
 	}
-	filterBy.ProjectID = d.Get("project_id").(string)
+	a, b = d.GetOk("project_id")
+	if b {
+		filterBy.ProjectID = a.(string)
+	}
 	a, b = d.GetOk("cloud_provider")
 	if b {
 		filterBy.CloudProvider = utils.ConvertListToString(a.([]interface{}))
@@ -339,8 +342,14 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if b {
 		filterBy.ConnectorIssueID = utils.ConvertListToString(a.([]interface{}))
 	}
-	filterBy.AssignedToProject = utils.ConvertBoolToPointer(d.Get("assigned_to_project").(bool))
-	filterBy.HasMultipleConnectorSources = utils.ConvertBoolToPointer(d.Get("has_multiple_connector_sources").(bool))
+	a, b = d.GetOk("assigned_to_project")
+	if b {
+		filterBy.AssignedToProject = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("has_multiple_connector_sources")
+	if b {
+		filterBy.HasMultipleConnectorSources = utils.ConvertBoolToPointer(a.(bool))
+	}
 	vars.FilterBy = filterBy
 
 	// process the request
@@ -355,8 +364,6 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if err := d.Set("cloud_accounts", cloudAccounts); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-
-	tflog.Debug(ctx, "Finished")
 
 	return diags
 }

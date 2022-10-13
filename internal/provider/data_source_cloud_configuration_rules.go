@@ -1,10 +1,10 @@
 package provider
 
 import (
-	//"bytes"
+	"bytes"
 	"context"
-	//"crypto/sha1"
-	//"encoding/hex"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal"
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
 )
@@ -83,9 +83,12 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 				},
 			},
 			"subject_entity_type": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "FreeFind rules by their entity type subject.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"severity": {
 				Type:     schema.TypeList,
@@ -221,6 +224,10 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"enabled": {
 							Type:        schema.TypeBool,
 							Computed:    true,
@@ -339,8 +346,459 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 	}
 }
 
+// ReadCloudConfigurationRules struct
+type ReadCloudConfigurationRules struct {
+	CloudConfigurationRules vendor.CloudConfigurationRuleConnection `json:"cloudConfigurationRules"`
+}
+
 func dataSourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "dataSourceWizCloudConfigurationRuleRead called...")
 
+	// generate the id for this resource
+	// id must be deterministic, so the id is based on a hash of the search parameters
+	var identifier bytes.Buffer
+
+	a, b := d.GetOk("first")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("search")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("scope_account_ids")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("service_type")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("subject_entity_type")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("severity")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("enabled")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("has_auto_remediation")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("has_remediation")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("framework_category")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("target_native_type")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("created_by")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("is_opa_policy")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("project")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("matcher_type")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("ids")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("function_as_control")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("risk_equals_any")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("risk_equals_all")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+
+	h := sha1.New()
+	h.Write([]byte(identifier.String()))
+	hashID := hex.EncodeToString(h.Sum(nil))
+
+	// Set the id
+	d.SetId(hashID)
+
+	// define the graphql query
+	query := `query cloudConfigurationRules(
+	  $filterBy: CloudConfigurationRuleFilters
+	  $first: Int
+	  $after: String
+	  $orderBy: CloudConfigurationRuleOrder
+	) {
+	  cloudConfigurationRules(
+	    filterBy: $filterBy
+	    first: $first
+	    after: $after
+	    orderBy: $orderBy
+	  ) {
+	    nodes {
+	      id
+	      name
+	      shortId
+	      description
+	      enabled
+	      severity
+	      externalReferences{
+	        id
+	        name
+	      }
+	      targetNativeTypes
+	      supportsNRT
+	      subjectEntityType
+	      cloudProvider
+	      serviceType
+	      scopeAccounts {
+	        id
+	      }
+	      securitySubCategories {
+	        id
+	      }
+	      builtin
+	      opaPolicy
+	      functionAsControl
+	      control {
+	        id
+	      }
+	      graphId
+	      hasAutoRemediation
+	      remediationInstructions
+	      iacMatchers {
+	        id
+	      }
+	    }
+	    pageInfo {
+	      hasNextPage
+	      endCursor
+	    }
+	    totalCount
+	  }
+	}`
+
+	// set the resource parameters
+	err := d.Set("first", d.Get("first").(int))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("search", d.Get("search").(string))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("scope_account_ids", d.Get("scope_account_ids").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("cloud_provider", d.Get("cloud_provider").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("service_type", d.Get("service_type").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("subject_entity_type", d.Get("subject_entity_type").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("severity", d.Get("severity").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	a, b = d.GetOk("enabled")
+	if b {
+		err = d.Set("enabled", a.(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	a, b = d.GetOk("has_auto_remediation")
+	if b {
+		err = d.Set("has_auto_remediation", a.(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	a, b = d.GetOk("has_remediation")
+	if b {
+		err = d.Set("has_remediation", a.(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	err = d.Set("framework_category", d.Get("framework_category").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("target_native_type", d.Get("target_native_type").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("created_by", d.Get("created_by").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	a, b = d.GetOk("is_opa_policy")
+	if b {
+		err = d.Set("is_opa_policy", a.(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	err = d.Set("project", d.Get("project").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("matcher_type", d.Get("matcher_type").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("ids", d.Get("ids").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	a, b = d.GetOk("function_as_control")
+	if b {
+		err = d.Set("function_as_control", a.(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	err = d.Set("risk_equals_any", d.Get("risk_equals_any").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("risk_equals_all", d.Get("risk_equals_all").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	// populate the graphql variables
+	vars := &internal.QueryVariables{}
+	vars.First = d.Get("first").(int)
+	filterBy := &vendor.CloudConfigurationRuleFilters{}
+	a, b = d.GetOk("search")
+	if b {
+		filterBy.Search = a.(string)
+	}
+	a, b = d.GetOk("scope_account_ids")
+	if b {
+		filterBy.ScopeAccountIDs = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("cloud_provider")
+	if b {
+		filterBy.CloudProvider = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("service_type")
+	if b {
+		filterBy.ServiceType = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("subject_entity_type")
+	if b {
+		filterBy.SubjectEntityType = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("severity")
+	if b {
+		filterBy.Severity = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("enabled")
+	if b {
+		filterBy.Enabled = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("has_auto_remediation")
+	if b {
+		filterBy.HasAutoRemediation = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("has_remediation")
+	if b {
+		filterBy.HasRemediation = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("framework_category")
+	if b {
+		filterBy.FrameworkCategory = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("target_native_type")
+	if b {
+		filterBy.TargetNativeType = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("created_by")
+	if b {
+		filterBy.CreatedBy = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("is_opa_policy")
+	if b {
+		filterBy.IsOPAPolicy = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("project")
+	if b {
+		filterBy.Project = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("matcher_type")
+	if b {
+		filterBy.MatcherType = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("ids")
+	if b {
+		filterBy.ID = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("function_as_control")
+	if b {
+		filterBy.FunctionAsControl = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("risk_equals_any")
+	if b {
+		filterBy.RiskEqualsAny = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("risk_equals_all")
+	if b {
+		filterBy.RiskEqualsAll = utils.ConvertListToString(a.([]interface{}))
+	}
+
+	vars.FilterBy = filterBy
+
+	// process the request
+	data := &ReadCloudConfigurationRules{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "cloud_config_rules", "read")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
+	}
+
+	cloudConfigurationRules := flattenCloudConfigurationRules(ctx, &data.CloudConfigurationRules.Nodes)
+	if err := d.Set("cloud_configuration_rules", cloudConfigurationRules); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
 	return diags
+}
+
+func flattenCloudConfigurationRules(ctx context.Context, nodes *[]*vendor.CloudConfigurationRule) []interface{} {
+	tflog.Info(ctx, "flattenCloudConfigurationRules called...")
+	tflog.Debug(ctx, fmt.Sprintf("CloudConfigurationRules: %s", utils.PrettyPrint(nodes)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range *nodes {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		ruleMap := make(map[string]interface{})
+		ruleMap["id"] = b.ID
+		ruleMap["name"] = b.Name
+		ruleMap["short_id"] = b.ShortID
+		ruleMap["description"] = b.Description
+		ruleMap["enabled"] = b.Enabled
+		ruleMap["severity"] = b.Severity
+		ruleMap["external_references"] = flattenExternalReferences(ctx, &b.ExternalReferences)
+		ruleMap["target_native_types"] = b.TargetNativeTypes
+		ruleMap["supports_nrt"] = b.SupportsNRT
+		ruleMap["subject_entity_type"] = b.SubjectEntityType
+		ruleMap["cloud_provider"] = b.CloudProvider
+		ruleMap["service_type"] = b.ServiceType
+		ruleMap["scope_accounts"] = flattenScopeAccounts(ctx, &b.ScopeAccounts)
+		ruleMap["security_sub_category_ids"] = flattenSecuritySubCategoryIDs(ctx, &b.SecuritySubCategories)
+		ruleMap["builtin"] = b.Builtin
+		ruleMap["opa_policy"] = b.OPAPolicy
+		ruleMap["function_as_control"] = b.FunctionAsControl
+		//ruleMap["control_id"] = b.Control.ID
+		ruleMap["graph_id"] = b.GraphID
+		ruleMap["has_auto_remediation"] = b.HasAutoRemediation
+		ruleMap["remediation_instructions"] = b.RemediationInstructions
+		ruleMap["iac_matcher_ids"] = flattenIACMatcherIDs(ctx, &b.IACMatchers)
+
+		output = append(output, ruleMap)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenCloudConfigurationRules output: %s", utils.PrettyPrint(output)))
+
+	return output
+}
+
+func flattenExternalReferences(ctx context.Context, refs *[]*vendor.CloudConfigurationRuleExternalReference) []interface{} {
+	tflog.Info(ctx, "flattenExternalReferences called...")
+	tflog.Debug(ctx, fmt.Sprintf("External References: %s", utils.PrettyPrint(refs)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range *refs {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		refMap := make(map[string]interface{})
+		refMap["id"] = b.ID
+		refMap["name"] = b.Name
+		output = append(output, refMap)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenExternalReferences output: %s", utils.PrettyPrint(output)))
+
+	return output
+}
+
+func flattenScopeAccounts(ctx context.Context, accounts *[]*vendor.CloudAccount) []interface{} {
+	tflog.Info(ctx, "flattenScopeAccounts called...")
+	tflog.Debug(ctx, fmt.Sprintf("ScopeAccounts: %s", utils.PrettyPrint(accounts)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range *accounts {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		accountMap := make(map[string]interface{})
+		accountMap["id"] = b.ID
+		output = append(output, accountMap)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenScopeAccounts output: %s", utils.PrettyPrint(output)))
+
+	return output
+}
+
+func flattenSecuritySubCategoryIDs(ctx context.Context, subCats *[]*vendor.SecuritySubCategory) []interface{} {
+	tflog.Info(ctx, "flattenSecuritySubCategoryIDs called...")
+	tflog.Debug(ctx, fmt.Sprintf("SecuritySubCategories: %s", utils.PrettyPrint(subCats)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range *subCats {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		output = append(output, b.ID)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenSecuritySubCategoryIDs output: %s", utils.PrettyPrint(output)))
+
+	return output
+}
+
+func flattenIACMatcherIDs(ctx context.Context, matchers *[]*vendor.CloudConfigurationRuleMatcher) []interface{} {
+	tflog.Info(ctx, "flattenIACMatchers called...")
+	tflog.Debug(ctx, fmt.Sprintf("flattenIACMatchers: %s", utils.PrettyPrint(matchers)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range *matchers {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		output = append(output, b.ID)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenIACMatchers output: %s", utils.PrettyPrint(output)))
+
+	return output
 }
