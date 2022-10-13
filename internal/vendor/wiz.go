@@ -343,11 +343,11 @@ type CloudAccount struct {
 	FirstScannedAt      string      `json:"firstScannedAt"`
 	ID                  string      `json:"id"`
 	LastScannedAt       string      `json:"lastScannedAt"`
-	LinkedProjects      []Project   `json:"linkedProjects"`
+	LinkedProjects      []*Project  `json:"linkedProjects,omitempty"`
 	Name                string      `json:"name"`
 	ResourceCount       int         `json:"resourceCount"`
 	SourceConnectors    []Connector `json:"sourceConnectors"`
-	Status              string      `json:"CloudAccountStatus"` // enum CloudAccountStatus
+	Status              string      `json:"status"` // enum CloudAccountStatus
 	VirtualMachineCount int         `json:"virtualMachineCount"`
 }
 
@@ -2106,10 +2106,10 @@ type CloudAccountFilters struct {
 
 // CloudAccountConnection struct
 type CloudAccountConnection struct {
-	Edges      []CloudAccountEdge `json:"edges,omitempty"`
-	Nodes      []CloudAccount     `json:"nodes,omitempty"`
-	PageInfo   PageInfo           `json:"pageInfo"`
-	TotalCount int                `json:"totalCount"`
+	Edges      []*CloudAccountEdge `json:"edges,omitempty"`
+	Nodes      []*CloudAccount     `json:"nodes,omitempty"`
+	PageInfo   PageInfo            `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
 }
 
 // CloudAccountEdge struct
