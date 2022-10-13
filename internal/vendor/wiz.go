@@ -2117,3 +2117,38 @@ type CloudAccountEdge struct {
 	Cursor string       `json:"cursor"`
 	Node   CloudAccount `json:"node"`
 }
+
+// CloudConfigurationRuleOrder struct
+type CloudConfigurationRuleOrder struct {
+	Direction string `json:"direction"` // enum OrderDirection
+	Field     string `json:"field"`     // enum CloudConfigurationRuleOrderField
+}
+
+// OrderDirection enum
+var OrderDirection = []string{
+	"ASC",
+	"DESC",
+}
+
+// CloudConfigurationRuleOrderField enum
+var CloudConfigurationRuleOrderField = []string{
+	"FAILED_CHECK_COUNT",
+	"SEVERITY",
+	"NAME",
+}
+
+// CloudConfigurationRuleConnection struct
+type CloudConfigurationRuleConnection struct {
+	AnalyticsUpdatedAt    string                        `json:"analyticsUpdatedAt"`
+	Edges                 []*CloudConfigurationRuleEdge `json:"edges,omitempty"`
+	EnabledAsControlCount int                           `json:"enabledAsControlCount"`
+	Nodes                 []*CloudConfigurationRule     `json:"nodes,omitempty"`
+	PageInfo              PageInfo                      `json:"pageInfo"`
+	TotalCount            int                           `json:"totalCount"`
+}
+
+// CloudConfigurationRuleEdge struct
+type CloudConfigurationRuleEdge struct {
+	Cursor string                 `json:"cursor"`
+	Node   CloudConfigurationRule `json:"node"`
+}
