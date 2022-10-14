@@ -1933,6 +1933,7 @@ type HostConfigurationRule struct {
 	Analytics             HostConfigurationRuleAnalytics `json:"analytics"`
 	Builtin               bool                           `json:"builtin"`
 	Description           string                         `json:"description,omitempty"`
+	DirectOVAL            string                         `json:"directOVAL,omitempty"`
 	Enabled               bool                           `json:"enabled"`
 	ExternalID            string                         `json:"externalId,omitempty"`
 	ID                    string                         `json:"id"`
@@ -2159,4 +2160,30 @@ type CloudConfigurationRuleEdge struct {
 type CloudConfigurationRuleExternalReference struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// HostConfigurationRuleOrder struct
+type HostConfigurationRuleOrder struct {
+	Direction string `json:"direction"` // enum OrderDirection
+	Field     string `json:"field"`     // enum HostConfigurationRuleOrderField
+}
+
+// HostConfigurationRuleOrderField enum
+var HostConfigurationRuleOrderField = []string{
+	"FAILED_CHECK_COUNT",
+	"NAME",
+}
+
+// HostConfigurationRuleConnection struct
+type HostConfigurationRuleConnection struct {
+	Edges      []*HostConfigurationRuleEdge `json:"edges,omitempty"`
+	Nodes      []*HostConfigurationRule     `json:"nodes,omitempty"`
+	PageInfo   PageInfo                     `json:"pageInfo"`
+	TotalCount int                          `json:"totalCount"`
+}
+
+// HostConfigurationRuleEdge struct
+type HostConfigurationRuleEdge struct {
+	Cursor string                `json:"cursor"`
+	Node   HostConfigurationRule `json:"node"`
 }
