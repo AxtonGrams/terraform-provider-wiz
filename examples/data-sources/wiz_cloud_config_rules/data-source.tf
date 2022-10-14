@@ -6,7 +6,7 @@ data "wiz_cloud_config_rules" "aws_access_key" {
   ]
 }
 
-# get high and critical aws clou configuration rules that have remediation
+# get high and critical aws cloud configuration rules that have remediation
 data "wiz_cloud_config_rules" "aws_critical" {
   cloud_provider = [
     "AWS",

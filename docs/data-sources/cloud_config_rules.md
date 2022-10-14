@@ -21,7 +21,7 @@ data "wiz_cloud_config_rules" "aws_access_key" {
   ]
 }
 
-# get high and critical aws clou configuration rules that have remediation
+# get high and critical aws cloud configuration rules that have remediation
 data "wiz_cloud_config_rules" "aws_critical" {
   cloud_provider = [
     "AWS",
@@ -91,7 +91,7 @@ data "wiz_cloud_config_rules" "aws_critical" {
         - MEDIUM
         - HIGH
         - CRITICAL
-- `subject_entity_type` (List of String) FreeFind rules by their entity type subject.
+- `subject_entity_type` (List of String) Find rules by their entity type subject.
 - `target_native_type` (List of String) Search rules by target native type.
 
 ### Read-Only

@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -387,6 +388,11 @@ func flattenCloudAccounts(ctx context.Context, nodes *[]*vendor.CloudAccount) []
 		output = append(output, accountMap)
 	}
 
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(map[string]interface{})["id"].(string) < output[j].(map[string]interface{})["id"].(string)
+	})
+
 	tflog.Debug(ctx, fmt.Sprintf("flattenCloudAccounts output: %s", utils.PrettyPrint(output)))
 
 	return output
@@ -403,6 +409,11 @@ func flattenProjectIDs(ctx context.Context, projects *[]*vendor.Project) []inter
 		output = append(output, b.ID)
 	}
 
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
+
 	tflog.Debug(ctx, fmt.Sprintf("flattenProjectIDs output: %s", utils.PrettyPrint(output)))
 
 	return output
@@ -418,6 +429,11 @@ func flattenSourceConnectorIDs(ctx context.Context, connectors *[]vendor.Connect
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
 		output = append(output, b.ID)
 	}
+
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
 
 	tflog.Debug(ctx, fmt.Sprintf("flattenSourceConnectorIDs output: %s", utils.PrettyPrint(output)))
 

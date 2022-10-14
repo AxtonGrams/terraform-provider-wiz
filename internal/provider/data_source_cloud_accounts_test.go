@@ -18,8 +18,8 @@ func TestFlattenCloudAccounts(t *testing.T) {
 			"cloud_provider": "0767b7a3-d540-4b9c-8afd-a018aa7da0fb",
 			"status":         "9b6e7ae9-e0f6-4748-8171-a6b7a8f385ec",
 			"linked_project_ids": []interface{}{
-				"55e9138d-e48f-4155-a2ac-364eb00005db",
 				"3d9ef88a-84f9-4a84-9a67-e5cdd28ad35f",
+				"55e9138d-e48f-4155-a2ac-364eb00005db",
 			},
 			"source_connector_ids": []interface{}{
 				"7ac2f620-3882-4c35-91f0-7631eef430c6",
@@ -68,8 +68,8 @@ func TestFlattenCloudAccounts(t *testing.T) {
 func TestFlattenProjectIDs(t *testing.T) {
 	ctx := context.Background()
 	expected := []interface{}{
-		"b0a03462-697e-4ef8-af52-0e8122c6eb7f",
 		"225697ef-8d21-42e1-8195-46d29b285ee6",
+		"b0a03462-697e-4ef8-af52-0e8122c6eb7f",
 		"d24f22fb-088d-4586-ba8a-9524260f7427",
 	}
 
@@ -99,9 +99,9 @@ func TestFlattenProjectIDs(t *testing.T) {
 func TestFlattenSourceConnectorIDs(t *testing.T) {
 	ctx := context.Background()
 	expected := []interface{}{
-		"d84b87ad-a38f-4ff1-9ee3-761521fbbaab",
-		"796def2c-70c6-4dc6-85a1-991616a98f4a",
 		"317d6352-69e0-47e0-a280-76dd3e2e9659",
+		"796def2c-70c6-4dc6-85a1-991616a98f4a",
+		"d84b87ad-a38f-4ff1-9ee3-761521fbbaab",
 	}
 
 	var connectors = &[]vendor.Connector{

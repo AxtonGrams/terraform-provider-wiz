@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -85,7 +86,7 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 			"subject_entity_type": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "FreeFind rules by their entity type subject.",
+				Description: "Find rules by their entity type subject.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -707,22 +708,22 @@ func flattenCloudConfigurationRules(ctx context.Context, nodes *[]*vendor.CloudC
 		ruleMap["name"] = b.Name
 		ruleMap["short_id"] = b.ShortID
 		ruleMap["description"] = b.Description
-		ruleMap["enabled"] = b.Enabled
+		ruleMap["enabled"] = *b.Enabled
 		ruleMap["severity"] = b.Severity
 		ruleMap["external_references"] = flattenExternalReferences(ctx, &b.ExternalReferences)
 		ruleMap["target_native_types"] = b.TargetNativeTypes
-		ruleMap["supports_nrt"] = b.SupportsNRT
+		ruleMap["supports_nrt"] = *b.SupportsNRT
 		ruleMap["subject_entity_type"] = b.SubjectEntityType
 		ruleMap["cloud_provider"] = b.CloudProvider
 		ruleMap["service_type"] = b.ServiceType
 		ruleMap["scope_accounts"] = flattenScopeAccounts(ctx, &b.ScopeAccounts)
 		ruleMap["security_sub_category_ids"] = flattenSecuritySubCategoryIDs(ctx, &b.SecuritySubCategories)
-		ruleMap["builtin"] = b.Builtin
+		ruleMap["builtin"] = *b.Builtin
 		ruleMap["opa_policy"] = b.OPAPolicy
-		ruleMap["function_as_control"] = b.FunctionAsControl
-		//ruleMap["control_id"] = b.Control.ID
+		ruleMap["function_as_control"] = *b.FunctionAsControl
+		ruleMap["control_id"] = b.Control.ID
 		ruleMap["graph_id"] = b.GraphID
-		ruleMap["has_auto_remediation"] = b.HasAutoRemediation
+		ruleMap["has_auto_remediation"] = *b.HasAutoRemediation
 		ruleMap["remediation_instructions"] = b.RemediationInstructions
 		ruleMap["iac_matcher_ids"] = flattenIACMatcherIDs(ctx, &b.IACMatchers)
 
@@ -748,6 +749,11 @@ func flattenExternalReferences(ctx context.Context, refs *[]*vendor.CloudConfigu
 		output = append(output, refMap)
 	}
 
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(map[string]interface{})["id"].(string) < output[j].(map[string]interface{})["id"].(string)
+	})
+
 	tflog.Debug(ctx, fmt.Sprintf("flattenExternalReferences output: %s", utils.PrettyPrint(output)))
 
 	return output
@@ -761,10 +767,13 @@ func flattenScopeAccounts(ctx context.Context, accounts *[]*vendor.CloudAccount)
 	var output = make([]interface{}, 0, 0)
 	for _, b := range *accounts {
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
-		accountMap := make(map[string]interface{})
-		accountMap["id"] = b.ID
-		output = append(output, accountMap)
+		output = append(output, b.ID)
 	}
+
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
 
 	tflog.Debug(ctx, fmt.Sprintf("flattenScopeAccounts output: %s", utils.PrettyPrint(output)))
 
@@ -782,6 +791,11 @@ func flattenSecuritySubCategoryIDs(ctx context.Context, subCats *[]*vendor.Secur
 		output = append(output, b.ID)
 	}
 
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
+
 	tflog.Debug(ctx, fmt.Sprintf("flattenSecuritySubCategoryIDs output: %s", utils.PrettyPrint(output)))
 
 	return output
@@ -797,6 +811,11 @@ func flattenIACMatcherIDs(ctx context.Context, matchers *[]*vendor.CloudConfigur
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
 		output = append(output, b.ID)
 	}
+
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
 
 	tflog.Debug(ctx, fmt.Sprintf("flattenIACMatchers output: %s", utils.PrettyPrint(output)))
 
