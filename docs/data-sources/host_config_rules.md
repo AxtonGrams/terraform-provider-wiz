@@ -13,9 +13,10 @@ Query cloud configuration rules.
 ## Example Usage
 
 ```terraform
-# get host configuration rules for access keys
-data "wiz_host_config_rules" "aws_access_key" {
-  search = "Access key"
+# get the first five host configuration rules for access keys
+data "wiz_host_config_rules" "access" {
+  first  = 5
+  search = "access"
 }
 ```
 
@@ -43,7 +44,7 @@ Read-Only:
 
 - `builtin` (Boolean)
 - `description` (String)
-- `dorect_oval` (String)
+- `direct_oval` (String)
 - `enabled` (Boolean)
 - `external_id` (String)
 - `id` (String)

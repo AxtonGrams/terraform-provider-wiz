@@ -5,8 +5,8 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
-	//"fmt"
-	//"sort"
+	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -107,7 +107,7 @@ func dataSourceWizHostConfigurationRules() *schema.Resource {
 							Computed:    true,
 							Description: "Indication whether the rule is built-in or custom.",
 						},
-						"dorect_oval": {
+						"direct_oval": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Direct OVAL definition assessed on hosts during disk scanning.",
@@ -152,6 +152,14 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	if b {
 		identifier.WriteString(utils.PrettyPrint(a))
 	}
+	a, b = d.GetOk("framework_category")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
+	a, b = d.GetOk("target_platform")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
 
 	h := sha1.New()
 	h.Write([]byte(identifier.String()))
@@ -161,13 +169,13 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	d.SetId(hashID)
 
 	// define the graphql query
-	query := `query cloudConfigurationRules(
-	  $filterBy: CloudConfigurationRuleFilters
+	query := `query hostConfigurationRules(
+	  $filterBy: HostConfigurationRuleFilters
 	  $first: Int
 	  $after: String
-	  $orderBy: CloudConfigurationRuleOrder
+	  $orderBy: HostConfigurationRuleOrder
 	) {
-	  cloudConfigurationRules(
+	  hostConfigurationRules(
 	    filterBy: $filterBy
 	    first: $first
 	    after: $after
@@ -175,37 +183,18 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	  ) {
 	    nodes {
 	      id
+	      externalId
 	      name
-	      shortId
+	      shortName
 	      description
 	      enabled
-	      severity
-	      externalReferences{
-		id
-		name
-	      }
-	      targetNativeTypes
-	      supportsNRT
-	      subjectEntityType
-	      cloudProvider
-	      serviceType
-	      scopeAccounts {
-		id
-	      }
 	      securitySubCategories {
-		id
+	        id
 	      }
 	      builtin
-	      opaPolicy
-	      functionAsControl
-	      control {
-		id
-	      }
-	      graphId
-	      hasAutoRemediation
-	      remediationInstructions
-	      iacMatchers {
-		id
+	      directOVAL
+	      targetPlatforms {
+	        id
 	      }
 	    }
 	    pageInfo {
@@ -225,6 +214,21 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	a, b = d.GetOk("enabled")
+	if b {
+		err = d.Set("enabled", a.(bool))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	err = d.Set("framework_category", d.Get("framework_category").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("target_platform", d.Get("target_platform").([]interface{}))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
@@ -238,6 +242,14 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	if b {
 		filterBy.Enabled = utils.ConvertBoolToPointer(a.(bool))
 	}
+	a, b = d.GetOk("framework_category")
+	if b {
+		filterBy.FrameworkCategory = utils.ConvertListToString(a.([]interface{}))
+	}
+	a, b = d.GetOk("target_platform")
+	if b {
+		filterBy.TargetPlatforms = utils.ConvertListToString(a.([]interface{}))
+	}
 
 	vars.FilterBy = filterBy
 
@@ -248,11 +260,59 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	if len(diags) > 0 {
 		return diags
 	}
-	/*
-		cloudConfigurationRules := flattenCloudConfigurationRules(ctx, &data.CloudConfigurationRules.Nodes)
-		if err := d.Set("cloud_configuration_rules", cloudConfigurationRules); err != nil {
-			return append(diags, diag.FromErr(err)...)
-		}
-	*/
+
+	hostConfigurationRules := flattenHostConfigurationRules(ctx, &data.HostConfigurationRules.Nodes)
+	if err := d.Set("host_configuration_rules", hostConfigurationRules); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
 	return diags
+}
+
+func flattenHostConfigurationRules(ctx context.Context, nodes *[]*vendor.HostConfigurationRule) []interface{} {
+	tflog.Info(ctx, "flattenHostConfigurationRules called...")
+	tflog.Debug(ctx, fmt.Sprintf("HostConfigurationRules: %s", utils.PrettyPrint(nodes)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range *nodes {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		ruleMap := make(map[string]interface{})
+		ruleMap["id"] = b.ID
+		ruleMap["name"] = b.Name
+		ruleMap["short_name"] = b.ShortName
+		ruleMap["builtin"] = b.Builtin
+		ruleMap["description"] = b.Description
+		ruleMap["direct_oval"] = b.DirectOVAL
+		ruleMap["external_id"] = b.ExternalID
+		ruleMap["security_sub_category_ids"] = flattenSecuritySubCategoryIDs(ctx, &b.SecuritySubCategories)
+		ruleMap["target_platform_ids"] = flattenTargetPlatformIDs(ctx, b.TargetPlatforms)
+
+		output = append(output, ruleMap)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenCloudConfigurationRules output: %s", utils.PrettyPrint(output)))
+
+	return output
+}
+
+func flattenTargetPlatformIDs(ctx context.Context, plats []vendor.Technology) []interface{} {
+	tflog.Info(ctx, "flattenTargetPlatformIDs called...")
+	tflog.Debug(ctx, fmt.Sprintf("TargetPlatforms: %s", utils.PrettyPrint(plats)))
+
+	// walk the slice and construct the list
+	var output = make([]interface{}, 0, 0)
+	for _, b := range plats {
+		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
+		output = append(output, b.ID)
+	}
+
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
+
+	tflog.Debug(ctx, fmt.Sprintf("flattenTargetPlatformIDs output: %s", utils.PrettyPrint(output)))
+
+	return output
 }
