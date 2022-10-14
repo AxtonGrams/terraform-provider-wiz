@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"sort"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -322,7 +323,10 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if b {
 		filterBy.Search = utils.ConvertListToString(a.([]interface{}))
 	}
-	filterBy.ProjectID = d.Get("project_id").(string)
+	a, b = d.GetOk("project_id")
+	if b {
+		filterBy.ProjectID = a.(string)
+	}
 	a, b = d.GetOk("cloud_provider")
 	if b {
 		filterBy.CloudProvider = utils.ConvertListToString(a.([]interface{}))
@@ -339,8 +343,14 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if b {
 		filterBy.ConnectorIssueID = utils.ConvertListToString(a.([]interface{}))
 	}
-	filterBy.AssignedToProject = utils.ConvertBoolToPointer(d.Get("assigned_to_project").(bool))
-	filterBy.HasMultipleConnectorSources = utils.ConvertBoolToPointer(d.Get("has_multiple_connector_sources").(bool))
+	a, b = d.GetOk("assigned_to_project")
+	if b {
+		filterBy.AssignedToProject = utils.ConvertBoolToPointer(a.(bool))
+	}
+	a, b = d.GetOk("has_multiple_connector_sources")
+	if b {
+		filterBy.HasMultipleConnectorSources = utils.ConvertBoolToPointer(a.(bool))
+	}
 	vars.FilterBy = filterBy
 
 	// process the request
@@ -355,8 +365,6 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if err := d.Set("cloud_accounts", cloudAccounts); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-
-	tflog.Debug(ctx, "Finished")
 
 	return diags
 }
@@ -380,6 +388,11 @@ func flattenCloudAccounts(ctx context.Context, nodes *[]*vendor.CloudAccount) []
 		output = append(output, accountMap)
 	}
 
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(map[string]interface{})["id"].(string) < output[j].(map[string]interface{})["id"].(string)
+	})
+
 	tflog.Debug(ctx, fmt.Sprintf("flattenCloudAccounts output: %s", utils.PrettyPrint(output)))
 
 	return output
@@ -396,6 +409,11 @@ func flattenProjectIDs(ctx context.Context, projects *[]*vendor.Project) []inter
 		output = append(output, b.ID)
 	}
 
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
+
 	tflog.Debug(ctx, fmt.Sprintf("flattenProjectIDs output: %s", utils.PrettyPrint(output)))
 
 	return output
@@ -411,6 +429,11 @@ func flattenSourceConnectorIDs(ctx context.Context, connectors *[]vendor.Connect
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
 		output = append(output, b.ID)
 	}
+
+	// sort the return slice to avoid unwanted diffs
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].(string) < output[j].(string)
+	})
 
 	tflog.Debug(ctx, fmt.Sprintf("flattenSourceConnectorIDs output: %s", utils.PrettyPrint(output)))
 

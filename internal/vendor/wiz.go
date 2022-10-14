@@ -1149,28 +1149,30 @@ var CloudConfigurationRuleServiceType = []string{
 
 // CloudConfigurationRule struct -- updates
 type CloudConfigurationRule struct {
-	Builtin                 *bool                            `json:"builtin"`
-	CloudProvider           string                           `json:"cloudProvider,omitempty"` // enum CloudProvider
-	Control                 *Control                         `json:"control,omitempty"`
-	CreatedBy               *User                            `json:"createdBy,omitempty"`
-	Description             string                           `json:"description,omitempty"`
-	Enabled                 *bool                            `json:"enabled"`
-	FunctionAsControl       *bool                            `json:"functionAsControl"`
-	GraphID                 string                           `json:"graphId"`
-	HasAutoRemediation      *bool                            `json:"hasAutoRemediation"`
-	IACMatchers             []*CloudConfigurationRuleMatcher `json:"iacMatchers,omitempty"`
-	ID                      string                           `json:"id"`
-	Name                    string                           `json:"name"`
-	OPAPolicy               string                           `json:"opaPolicy,omitempty"`
-	RemediationInstructions string                           `json:"remediationInstructions,omitempty"`
-	ScopeAccounts           []*CloudAccount                  `json:"scopeAccounts"` // removed omitempty
-	SecuritySubCategories   []*SecuritySubCategory           `json:"securitySubCategories"`
-	ServiceType             string                           `json:"serviceType,omitempty"` // enum CloudConfigurationRuleServiceType
-	Severity                string                           `json:"severity"`              // enum Severity
-	ShortID                 string                           `json:"shortId"`
-	SupportsNRT             *bool                            `json:"supportsNRT"`
-	TargetNativeType        string                           `json:"targetNativeType,omitempty"`
-	TargetNativeTypes       []string                         `json:"targetNativeTypes,omitempty"`
+	Builtin                 *bool                                      `json:"builtin"`
+	CloudProvider           string                                     `json:"cloudProvider,omitempty"` // enum CloudProvider
+	Control                 *Control                                   `json:"control,omitempty"`
+	CreatedBy               *User                                      `json:"createdBy,omitempty"`
+	Description             string                                     `json:"description,omitempty"`
+	Enabled                 *bool                                      `json:"enabled"`
+	ExternalReferences      []*CloudConfigurationRuleExternalReference `json:"externalReferences,omitempty"`
+	FunctionAsControl       *bool                                      `json:"functionAsControl"`
+	GraphID                 string                                     `json:"graphId"`
+	HasAutoRemediation      *bool                                      `json:"hasAutoRemediation"`
+	IACMatchers             []*CloudConfigurationRuleMatcher           `json:"iacMatchers,omitempty"`
+	ID                      string                                     `json:"id"`
+	Name                    string                                     `json:"name"`
+	OPAPolicy               string                                     `json:"opaPolicy,omitempty"`
+	RemediationInstructions string                                     `json:"remediationInstructions,omitempty"`
+	ScopeAccounts           []*CloudAccount                            `json:"scopeAccounts"` // removed omitempty
+	SecuritySubCategories   []*SecuritySubCategory                     `json:"securitySubCategories"`
+	ServiceType             string                                     `json:"serviceType,omitempty"` // enum CloudConfigurationRuleServiceType
+	Severity                string                                     `json:"severity"`              // enum Severity
+	ShortID                 string                                     `json:"shortId"`
+	SubjectEntityType       string                                     `json:"subjectEntityType"`
+	SupportsNRT             *bool                                      `json:"supportsNRT"`
+	TargetNativeType        string                                     `json:"targetNativeType,omitempty"`
+	TargetNativeTypes       []string                                   `json:"targetNativeTypes,omitempty"`
 }
 
 // SecurityFramework struct -- updates
@@ -1830,7 +1832,7 @@ type CloudConfigurationRuleFilters struct {
 	CloudProvider       []string `json:"cloudProvider,omitempty"`     // enum CloudProvider
 	ServiceType         []string `json:"serviceType,omitempty"`       // enum CloudConfigurationRuleServiceType
 	SubjectEntityType   []string `json:"subjectEntityType,omitempty"` // enum GraphEntityTypeValue
-	Severity            string   `json:"severity,omitempty"`          // enum Severity
+	Severity            []string `json:"severity,omitempty"`          // enum Severity
 	Enabled             *bool    `json:"enabled,omitempty"`
 	HasAutoRemediation  *bool    `json:"hasAutoRemediation,omitempty"`
 	HasRemediation      *bool    `json:"hasRemediation,omitempty"`
@@ -2116,4 +2118,45 @@ type CloudAccountConnection struct {
 type CloudAccountEdge struct {
 	Cursor string       `json:"cursor"`
 	Node   CloudAccount `json:"node"`
+}
+
+// CloudConfigurationRuleOrder struct
+type CloudConfigurationRuleOrder struct {
+	Direction string `json:"direction"` // enum OrderDirection
+	Field     string `json:"field"`     // enum CloudConfigurationRuleOrderField
+}
+
+// OrderDirection enum
+var OrderDirection = []string{
+	"ASC",
+	"DESC",
+}
+
+// CloudConfigurationRuleOrderField enum
+var CloudConfigurationRuleOrderField = []string{
+	"FAILED_CHECK_COUNT",
+	"SEVERITY",
+	"NAME",
+}
+
+// CloudConfigurationRuleConnection struct
+type CloudConfigurationRuleConnection struct {
+	AnalyticsUpdatedAt    string                        `json:"analyticsUpdatedAt"`
+	Edges                 []*CloudConfigurationRuleEdge `json:"edges,omitempty"`
+	EnabledAsControlCount int                           `json:"enabledAsControlCount"`
+	Nodes                 []*CloudConfigurationRule     `json:"nodes,omitempty"`
+	PageInfo              PageInfo                      `json:"pageInfo"`
+	TotalCount            int                           `json:"totalCount"`
+}
+
+// CloudConfigurationRuleEdge struct
+type CloudConfigurationRuleEdge struct {
+	Cursor string                 `json:"cursor"`
+	Node   CloudConfigurationRule `json:"node"`
+}
+
+// CloudConfigurationRuleExternalReference struct
+type CloudConfigurationRuleExternalReference struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
