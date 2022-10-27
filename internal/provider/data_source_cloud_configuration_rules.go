@@ -721,7 +721,9 @@ func flattenCloudConfigurationRules(ctx context.Context, nodes *[]*vendor.CloudC
 		ruleMap["builtin"] = *b.Builtin
 		ruleMap["opa_policy"] = b.OPAPolicy
 		ruleMap["function_as_control"] = *b.FunctionAsControl
-		ruleMap["control_id"] = b.Control.ID
+		if b.Control != nil {
+			ruleMap["control_id"] = b.Control.ID
+		}
 		ruleMap["graph_id"] = b.GraphID
 		ruleMap["has_auto_remediation"] = *b.HasAutoRemediation
 		ruleMap["remediation_instructions"] = b.RemediationInstructions
