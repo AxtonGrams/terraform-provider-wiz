@@ -31,17 +31,23 @@ resource "wiz_service_account" "project_reader" {
     - Allowed values: 
         - admin:all
         - admin:audit
+        - admin:digital_trust_settings
         - admin:identity_providers
         - admin:projects
         - admin:reports
         - admin:security_settings
         - admin:users
+        - create:action_templates
+        - create:admission_controllers
         - create:all
         - create:automation_actions
         - create:automation_rules
         - create:cloud_configuration
+        - create:cloud_event_rules
         - create:connectors
         - create:controls
+        - create:host_configuration
+        - create:integrations
         - create:outposts
         - create:reports
         - create:run_action
@@ -53,12 +59,16 @@ resource "wiz_service_account" "project_reader" {
         - create:security_scans
         - create:service_accounts
         - create:service_tickets
+        - delete:action_templates
         - delete:all
         - delete:automation_actions
         - delete:automation_rules
         - delete:cloud_configuration
+        - delete:cloud_event_rules
         - delete:connectors
         - delete:controls
+        - delete:host_configuration
+        - delete:integrations
         - delete:outposts
         - delete:reports
         - delete:saved_cloud_event_filters
@@ -67,6 +77,8 @@ resource "wiz_service_account" "project_reader" {
         - delete:security_frameworks
         - delete:security_scans
         - delete:service_accounts
+        - read:action_templates
+        - read:admission_controllers
         - read:all
         - read:automation_actions
         - read:automation_rules
@@ -77,6 +89,9 @@ resource "wiz_service_account" "project_reader" {
         - read:cloud_events
         - read:connectors
         - read:controls
+        - read:digital_trust_settings
+        - read:host_configuration
+        - read:integrations
         - read:inventory
         - read:issue_settings
         - read:issues
@@ -97,6 +112,7 @@ resource "wiz_service_account" "project_reader" {
         - read:system_activities
         - read:users
         - read:vulnerabilities
+        - update:admission_controllers
         - update:all
         - update:automation_actions
         - update:automation_rules
@@ -104,10 +120,13 @@ resource "wiz_service_account" "project_reader" {
         - update:cloud_event_rules
         - update:connectors
         - update:controls
+        - update:host_configuration
+        - update:integrations
         - update:inventory
         - update:issue_settings
         - update:issues
         - update:outposts
+        - update:reports
         - update:resources
         - update:saved_cloud_event_filters
         - update:saved_graph_queries
@@ -116,12 +135,15 @@ resource "wiz_service_account" "project_reader" {
         - update:security_frameworks
         - update:security_scans
         - update:service_accounts
+        - update:vulnerabilities
         - write:all
         - write:automation_actions
         - write:automation_rules
         - write:cloud_configuration
+        - write:cloud_event_rules
         - write:connectors
         - write:controls
+        - write:host_configuration
         - write:issue_settings
         - write:issues
         - write:outposts
