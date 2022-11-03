@@ -58,7 +58,7 @@ func GetHTTPClient(ctx context.Context, settings *Settings) *http.Client {
 	tflog.Info(ctx, "GetHTTPClient called...")
 
 	// load trusted certificate authorities in a certpool
-	caCertPool := x509.SystemCertPool()
+	caCertPool, _ := x509.SystemCertPool()
 	caCertPool.AppendCertsFromPEM([]byte(settings.CAChain))
 
 	// configure the transport with trusted certificate authorities
