@@ -177,15 +177,15 @@ type UpdateSAMLIdentityProviderInput struct {
 
 // UpdateSAMLIdentityProviderPatch struct -- updates
 type UpdateSAMLIdentityProviderPatch struct {
-	EntityID                 string                        `json:"entityID,omitempty"`
-	LoginURL                 string                        `json:"loginURL,omitempty"`
-	LogoutURL                string                        `json:"logoutURL,omitempty"`
-	UseProviderManagedRoles  *bool                         `json:"useProviderManagedRoles,omitempty"`
-	AllowManualRoleOverride  *bool                         `json:"allowManualRoleOverride,omitempty"`
-	Certificate              string                        `json:"certificate,omitempty"`
-	Domains                  []string                      `json:"domains,omitempty"`
-	GroupMapping             []SAMLGroupMappingUpdateInput `json:"groupMapping,omitempty"`
-	MergeGroupsMappingByRole *bool                         `json:"mergeGroupsMappingByRole,omitempty"`
+	LoginURL                 string                        `json:"loginURL"`
+	LogoutURL                string                        `json:"logoutURL"`
+	IssuerURL                string                        `json:"issuerURL"`
+	UseProviderManagedRoles  *bool                         `json:"useProviderManagedRoles"`
+	AllowManualRoleOverride  *bool                         `json:"allowManualRoleOverride"`
+	Certificate              string                        `json:"certificate"`
+	Domains                  []string                      `json:"domains"`
+	GroupMapping             []SAMLGroupMappingUpdateInput `json:"groupMapping"`
+	MergeGroupsMappingByRole *bool                         `json:"mergeGroupsMappingByRole"`
 }
 
 // UpdateSAMLIdentityProviderPayload struct -- updates
@@ -203,15 +203,15 @@ type SAMLGroupMappingUpdateInput struct {
 // CreateSAMLIdentityProviderInput struct -- updates
 type CreateSAMLIdentityProviderInput struct {
 	Name                     string                         `json:"name"`
-	EntityID                 string                         `json:"entityID,omitempty"`
 	LoginURL                 string                         `json:"loginURL"`
-	LogoutURL                string                         `json:"logoutURL,omitempty"`
+	LogoutURL                string                         `json:"logoutURL"`
+	IssuerURL                string                         `json:"issuerURL"`
 	UseProviderManagedRoles  bool                           `json:"useProviderManagedRoles"`
-	AllowManualRoleOverride  *bool                          `json:"allowManualRoleOverride,omitempty"`
+	AllowManualRoleOverride  *bool                          `json:"allowManualRoleOverride"`
 	Certificate              string                         `json:"certificate"`
 	Domains                  []string                       `json:"domains"`
-	GroupMapping             []*SAMLGroupMappingCreateInput `json:"groupMapping,omitempty"`
-	MergeGroupsMappingByRole *bool                          `json:"mergeGroupsMappingByRole,omitempty"`
+	GroupMapping             []*SAMLGroupMappingCreateInput `json:"groupMapping"`
+	MergeGroupsMappingByRole *bool                          `json:"mergeGroupsMappingByRole"`
 }
 
 // CreateSAMLIdentityProviderPayload struct -- updates
@@ -230,9 +230,9 @@ type SAMLGroupMappingCreateInput struct {
 type SAMLIdentityProvider struct {
 	AllowManualRoleOverride  *bool               `json:"allowManualRoleOverride"`
 	Certificate              string              `json:"certificate"`
-	Domains                  []string            `json:"domains"`
-	EntityID                 string              `json:"entityID,omitempty"`
-	GroupMapping             []*SAMLGroupMapping `json:"groupMapping,omitempty"`
+	Domains                  []*string           `json:"domains"`
+	IssuerURL                string              `json:"issuerURL"`
+	GroupMapping             []*SAMLGroupMapping `json:"groupMapping"`
 	ID                       string              `json:"id"`
 	LoginURL                 string              `json:"loginURL"`
 	LogoutURL                string              `json:"logoutURL"`

@@ -17,8 +17,10 @@ resource "wiz_saml_idp" "test" {
   name                         = "Ping"
   login_url                    = "https://ping.example.com/idp/SSO.saml2"
   logout_url                   = "https://ping.example.com/idp/SLO.saml2"
+  issuer_url                   = "urn:mace:incommon:example.edu"
   use_provider_managed_roles   = false
   merge_groups_mapping_by_role = false
+  allow_manual_role_override   = false
   certificate                  = <<EOT
 -----BEGIN CERTIFICATE-----
 MIIFpzCCA4+gAwIBAgIJAKY0mQyPWs1eMA0GCSqGSIb3DQEBCwUAMGoxCzAJBgNV
@@ -66,19 +68,19 @@ EOT
 ### Required
 
 - `certificate` (String) PEM certificate from IdP
-- `domains` (List of String) A list of domains the IdP handles.
+- `domains` (List of String) A list of domains the IdP handles. This block needs to be set to accomodate for update lifecycle operations. If not used then specify an empty list ([])
 - `login_url` (String) IdP Login URL
+- `issuer_url` (String) IdP issuer URL or entity ID. The value needs to match the IdP Issuer value, which *should* generally be a URL but can also be a URI or simple string. If unsure, set to same as login_url.
 - `name` (String) IdP name to display in Wiz.
+- `allow_manual_role_override` (Boolean) Allow manual override for role assignment? This attribute must be set to `true` if `use_provider_managed_roles` attribute is set to `false`. This field needs to be set to accomodate for update lifecycle operations.
+- `merge_groups_mapping_by_role` (Boolean) Manage group mapping by role? This attribute needs to be set to accomodate for update lifecycle operations.
+- `use_provider_managed_roles` (Boolean) Use provider managed roles?
 
 ### Optional
 
-- `allow_manual_role_override` (Boolean) Allow manual override for role assignment? Must be set `true` if `use_provided_roles` is false.
-    - Defaults to `true`.
 - `group_mapping` (Block Set) Group mappings (see [below for nested schema](#nestedblock--group_mapping))
 - `logout_url` (String) IdP Logout URL
-- `merge_groups_mapping_by_role` (Boolean) Manage group mapping by role?
-- `use_provider_managed_roles` (Boolean) Use provider managed roles?
-    - Defaults to `false`.
+
 
 ### Read-Only
 
