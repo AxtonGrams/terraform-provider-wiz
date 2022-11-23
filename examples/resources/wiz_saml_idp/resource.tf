@@ -2,9 +2,17 @@ resource "wiz_saml_idp" "test" {
   name                         = "Ping"
   login_url                    = "https://ping.example.com/idp/SSO.saml2"
   logout_url                   = "https://ping.example.com/idp/SLO.saml2"
-  use_provider_managed_roles   = false
+  use_provider_managed_roles   = true
   merge_groups_mapping_by_role = false
-  certificate                  = <<EOT
+  allow_manual_role_override   = false
+
+  group_mapping {
+    provider_group_id = "AAD-GROUP-ADMINS"
+    role              = "PROJECT_ADMIN"
+    projects          = ["54000827-d3ff-5745-887b-417beb977ff9"]
+  }
+
+  certificate = <<EOT
 -----BEGIN CERTIFICATE-----
 MIIFpzCCA4+gAwIBAgIJAKY0mQyPWs1eMA0GCSqGSIb3DQEBCwUAMGoxCzAJBgNV
 BAYTAlVTMRAwDgYDVQQIDAdOb3doZXJlMRwwGgYDVQQHDBNOb3RoaW5nIHRvIHNl

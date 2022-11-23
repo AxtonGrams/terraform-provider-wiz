@@ -23,6 +23,11 @@ func resourceWizSAMLIdP() *schema.Resource {
 				Description: "Internal identifier for the Saml Provider",
 				Computed:    true,
 			},
+			"issuer_url": {
+				Type:        schema.TypeString,
+				Description: "IdP issuer URL or entity ID. The value needs to match the IdP Issuer value, which *should* generally be a URL but can also be a URI or simple string. This value will default to the `login_url` if unspecified.",
+				Optional:    true,
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Description: "IdP name to display in Wiz.",
@@ -42,16 +47,20 @@ func resourceWizSAMLIdP() *schema.Resource {
 				Type:        schema.TypeBool,
 				Description: "Use provider managed roles?",
 				Optional:    true,
-				Default:     false,
+				RequiredWith: []string{
+					"allow_manual_role_override",
+					"merge_groups_mapping_by_role",
+				},
 			},
 			"allow_manual_role_override": {
 				Type:        schema.TypeBool,
-				Description: "Allow manual override for role assignment? Must be set `true` if `use_provided_roles` is false.",
 				Optional:    true,
-				Default:     true,
-				RequiredWith: []string{
-					"use_provider_managed_roles",
-				},
+				Description: "Allow manual override for role assignment? This attribute must be set to `true` if `use_provider_managed_roles` attribute is set to `false`.",
+			},
+			"merge_groups_mapping_by_role": {
+				Type:        schema.TypeBool,
+				Description: "Manage group mapping by role?",
+				Optional:    true,
 			},
 			"certificate": {
 				Type:        schema.TypeString,
@@ -60,7 +69,7 @@ func resourceWizSAMLIdP() *schema.Resource {
 			},
 			"domains": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "A list of domains the IdP handles.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -92,11 +101,6 @@ func resourceWizSAMLIdP() *schema.Resource {
 						},
 					},
 				},
-			},
-			"merge_groups_mapping_by_role": {
-				Type:        schema.TypeBool,
-				Description: "Manage group mapping by role?",
-				Optional:    true,
 			},
 		},
 		CreateContext: resourceWizSAMLIdPCreate,
@@ -160,6 +164,7 @@ func resourceWizSAMLIdPCreate(ctx context.Context, d *schema.ResourceData, m int
 	vars.Name = d.Get("name").(string)
 	vars.LoginURL = d.Get("login_url").(string)
 	vars.LogoutURL = d.Get("logout_url").(string)
+	vars.IssuerURL = d.Get("issuer_url").(string)
 	vars.UseProviderManagedRoles = d.Get("use_provider_managed_roles").(bool)
 	vars.AllowManualRoleOverride = utils.ConvertBoolToPointer(d.Get("allow_manual_role_override").(bool))
 	vars.Certificate = d.Get("certificate").(string)
@@ -337,19 +342,28 @@ func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m int
 	if d.HasChange("logout_url") {
 		vars.Patch.LogoutURL = d.Get("logout_url").(string)
 	}
+	if d.HasChange("issuer_url") {
+		vars.Patch.IssuerURL = d.Get("issuer_url").(string)
+	}
 	if d.HasChange("use_provider_managed_roles") {
 		vars.Patch.UseProviderManagedRoles = utils.ConvertBoolToPointer(d.Get("use_provider_managed_roles").(bool))
 	}
 	if d.HasChange("allow_manual_role_override") {
 		vars.Patch.AllowManualRoleOverride = utils.ConvertBoolToPointer(d.Get("allow_manual_role_override").(bool))
 	}
-	if d.HasChange("certificate") {
-		vars.Patch.Certificate = d.Get("certificate").(string)
-	}
 	if d.HasChange("merge_groups_mapping_by_role") {
 		vars.Patch.MergeGroupsMappingByRole = utils.ConvertBoolToPointer(d.Get("merge_groups_mapping_by_role").(bool))
 	}
+	if d.HasChange("certificate") {
+		vars.Patch.Certificate = d.Get("certificate").(string)
+	}
+
 	if d.HasChange("group_mapping") {
+		// below three keys are required when patching group mappings, irrespective of TF state change.
+		vars.Patch.UseProviderManagedRoles = utils.ConvertBoolToPointer(d.Get("use_provider_managed_roles").(bool))
+		vars.Patch.AllowManualRoleOverride = utils.ConvertBoolToPointer(d.Get("allow_manual_role_override").(bool))
+		vars.Patch.MergeGroupsMappingByRole = utils.ConvertBoolToPointer(d.Get("merge_groups_mapping_by_role").(bool))
+
 		mappings := d.Get("group_mapping").(*schema.Set).List()
 		mappingUpdates := make([]vendor.SAMLGroupMappingUpdateInput, 0)
 		for a, b := range mappings {

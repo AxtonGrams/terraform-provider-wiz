@@ -180,6 +180,7 @@ type UpdateSAMLIdentityProviderPatch struct {
 	EntityID                 string                        `json:"entityID,omitempty"`
 	LoginURL                 string                        `json:"loginURL,omitempty"`
 	LogoutURL                string                        `json:"logoutURL,omitempty"`
+	IssuerURL                string                        `json:"issuerURL,omitempty"`
 	UseProviderManagedRoles  *bool                         `json:"useProviderManagedRoles,omitempty"`
 	AllowManualRoleOverride  *bool                         `json:"allowManualRoleOverride,omitempty"`
 	Certificate              string                        `json:"certificate,omitempty"`
@@ -206,6 +207,7 @@ type CreateSAMLIdentityProviderInput struct {
 	EntityID                 string                         `json:"entityID,omitempty"`
 	LoginURL                 string                         `json:"loginURL"`
 	LogoutURL                string                         `json:"logoutURL,omitempty"`
+	IssuerURL                string                         `json:"issuerURL,omitempty"`
 	UseProviderManagedRoles  bool                           `json:"useProviderManagedRoles"`
 	AllowManualRoleOverride  *bool                          `json:"allowManualRoleOverride,omitempty"`
 	Certificate              string                         `json:"certificate"`
