@@ -1,5 +1,15 @@
-# This resource contains multiple organization links, one with tags and another without
+# A simple example
+resource "wiz_project" "test" {
+  name        = "Test App"
+  description = "My project description"
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+}
 
+
+# This resource contains multiple organization links, one with tags and another without
 resource "wiz_project" "test" {
   name        = "Test App"
   description = "My project description"
@@ -27,13 +37,24 @@ resource "wiz_project" "test" {
   }
 }
 
-# A simple example
-
+# This resource contains a single cloud account link, with tag
 resource "wiz_project" "test" {
   name        = "Test App"
   description = "My project description"
   risk_profile {
     business_impact = "MBI"
   }
-  business_unit = "Technology"
+  business_unit = data.insight_organization.aws.description
+
+  # Below also supports a dynamic block which chould iterate over
+  # map attributes of the `wiz_cloud_accounts` data source
+  cloud_account_link {
+    cloud_account_id = "3225def3-0e0e-5cb8-955a-3583f696f778"
+    environment      = "PRODUCTION"
+    resource_tags {
+      key   = "created_by"
+      value = "terraform"
+    }
+  }
+
 }

@@ -106,6 +106,7 @@ type CreateProjectInput struct {
 	SecurityChampion       []string                             `json:"securityChampions,omitempty"`
 	RiskProfile            ProjectRiskProfileInput              `json:"riskProfile"`
 	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks,omitempty"`
+	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks,omitempty"`
 }
 
 // Environment enum
@@ -123,6 +124,13 @@ type ProjectCloudOrganizationLinkInput struct {
 	Environment       string         `json:"environment"` // enum Environment
 	ResourceTags      []*ResourceTag `json:"resourceTags"`
 	Shared            bool           `json:"shared"`
+}
+
+type ProjectCloudAccountLinkInput struct {
+	ID           string         `json:"cloudAccount"`
+	Environment  string         `json:"environment"` // enum Environment
+	ResourceTags []*ResourceTag `json:"resourceTags"`
+	Shared       bool           `json:"shared"`
 }
 
 // ResourceTag struct
@@ -167,6 +175,7 @@ type UpdateProjectPatch struct {
 	BusinessUnit           string                               `json:"businessUnit,omitempty"`
 	RiskProfile            *ProjectRiskProfileInput             `json:"riskProfile,omitempty"`
 	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks"`
+	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks"`
 }
 
 // UpdateSAMLIdentityProviderInput struct
@@ -317,11 +326,11 @@ type Project struct {
 
 // ProjectCloudAccountLink struct
 type ProjectCloudAccountLink struct {
-	CloudAccount   CloudAccount  `json:"CloudAccount"`
-	Environment    string        `json:"environment"` // enum Environment
-	ResourceGroups []string      `json:"resourceGroups"`
-	ResourceTags   []ResourceTag `json:"ResourceTag"`
-	Shared         bool          `json:"shared"`
+	CloudAccount   CloudAccount   `json:"CloudAccount"`
+	Environment    string         `json:"environment"` // enum Environment
+	ResourceGroups []string       `json:"resourceGroups"`
+	ResourceTags   []*ResourceTag `json:"ResourceTags"`
+	Shared         bool           `json:"shared"`
 }
 
 // CloudAccountStatus enum
