@@ -30,6 +30,13 @@ func resourceWizProject() *schema.Resource {
 				Description: "The project description.",
 				Optional:    true,
 			},
+			"identifiers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"archived": {
 				Type:        schema.TypeBool,
 				Description: "Whether the project is archived/inactive",
@@ -41,9 +48,32 @@ func resourceWizProject() *schema.Resource {
 				Description: "The business unit to which the project belongs.",
 				Optional:    true,
 			},
+			"project_owners": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "A list of project owners",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeString,
+							Description: "Internal Wiz identifier of the user",
+							Required:    true,
+						},
+					}}},
+			"security_champions": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:        schema.TypeString,
+							Description: "Internal Wiz identifier of the user",
+							Required:    true,
+						},
+					}}},
 			"slug": {
 				Type:        schema.TypeString,
-				Description: "Short identifier for the project. The value must be unique, even against archived projects, so a uuid is generated and used as the slug value.",
+				Description: "Short identifier for the project. The value must be unique, even against archived projects, so a uuid is generated and used as the slug value. If slug is not provided it will be derived from the name, slug must be unique across all projects (in contrast to name).",
 				Computed:    true,
 			},
 			"id": {
@@ -234,10 +264,115 @@ func resourceWizProject() *schema.Resource {
 					},
 				},
 			},
+			"kubernetes_cluster_link": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "Associate the project with cloud accounts.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"kubernetes_cluster": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"shared": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"environment": {
+							Type: schema.TypeString,
+							Description: fmt.Sprintf(
+								"The environment.\n    - Allowed values: %s",
+								utils.SliceOfStringToMDUList(
+									vendor.Environment,
+								),
+							),
+							Optional: true,
+							ValidateDiagFunc: validation.ToDiagFunc(
+								validation.StringInSlice(
+									vendor.Environment,
+									false,
+								),
+							),
+							Default: "PRODUCTION",
+						},
+						"namespaces": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+			"cloud_account_link": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "Associate the project directly with a cloud account by wiz identifier UID to organize all the subscription resources, issues, and findings within this project.",
+
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cloud_account_id": {
+							Type:        schema.TypeString,
+							Description: "The Wiz internal identifier for the Cloud Account Subscription.",
+							Required:    true,
+						},
+						"environment": {
+							Type: schema.TypeString,
+							Description: fmt.Sprintf(
+								"The environment.\n    - Allowed values: %s",
+								utils.SliceOfStringToMDUList(
+									vendor.Environment,
+								),
+							),
+							Optional: true,
+							ValidateDiagFunc: validation.ToDiagFunc(
+								validation.StringInSlice(
+									vendor.Environment,
+									false,
+								),
+							),
+							Default: "PRODUCTION",
+						},
+						"shared": {
+							Type:        schema.TypeBool,
+							Description: "Subscriptions that host a few projects can be marked as ‘shared subscriptions’ and resources can be filtered by tags.",
+							Optional:    true,
+							Default:     true,
+						},
+						"resource_groups": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Please provide a list of strings for filtering by resource groups. `shared` must be true to define resource_groups.",
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"resource_tags": {
+							Type:        schema.TypeSet,
+							Description: "Provide a key and value pair for filtering resources. `shared` must be true to define resource_tags.",
+							Optional:    true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"cloud_organization_link": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Associate the project with the resources and subscriptions to organize all the resources, issues, and findings within this project.",
+				Description: "Associate the project with an organizational link to organize all the subscription resources, issues, and findings within this project.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cloud_organization": {
@@ -305,16 +440,14 @@ func getOrganizationLinksVar(ctx context.Context, d *schema.ResourceData) []*ven
 	for _, y := range linkSet {
 		var localLink vendor.ProjectCloudOrganizationLinkInput
 		for a, b := range y.(map[string]interface{}) {
-			if a == "environment" {
+			switch a {
+			case "environment":
 				localLink.Environment = b.(string)
-			}
-			if a == "cloud_organization" {
+			case "cloud_organization":
 				localLink.CloudOrganization = b.(string)
-			}
-			if a == "shared" {
+			case "shared":
 				localLink.Shared = b.(bool)
-			}
-			if a == "resource_tags" {
+			case "resource_tags":
 				var myResourceTags []*vendor.ResourceTag
 				for _, d := range b.(*schema.Set).List() {
 					var localResourceTag vendor.ResourceTag
@@ -334,6 +467,71 @@ func getOrganizationLinksVar(ctx context.Context, d *schema.ResourceData) []*ven
 		myLinks = append(myLinks, &localLink)
 	}
 	return myLinks
+}
+
+func getKubernetesClusterLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.ProjectKubernetesClusterLinkInput {
+	clusterSet := d.Get("kubernetes_cluster_link").(*schema.Set).List()
+	var myClusters []*vendor.ProjectKubernetesClusterLinkInput
+	for _, y := range clusterSet {
+		var localCluster vendor.ProjectKubernetesClusterLinkInput
+		for a, b := range y.(map[string]interface{}) {
+			switch a {
+			case "environment":
+				localCluster.Environment = b.(string)
+			case "shared":
+				localCluster.Shared = b.(bool)
+			case "kubernetes_cluster":
+				localCluster.KubernetesCluster = b.(string)
+			case "namespaces":
+				localCluster.Namespaces = utils.ConvertListToString(d.Get("namespaces").([]interface{}))
+			}
+		}
+		myClusters = append(myClusters, &localCluster)
+	}
+
+	return myClusters
+
+}
+
+func getCloudAccountLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.ProjectCloudAccountLinkInput {
+	accountSet := d.Get("cloud_account_link").(*schema.Set).List()
+	var myAccounts []*vendor.ProjectCloudAccountLinkInput
+	for _, y := range accountSet {
+		var localAccount vendor.ProjectCloudAccountLinkInput
+		for a, b := range y.(map[string]interface{}) {
+			switch a {
+			case "environment":
+				localAccount.Environment = b.(string)
+			case "cloud_account_id":
+				localAccount.ID = b.(string)
+			case "shared":
+				localAccount.Shared = b.(bool)
+			case "resource_groups":
+				rgs := utils.ConvertListToString(b.([]interface{}))
+				if len(rgs) > 0 {
+					localAccount.ResourceGroups = rgs
+				}
+			case "resource_tags":
+				var myResourceTags []*vendor.ResourceTag
+				for _, d := range b.(*schema.Set).List() {
+					var localResourceTag vendor.ResourceTag
+					for e, f := range d.(map[string]interface{}) {
+						if e == "key" {
+							localResourceTag.Key = f.(string)
+						}
+						if e == "value" {
+							localResourceTag.Value = f.(string)
+						}
+					}
+					myResourceTags = append(myResourceTags, &localResourceTag)
+				}
+				localAccount.ResourceTags = myResourceTags
+			}
+		}
+
+		myAccounts = append(myAccounts, &localAccount)
+	}
+	return myAccounts
 }
 
 // CreateProject struct
@@ -358,7 +556,10 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	vars.BusinessUnit = d.Get("business_unit").(string)
-	vars.Slug = uuid.New().String()
+	vars.CloudOrganizationLinks = getOrganizationLinksVar(ctx, d)
+	vars.CloudAccountLinks = getCloudAccountLinksVar(ctx, d)
+	vars.Identifiers = utils.ConvertListToString(d.Get("identifiers").([]interface{}))
+	vars.KubernetesClusterLinks = getKubernetesClusterLinksVar(ctx, d)
 	vars.RiskProfile.BusinessImpact = d.Get("risk_profile.0.business_impact").(string)
 	vars.RiskProfile.IsActivelyDeveloped = d.Get("risk_profile.0.is_actively_developed").(string)
 	vars.RiskProfile.HasAuthentication = d.Get("risk_profile.0.has_authentication").(string)
@@ -369,7 +570,9 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 	vars.RiskProfile.IsRegulated = d.Get("risk_profile.0.is_regulated").(string)
 	vars.RiskProfile.SensitiveDataTypes = utils.ConvertListToString(d.Get("risk_profile.0.sensitive_data_types").([]interface{}))
 	vars.RiskProfile.RegulatoryStandards = utils.ConvertListToString(d.Get("risk_profile.0.regulatory_standards").([]interface{}))
-	vars.CloudOrganizationLinks = getOrganizationLinksVar(ctx, d)
+	vars.ProjectOwners = utils.ConvertListToString(d.Get("project_owners").([]interface{}))
+	vars.SecurityChampion = utils.ConvertListToString(d.Get("security_champions").([]interface{}))
+	vars.Slug = uuid.New().String()
 
 	// process the request
 	data := &CreateProject{}
@@ -431,9 +634,88 @@ func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []
 			resourceTag["value"] = d.Value
 			resourceTags = append(resourceTags, resourceTag)
 		}
+
+		var resourceGroups = make([]interface{}, 0, 0)
+		for _, d := range b.ResourceGroups {
+			resourceGroups = append(resourceGroups, d)
+		}
+
 		cloudOrganizatinLinksMap["resource_tags"] = resourceTags
+		cloudOrganizatinLinksMap["resource_groups"] = resourceGroups
 
 		output = append(output, cloudOrganizatinLinksMap)
+	}
+	return output
+}
+
+func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*vendor.ProjectCloudAccountLink) []interface{} {
+	var output = make([]interface{}, 0, 0)
+
+	for _, b := range cloudAccountLink {
+		cloudAccountLinksMap := make(map[string]interface{})
+		cloudAccountLinksMap["cloud_account_id"] = b.CloudAccount.ID
+		cloudAccountLinksMap["shared"] = b.Shared
+		cloudAccountLinksMap["environment"] = b.Environment
+
+		var resourceTags = make([]interface{}, 0, 0)
+		for _, d := range b.ResourceTags {
+			var resourceTag = make(map[string]interface{})
+			resourceTag["key"] = d.Key
+			resourceTag["value"] = d.Value
+			resourceTags = append(resourceTags, resourceTag)
+		}
+
+		var resourceGroups = make([]interface{}, 0, 0)
+		for _, d := range b.ResourceGroups {
+			resourceGroups = append(resourceGroups, d)
+		}
+
+		cloudAccountLinksMap["resource_tags"] = resourceTags
+		cloudAccountLinksMap["resource_groups"] = resourceGroups
+
+		output = append(output, cloudAccountLinksMap)
+	}
+	return output
+}
+
+func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []*vendor.ProjectKubernetesClusterLink) []interface{} { //Todo is linkinput correct here?
+	var output = make([]interface{}, 0, 0)
+
+	for _, b := range kubernetesClusterLink {
+		clusterLinksMap := make(map[string]interface{})
+		clusterLinksMap["kubernetes_cluster"] = b.KubernetesCluster.ID
+		clusterLinksMap["shared"] = b.Shared
+		clusterLinksMap["environment"] = b.Environment
+
+		var namespaces = make([]interface{}, 0, 0)
+		for _, d := range b.Namespaces {
+			namespaces = append(namespaces, d)
+		}
+		clusterLinksMap["namespaces"] = namespaces
+
+		output = append(output, clusterLinksMap)
+	}
+	return output
+}
+
+func flattenProjectOwners(ctx context.Context, projectOwners []*vendor.ProjectOwners) []interface{} {
+	var output = make([]interface{}, 0, 0)
+
+	for _, b := range projectOwners {
+		projectOwnersMap := make(map[string]interface{})
+		projectOwnersMap["id"] = b.ID
+		output = append(output, projectOwnersMap)
+	}
+	return output
+}
+
+func flattenSecurityChampions(ctx context.Context, securityChampions []*vendor.SecurityChampions) []interface{} {
+	var output = make([]interface{}, 0, 0)
+
+	for _, b := range securityChampions {
+		securityChampionsMap := make(map[string]interface{})
+		securityChampionsMap["id"] = b.ID
+		output = append(output, securityChampionsMap)
 	}
 	return output
 }
@@ -464,6 +746,16 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 	        slug
 	        archived
 	        businessUnit
+	        projectOwners {
+	            id
+	            name
+	            email
+	        }
+	        securityChampions {
+	            id
+	            name
+	            email
+	        }
 	        riskProfile {
 	            businessImpact
 	            isActivelyDeveloped
@@ -487,9 +779,32 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 	                key
 	                value
 	            }
+	            resourceGroups
 	            shared
 	            environment
 	        }
+	        cloudAccountLinks {
+	            cloudAccount {
+	                externalId
+	                id
+	                name
+	            }
+	            resourceTags {
+	                key
+	                value
+	            }
+	            resourceGroups
+	            shared
+	            environment
+	        }
+	        kubernetesClustersLinks {
+	            kubernetesCluster {
+	                id
+	            }
+	            environment
+	            namespaces
+	            shared
+              }
 	    }
 	}`
 
@@ -521,6 +836,14 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	projectOwners := flattenProjectOwners(ctx, data.Project.ProjectOwners)
+	if err := d.Set("project_owners", projectOwners); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	securityChampions := flattenSecurityChampions(ctx, data.Project.SecurityChampions)
+	if err := d.Set("security_champions", securityChampions); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 	err = d.Set("business_unit", data.Project.BusinessUnit)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -531,6 +854,14 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 	cloudOrganizationLinks := flattenCloudOrganizationLinks(ctx, data.Project.CloudOrganizationLinks)
 	if err := d.Set("cloud_organization_link", cloudOrganizationLinks); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	cloudAccountLinks := flattenCloudAccountLinks(ctx, data.Project.CloudAccountLinks)
+	if err := d.Set("cloud_account_link", cloudAccountLinks); err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	kubernetesClusterLinks := flattenKubernetesClusterLinks(ctx, data.Project.KubernetesClusterLinks)
+	if err := d.Set("kubernetes_cluster_link", kubernetesClusterLinks); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
@@ -575,6 +906,9 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	if d.HasChange("business_unit") {
 		vars.Patch.BusinessUnit = d.Get("business_unit").(string)
 	}
+	if d.HasChange("identifiers") {
+		vars.Patch.Identifiers = utils.ConvertListToString((d.Get("risk_profile.0.sensitive_data_types")).([]interface{}))
+	}
 	// The API treats a patch to riskProfile as an override so we set all values
 	riskProfile := &vendor.ProjectRiskProfileInput{}
 	riskProfile.BusinessImpact = d.Get("risk_profile.0.business_impact").(string)
@@ -589,6 +923,45 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	riskProfile.RegulatoryStandards = utils.ConvertListToString((d.Get("risk_profile.0.regulatory_standards")).([]interface{}))
 	vars.Patch.RiskProfile = riskProfile
 
+	var projectOwnersLinks = []*vendor.ProjectOwnersLinkInput{}
+	if d.HasChange("project_owners") {
+		projectOwners := d.Get("project_owners").(*schema.Set).List()
+		for _, b := range projectOwners {
+			var updateProjectOwner = &vendor.ProjectOwnersLinkInput{}
+			for c, d := range b.(map[string]interface{}) {
+				if c == "id" {
+					updateProjectOwner.ID = d.(string)
+				}
+			}
+			projectOwnersLinks = append(projectOwnersLinks, updateProjectOwner)
+		}
+		prjOwners := []string{}
+		for _, b := range projectOwnersLinks {
+			prjOwners = append(prjOwners, b.ID)
+
+		}
+		vars.Patch.ProjectOwners = prjOwners
+	}
+
+	var securityChampionsLinks = []*vendor.SecurityChampionsLinkInput{}
+	if d.HasChange("security_champions") {
+		securityChampions := d.Get("security_champions").(*schema.Set).List()
+		for _, b := range securityChampions {
+			var updateSecurityChampion = &vendor.SecurityChampionsLinkInput{}
+			for c, d := range b.(map[string]interface{}) {
+				if c == "id" {
+					updateSecurityChampion.ID = d.(string)
+				}
+			}
+			securityChampionsLinks = append(securityChampionsLinks, updateSecurityChampion)
+		}
+		secChampions := []string{}
+		for _, b := range securityChampionsLinks {
+			secChampions = append(secChampions, b.ID)
+
+		}
+		vars.Patch.SecurityChampions = secChampions
+	}
 	// if cloud organization links are altered, we must send them all org links
 	var updateOrgLinks = []*vendor.ProjectCloudOrganizationLinkInput{}
 	if d.HasChange("cloud_organization_link") {
@@ -596,16 +969,16 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 		for _, b := range links {
 			var updateOrgLink = &vendor.ProjectCloudOrganizationLinkInput{}
 			for c, d := range b.(map[string]interface{}) {
-				if c == "environment" {
+				switch c {
+				case "environment":
 					updateOrgLink.Environment = d.(string)
-				}
-				if c == "shared" {
+				case "shared":
 					updateOrgLink.Shared = d.(bool)
-				}
-				if c == "cloud_organization" {
+				case "cloud_organization":
 					updateOrgLink.CloudOrganization = d.(string)
-				}
-				if c == "resource_tags" {
+				case "resource_groups":
+					updateOrgLink.ResourceGroups = utils.ConvertListToString(d.([]interface{}))
+				case "resource_tags":
 					var updateResourceTags = []*vendor.ResourceTag{}
 					for _, f := range d.(*schema.Set).List() {
 						var updateResourceTag = &vendor.ResourceTag{}
@@ -625,6 +998,66 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 			updateOrgLinks = append(updateOrgLinks, updateOrgLink)
 		}
 		vars.Patch.CloudOrganizationLinks = updateOrgLinks
+	}
+
+	// if cloud account links are altered, we must send them all org links
+	var updateAccountLinks = []*vendor.ProjectCloudAccountLinkInput{}
+	if d.HasChange("cloud_account_link") {
+		links := d.Get("cloud_account_link").(*schema.Set).List()
+		for _, b := range links {
+			var updateAccountLink = &vendor.ProjectCloudAccountLinkInput{}
+			for c, d := range b.(map[string]interface{}) {
+				switch c {
+				case "environment":
+					updateAccountLink.Environment = d.(string)
+				case "shared":
+					updateAccountLink.Shared = d.(bool)
+				case "cloud_account_id":
+					updateAccountLink.ID = d.(string)
+				case "resource_groups":
+					updateAccountLink.ResourceGroups = utils.ConvertListToString(d.([]interface{}))
+				case "resource_tags":
+					var updateResourceTags = []*vendor.ResourceTag{}
+					for _, f := range d.(*schema.Set).List() {
+						var updateResourceTag = &vendor.ResourceTag{}
+						for g, h := range f.(map[string]interface{}) {
+							if g == "key" {
+								updateResourceTag.Key = h.(string)
+							}
+							if g == "value" {
+								updateResourceTag.Value = h.(string)
+							}
+						}
+						updateResourceTags = append(updateResourceTags, updateResourceTag)
+					}
+					updateAccountLink.ResourceTags = updateResourceTags
+				}
+			}
+			updateAccountLinks = append(updateAccountLinks, updateAccountLink)
+		}
+		vars.Patch.CloudAccountLinks = updateAccountLinks
+	}
+
+	var updateKubernetesClusterLinks = []*vendor.ProjectKubernetesClusterLinkInput{}
+	if d.HasChange("kubernetes_cluster_link") {
+		links := d.Get("kubernetes_cluster_link").(*schema.Set).List()
+		for _, b := range links {
+			var updateClusterLink = &vendor.ProjectKubernetesClusterLinkInput{}
+			for c, d := range b.(map[string]interface{}) {
+				switch c {
+				case "environment":
+					updateClusterLink.Environment = d.(string)
+				case "shared":
+					updateClusterLink.Shared = d.(bool)
+				case "namespaces":
+					updateClusterLink.Namespaces = utils.ConvertListToString(d.([]interface{}))
+				case "kubernetes_cluster":
+					updateClusterLink.KubernetesCluster = d.(string)
+				}
+			}
+			updateKubernetesClusterLinks = append(updateKubernetesClusterLinks, updateClusterLink)
+		}
+		vars.Patch.KubernetesClusterLinks = updateKubernetesClusterLinks
 	}
 
 	// process the request

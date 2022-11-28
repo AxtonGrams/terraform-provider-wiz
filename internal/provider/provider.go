@@ -249,10 +249,12 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"wiz_cloud_accounts":     dataSourceWizCloudAccounts(),
-				"wiz_cloud_config_rules": dataSourceWizCloudConfigurationRules(),
-				"wiz_host_config_rules":  dataSourceWizHostConfigurationRules(),
-				"wiz_organizations":      dataSourceWizOrganizations(),
+				"wiz_cloud_accounts":      dataSourceWizCloudAccounts(),
+				"wiz_cloud_config_rules":  dataSourceWizCloudConfigurationRules(),
+				"wiz_host_config_rules":   dataSourceWizHostConfigurationRules(),
+				"wiz_organizations":       dataSourceWizOrganizations(),
+				"wiz_users":               dataSourceWizUsers(),
+				"wiz_kubernetes_clusters": dataSourceKubernetesClusters(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"wiz_automation_action":              resourceWizAutomationAction(),

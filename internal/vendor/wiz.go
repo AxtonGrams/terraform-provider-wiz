@@ -29,6 +29,19 @@ type CloudOrganizationFilters struct {
 	Search        []string `json:"search,omitempty"`
 }
 
+// UserFilters struct
+type UserFilters struct {
+	Search               string   `json:"search,omitempty"`
+	Roles                []string `json:"role,omitempty"`
+	AuthenticationSource string   `json:"source,omitempty"`
+}
+
+type KubernetesClusterFilters struct {
+	Search       string   `json:"search,omitempty"`
+	Kind         []string `json:"kind,omitempty"`
+	CloudAccount []string `json:"cloudAccount,omitempty"`
+}
+
 // YesNoUnknown enum
 var YesNoUnknown = []string{
 	"YES",
@@ -75,6 +88,13 @@ var BusinessImpact = []string{
 	"HBI",
 }
 
+// AuthenticationSource enum
+
+var AuthenticationSource = []string{
+	"LEGACY",
+	"MODERN",
+}
+
 // ProjectRiskProfileInput struct
 type ProjectRiskProfileInput struct {
 	IsActivelyDeveloped string   `json:"isActivelyDeveloped,omitempty"` // enum YesNoUnknown
@@ -100,12 +120,14 @@ type CreateProjectInput struct {
 	Slug                   string                               `json:"slug,omitempty"`
 	Description            string                               `json:"description,omitempty"`
 	Archived               *bool                                `json:"archived,omitempty"`
-	Identifiers            []string                             `json:"identifiersi,omitempty"`
+	Identifiers            []string                             `json:"identifiers,omitempty"`
 	BusinessUnit           string                               `json:"businessUnit,omitempty"`
 	ProjectOwners          []string                             `json:"projectOwners,omitempty"`
 	SecurityChampion       []string                             `json:"securityChampions,omitempty"`
 	RiskProfile            ProjectRiskProfileInput              `json:"riskProfile"`
 	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks,omitempty"`
+	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks,omitempty"`
+	KubernetesClusterLinks []*ProjectKubernetesClusterLinkInput `json:"kubernetesClusters,omitempty"`
 }
 
 // Environment enum
@@ -121,8 +143,26 @@ var Environment = []string{
 type ProjectCloudOrganizationLinkInput struct {
 	CloudOrganization string         `json:"cloudOrganization"`
 	Environment       string         `json:"environment"` // enum Environment
+	ResourceGroups    []string       `json:"resourceGroups"`
 	ResourceTags      []*ResourceTag `json:"resourceTags"`
 	Shared            bool           `json:"shared"`
+}
+
+// ProjectCloudAccountLinkInput struct
+type ProjectCloudAccountLinkInput struct {
+	ID             string         `json:"cloudAccount"`
+	Environment    string         `json:"environment"` // enum Environment
+	ResourceGroups []string       `json:"resourceGroups"`
+	ResourceTags   []*ResourceTag `json:"resourceTags"`
+	Shared         bool           `json:"shared"`
+}
+
+// ProjectKubernetesClusterLinkInput struct
+type ProjectKubernetesClusterLinkInput struct {
+	KubernetesCluster string   `json:"kubernetesCluster"`
+	Environment       string   `json:"environment"` // enum Environment
+	Namespaces        []string `json:"namespaces"`
+	Shared            bool     `json:"shared"`
 }
 
 // ResourceTag struct
@@ -136,6 +176,7 @@ type ProjectCloudOrganizationLink struct {
 	CloudOrganization CloudOrganization `json:"cloudOrganization"`
 	Environment       string            `json:"environment"` // enum Environment
 	ResourceTags      []*ResourceTag    `json:"resourceTags"`
+	ResourceGroups    []string          `json:"resourceGroups"`
 	Shared            bool              `json:"shared"`
 }
 
@@ -165,8 +206,13 @@ type UpdateProjectPatch struct {
 	Archived               *bool                                `json:"archived,omitempty"`
 	Description            string                               `json:"description,omitempty"`
 	BusinessUnit           string                               `json:"businessUnit,omitempty"`
+	SecurityChampions      []string                             `json:"securityChampions,omitempty"`
+	Identifiers            []string                             `json:"identifiers,omitempty"`
+	ProjectOwners          []string                             `json:"projectOwners,omitempty"`
 	RiskProfile            *ProjectRiskProfileInput             `json:"riskProfile,omitempty"`
 	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks"`
+	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks"`
+	KubernetesClusterLinks []*ProjectKubernetesClusterLinkInput `json:"kubernetesClusterLinks"`
 }
 
 // UpdateSAMLIdentityProviderInput struct
@@ -306,24 +352,45 @@ type Project struct {
 	Entrypoints            []*ProjectEntrypoint            `json:"entrypoints"`
 	ID                     string                          `json:"id"`
 	Identifiers            []string                        `json:"identifiers"`
+	KubernetesClusterLinks []*ProjectKubernetesClusterLink `json:"kubernetesClustersLinks"`
 	Name                   string                          `json:"name"`
 	ProfileCompletion      int                             `json:"profileCompletion"`
-	ProjectOwners          []*User                         `json:"projectOwners"`
+	ProjectOwners          []*ProjectOwners                `json:"projectOwners"`
 	RepositoryCount        int                             `json:"repositoryCount"`
 	RiskProfile            ProjectRiskProfile              `json:"riskProfile"`
-	SecurityChampions      []*User                         `json:"securityChampions"`
+	SecurityChampions      []*SecurityChampions            `json:"securityChampions"`
 	Slug                   string                          `json:"slug"`
 	TeamMemberCount        int                             `json:"teamMemberCount"`
 	TechnologyCount        int                             `json:"technologyCount"`
 }
 
+// ProjectOwners struct
+type ProjectOwners struct {
+	ID string `json:"id"`
+}
+
+// ProjectOwnersLinkInput struct
+type ProjectOwnersLinkInput struct {
+	ID string `json:"id"`
+}
+
+// SecurityChampions struct
+type SecurityChampions struct {
+	ID string `json:"id"`
+}
+
+// SecurityChampionsLinkInput struct
+type SecurityChampionsLinkInput struct {
+	ID string `json:"id"`
+}
+
 // ProjectCloudAccountLink struct
 type ProjectCloudAccountLink struct {
-	CloudAccount   CloudAccount  `json:"CloudAccount"`
-	Environment    string        `json:"environment"` // enum Environment
-	ResourceGroups []string      `json:"resourceGroups"`
-	ResourceTags   []ResourceTag `json:"ResourceTag"`
-	Shared         bool          `json:"shared"`
+	CloudAccount   CloudAccount   `json:"cloudAccount"` //TO DO check this if should be cloudAccount
+	Environment    string         `json:"environment"`  // enum Environment
+	ResourceGroups []string       `json:"resourceGroups"`
+	ResourceTags   []*ResourceTag `json:"ResourceTags"`
+	Shared         bool           `json:"shared"`
 }
 
 // CloudAccountStatus enum
@@ -387,6 +454,34 @@ type User struct {
 	Preferences                      string               `json:"preferences"`
 	ReadmeAuthToken                  string               `json:"readmeAuthToken"`
 	ZendeskAuthToken                 string               `json:"zendeskAuthToken"`
+}
+
+// KubernetesCluster struct
+type KubernetesCluster struct {
+	ID                     string       `json:"id"`
+	ExternalID             string       `json:"externalId"`
+	Name                   string       `json:"name"`
+	Kind                   string       `json:"kind"`
+	Status                 string       `json:"status"`
+	CloudAccount           CloudAccount `json:"cloudAccount"`
+	IsPrivate              bool         `json:"isPrivate"`
+	Project                []Project    `json:"projects"`
+	Connectors             []Connector  `json:"connectors"`
+	IsConnectedUsingBroker bool         `json:"isConnectedUsingBroker"`
+}
+
+// ProjectKubernetesClusterLink struct
+type ProjectKubernetesClusterLink struct {
+	ID                string                   `json:"id"`
+	KubernetesCluster ProjectKubernetesCluster `json:"kubernetesCluster"`
+	Environment       string                   `json:"environment"`
+	Namespaces        []string                 `json:"namespaces"`
+	Shared            bool                     `json:"shared"`
+}
+
+// ProjectKubernetesCluster struct
+type ProjectKubernetesCluster struct {
+	ID string `json:"id"`
 }
 
 // UserRole struct
@@ -1455,6 +1550,16 @@ var CloudProvider = []string{
 	"Kubernetes",
 }
 
+// KubernetesClusterKind enum
+var KubernetesClusterKind = []string{
+	"EKS",
+	"GKE",
+	"AKS",
+	"OKE",
+	"OPEN_SHIFT",
+	"SELF_HOSTED",
+}
+
 // Control struct -- updates
 type Control struct {
 	CreatedAt                    string                      `json:"createdAt,omitempty"`
@@ -2115,6 +2220,19 @@ type CloudAccountConnection struct {
 	Nodes      []*CloudAccount     `json:"nodes,omitempty"`
 	PageInfo   PageInfo            `json:"pageInfo"`
 	TotalCount int                 `json:"totalCount"`
+}
+
+// UsersResponse struct
+type UsersResponse struct {
+	Nodes      []*User  `json:"nodes,omitempty"`
+	PageInfo   PageInfo `json:"pageInfo"`
+	TotalCount int      `json:"totalCount"`
+}
+
+type KubernetesClusterResponse struct {
+	Nodes      []*KubernetesCluster `json:"nodes,omitempty"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
 }
 
 // CloudAccountEdge struct

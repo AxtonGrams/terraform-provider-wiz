@@ -145,6 +145,176 @@ func TestFlattenRiskProfileDefaults(t *testing.T) {
 	}
 }
 
+func TestFlattenCloudAccountLinksWithTags(t *testing.T) {
+	ctx := context.Background()
+
+	expected := []interface{}{
+		map[string]interface{}{
+			"cloud_account_id": "3225def3-0e0e-5cb8-955a-3583f696f77f",
+			"shared":           true,
+			"environment":      "PRODUCTION",
+			"resource_tags": []interface{}{
+				map[string]interface{}{
+					"key":   "k1",
+					"value": "v1",
+				},
+				map[string]interface{}{
+					"key":   "k2",
+					"value": "v2",
+				},
+			},
+			"resource_groups": []interface{}{
+				"v1",
+				"v2",
+			},
+		},
+	}
+
+	var projectCloudAccountLink1 = &vendor.ProjectCloudAccountLink{
+		CloudAccount: vendor.CloudAccount{
+			ID: "3225def3-0e0e-5cb8-955a-3583f696f77f",
+		},
+		Shared:      true,
+		Environment: "PRODUCTION",
+		ResourceTags: []*vendor.ResourceTag{
+			{
+				Key:   "k1",
+				Value: "v1",
+			},
+			{
+				Key:   "k2",
+				Value: "v2",
+			},
+		},
+		ResourceGroups: []string{
+			"v1",
+			"v2",
+		},
+	}
+
+	expanded := []*vendor.ProjectCloudAccountLink{}
+	expanded = append(expanded, projectCloudAccountLink1)
+
+	cloudAccountLinks := flattenCloudAccountLinks(ctx, expanded)
+
+	if !reflect.DeepEqual(cloudAccountLinks, expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			cloudAccountLinks,
+			expected,
+		)
+	}
+}
+
+func TestFlattenCloudAccountLinksNoTags(t *testing.T) {
+	ctx := context.Background()
+
+	expected := []interface{}{
+		map[string]interface{}{
+			"cloud_account_id": "3225def3-0e0e-5cb8-955a-3583f696f77f",
+			"shared":           true,
+			"environment":      "PRODUCTION",
+			"resource_tags":    []interface{}{},
+			"resource_groups":  []interface{}{},
+		},
+	}
+
+	var projectCloudAccountLink1 = &vendor.ProjectCloudAccountLink{
+		CloudAccount: vendor.CloudAccount{
+			ID: "3225def3-0e0e-5cb8-955a-3583f696f77f",
+		},
+		Shared:         true,
+		Environment:    "PRODUCTION",
+		ResourceTags:   []*vendor.ResourceTag{},
+		ResourceGroups: []string{},
+	}
+
+	expanded := []*vendor.ProjectCloudAccountLink{}
+	expanded = append(expanded, projectCloudAccountLink1)
+
+	cloudAccountLinks := flattenCloudAccountLinks(ctx, expanded)
+
+	if !reflect.DeepEqual(cloudAccountLinks, expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			cloudAccountLinks,
+			expected,
+		)
+	}
+}
+
+func TestGetCloudAccountLinksVar(t *testing.T) {
+	ctx := context.Background()
+
+	var expectedAcclink1 = &vendor.ProjectCloudAccountLinkInput{
+		ID:          "3225def3-0e0e-5cb8-955a-3583f696f77f",
+		Environment: "PRODUCTION",
+		ResourceTags: []*vendor.ResourceTag{
+			{
+				Key:   "7982c5c6-1c66-435c-a509-68fae7718bd8",
+				Value: "fbf63c90-67ed-4198-af07-05ee17a58c1d",
+			},
+		},
+		ResourceGroups: []string{
+			"v1",
+			"v2",
+		},
+	}
+
+	var expectedAcclink2 = &vendor.ProjectCloudAccountLinkInput{
+		ID:          "d8181cf9-38bb-486c-8278-f95f416afb3c",
+		Environment: "PRODUCTION",
+		Shared:      false,
+	}
+
+	var expected = []*vendor.ProjectCloudAccountLinkInput{}
+	expected = append(expected, expectedAcclink1)
+	expected = append(expected, expectedAcclink2)
+
+	d := schema.TestResourceDataRaw(
+		t,
+		resourceWizProject().Schema,
+		map[string]interface{}{
+			"name": "my project",
+			"cloud_account_link": []interface{}{
+				map[string]interface{}{
+					"cloud_account_id": "3225def3-0e0e-5cb8-955a-3583f696f77f",
+					"environment":      "PRODUCTION",
+					"shared":           false,
+					"resource_tags": []interface{}{
+						map[string]interface{}{
+							"key":   "7982c5c6-1c66-435c-a509-68fae7718bd8",
+							"value": "fbf63c90-67ed-4198-af07-05ee17a58c1d",
+						},
+					},
+					"resource_groups": []interface{}{
+						"v1",
+						"v2",
+					},
+				},
+				map[string]interface{}{
+					"cloud_account_id": "d8181cf9-38bb-486c-8278-f95f416afb3c",
+					"environment":      "PRODUCTION",
+					"shared":           false,
+				},
+			},
+		},
+	)
+
+	accLink := getCloudAccountLinksVar(ctx, d)
+
+	sort.SliceStable(expected, func(i, j int) bool { return expected[i].ID < expected[j].ID })
+	sort.SliceStable(accLink, func(i, j int) bool { return accLink[i].ID < accLink[j].ID })
+
+	if !reflect.DeepEqual(expected, accLink) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			utils.PrettyPrint(accLink),
+			utils.PrettyPrint(expected),
+		)
+	}
+}
+
 func TestFlattenCloudOrganizationLinksWithTags(t *testing.T) {
 	ctx := context.Background()
 
@@ -162,6 +332,10 @@ func TestFlattenCloudOrganizationLinksWithTags(t *testing.T) {
 					"key":   "k2",
 					"value": "v2",
 				},
+			},
+			"resource_groups": []interface{}{
+				"v1",
+				"v2",
 			},
 		},
 	}
@@ -181,6 +355,10 @@ func TestFlattenCloudOrganizationLinksWithTags(t *testing.T) {
 				Key:   "k2",
 				Value: "v2",
 			},
+		},
+		ResourceGroups: []string{
+			"v1",
+			"v2",
 		},
 	}
 
@@ -207,6 +385,7 @@ func TestFlattenCloudOrganizationLinksNoTags(t *testing.T) {
 			"shared":             true,
 			"environment":        "PRODUCTION",
 			"resource_tags":      []interface{}{},
+			"resource_groups":    []interface{}{},
 		},
 	}
 
