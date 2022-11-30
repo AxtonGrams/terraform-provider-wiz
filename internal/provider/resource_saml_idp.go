@@ -28,6 +28,11 @@ func resourceWizSAMLIdP() *schema.Resource {
 				Description: "IdP name to display in Wiz.",
 				Required:    true,
 			},
+			"issuer_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "If undefined, this will default to the login_url value. Set to the same value as login_url if unsure what value to use.",
+			},
 			"login_url": {
 				Type:        schema.TypeString,
 				Description: "IdP Login URL",
@@ -40,13 +45,13 @@ func resourceWizSAMLIdP() *schema.Resource {
 			},
 			"use_provider_managed_roles": {
 				Type:        schema.TypeBool,
-				Description: "Use provider managed roles?",
+				Description: "When set to true, roles will be provided by the SSO provider. Manage the roles via Wiz portal otherwise.",
 				Optional:    true,
 				Default:     false,
 			},
 			"allow_manual_role_override": {
 				Type:        schema.TypeBool,
-				Description: "Allow manual override for role assignment? Must be set `true` if `use_provided_roles` is false.",
+				Description: "When set to true, allow overriding the mapped SSO role for specific users. Must be set `true` if `use_provided_roles` is false.",
 				Optional:    true,
 				Default:     true,
 				RequiredWith: []string{
@@ -60,8 +65,9 @@ func resourceWizSAMLIdP() *schema.Resource {
 			},
 			"domains": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "A list of domains the IdP handles.",
+				Deprecated:  "This field is no longer supported by Wiz. If defined, this will result in change detection on every run.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -223,6 +229,7 @@ func resourceWizSAMLIdPRead(ctx context.Context, d *schema.ResourceData, m inter
 	    ) {
 	        id
 	        name
+	        issuerURL
 	        loginURL
 	        logoutURL
 	        useProviderManagedRoles
@@ -266,6 +273,10 @@ func resourceWizSAMLIdPRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	// set the resource parameters
 	err := d.Set("name", data.SAMLIdentityProvider.Name)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("issuer_url", data.SAMLIdentityProvider.IssuerURL)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -331,49 +342,38 @@ func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m int
 	// populate the graphql variables
 	vars := &vendor.UpdateSAMLIdentityProviderInput{}
 	vars.ID = d.Id()
-	if d.HasChange("login_url") {
-		vars.Patch.LoginURL = d.Get("login_url").(string)
-	}
-	if d.HasChange("logout_url") {
-		vars.Patch.LogoutURL = d.Get("logout_url").(string)
-	}
-	if d.HasChange("use_provider_managed_roles") {
-		vars.Patch.UseProviderManagedRoles = utils.ConvertBoolToPointer(d.Get("use_provider_managed_roles").(bool))
-	}
-	if d.HasChange("allow_manual_role_override") {
-		vars.Patch.AllowManualRoleOverride = utils.ConvertBoolToPointer(d.Get("allow_manual_role_override").(bool))
-	}
-	if d.HasChange("certificate") {
-		vars.Patch.Certificate = d.Get("certificate").(string)
-	}
-	if d.HasChange("merge_groups_mapping_by_role") {
-		vars.Patch.MergeGroupsMappingByRole = utils.ConvertBoolToPointer(d.Get("merge_groups_mapping_by_role").(bool))
-	}
-	if d.HasChange("group_mapping") {
-		mappings := d.Get("group_mapping").(*schema.Set).List()
-		mappingUpdates := make([]vendor.SAMLGroupMappingUpdateInput, 0)
-		for a, b := range mappings {
-			var myMap = vendor.SAMLGroupMappingUpdateInput{}
-			tflog.Trace(ctx, fmt.Sprintf("a:b: %d %s", a, b))
+	vars.Patch.Name = d.Get("name").(string)
+	vars.Patch.IssuerURL = d.Get("issuer_url").(string)
+	vars.Patch.LoginURL = d.Get("login_url").(string)
+	vars.Patch.LogoutURL = d.Get("logout_url").(string)
+	vars.Patch.UseProviderManagedRoles = utils.ConvertBoolToPointer(d.Get("use_provider_managed_roles").(bool))
+	vars.Patch.AllowManualRoleOverride = utils.ConvertBoolToPointer(d.Get("allow_manual_role_override").(bool))
+	vars.Patch.Certificate = d.Get("certificate").(string)
+	vars.Patch.MergeGroupsMappingByRole = utils.ConvertBoolToPointer(d.Get("merge_groups_mapping_by_role").(bool))
+	// populate the group mapping
+	mappings := d.Get("group_mapping").(*schema.Set).List()
+	mappingUpdates := make([]vendor.SAMLGroupMappingUpdateInput, 0)
+	for a, b := range mappings {
+		var myMap = vendor.SAMLGroupMappingUpdateInput{}
+		tflog.Trace(ctx, fmt.Sprintf("a:b: %d %s", a, b))
 
-			for c, d := range b.(map[string]interface{}) {
-				tflog.Trace(ctx, fmt.Sprintf("c:d: %s %s", c, d))
-				switch c {
-				case "role":
-					myMap.Role = d.(string)
-				case "provider_group_id":
-					myMap.ProviderGroupID = d.(string)
-				case "projects":
-					for _, f := range d.([]interface{}) {
-						tflog.Trace(ctx, fmt.Sprintf("f: %t %s", f, f))
-						myMap.Projects = append(myMap.Projects, f.(string))
-					}
+		for c, d := range b.(map[string]interface{}) {
+			tflog.Trace(ctx, fmt.Sprintf("c:d: %s %s", c, d))
+			switch c {
+			case "role":
+				myMap.Role = d.(string)
+			case "provider_group_id":
+				myMap.ProviderGroupID = d.(string)
+			case "projects":
+				for _, f := range d.([]interface{}) {
+					tflog.Trace(ctx, fmt.Sprintf("f: %t %s", f, f))
+					myMap.Projects = append(myMap.Projects, f.(string))
 				}
 			}
-			mappingUpdates = append(mappingUpdates, myMap)
 		}
-		vars.Patch.GroupMapping = mappingUpdates
+		mappingUpdates = append(mappingUpdates, myMap)
 	}
+	vars.Patch.GroupMapping = mappingUpdates
 
 	// process the request
 	data := &UpdateSAMLIdentityProvider{}

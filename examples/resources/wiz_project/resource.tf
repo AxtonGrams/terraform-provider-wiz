@@ -6,7 +6,7 @@ resource "wiz_project" "test" {
   risk_profile {
     business_impact = "MBI"
   }
-  business_unit = data.insight_organization.aws.description
+  business_unit = "Technology"
   cloud_organization_link {
     cloud_organization = "7edbb879-9960-513f-b56d-876e9db2a962"
     environment        = "PRODUCTION"

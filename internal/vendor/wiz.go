@@ -175,17 +175,19 @@ type UpdateSAMLIdentityProviderInput struct {
 	Patch UpdateSAMLIdentityProviderPatch `json:"patch"`
 }
 
-// UpdateSAMLIdentityProviderPatch struct -- updates
+// UpdateSAMLIdentityProviderPatch struct
+// We deviate from the GraphQL schema to include all attributes because the update requires an empty value to nullify removed attributes
 type UpdateSAMLIdentityProviderPatch struct {
-	EntityID                 string                        `json:"entityID,omitempty"`
-	LoginURL                 string                        `json:"loginURL,omitempty"`
-	LogoutURL                string                        `json:"logoutURL,omitempty"`
-	UseProviderManagedRoles  *bool                         `json:"useProviderManagedRoles,omitempty"`
-	AllowManualRoleOverride  *bool                         `json:"allowManualRoleOverride,omitempty"`
-	Certificate              string                        `json:"certificate,omitempty"`
-	Domains                  []string                      `json:"domains,omitempty"`
-	GroupMapping             []SAMLGroupMappingUpdateInput `json:"groupMapping,omitempty"`
-	MergeGroupsMappingByRole *bool                         `json:"mergeGroupsMappingByRole,omitempty"`
+	Name                     string                        `json:"name"`
+	IssuerURL                string                        `json:"issuerURL"`
+	LoginURL                 string                        `json:"loginURL"`
+	LogoutURL                string                        `json:"logoutURL"`
+	UseProviderManagedRoles  *bool                         `json:"useProviderManagedRoles"`
+	AllowManualRoleOverride  *bool                         `json:"allowManualRoleOverride"`
+	Certificate              string                        `json:"certificate"`
+	Domains                  []string                      `json:"domains"`
+	GroupMapping             []SAMLGroupMappingUpdateInput `json:"groupMapping"`
+	MergeGroupsMappingByRole *bool                         `json:"mergeGroupsMappingByRole"`
 }
 
 // UpdateSAMLIdentityProviderPayload struct -- updates
@@ -203,7 +205,7 @@ type SAMLGroupMappingUpdateInput struct {
 // CreateSAMLIdentityProviderInput struct -- updates
 type CreateSAMLIdentityProviderInput struct {
 	Name                     string                         `json:"name"`
-	EntityID                 string                         `json:"entityID,omitempty"`
+	IssuerURL                string                         `json:"issuerURL,omitempty"`
 	LoginURL                 string                         `json:"loginURL"`
 	LogoutURL                string                         `json:"logoutURL,omitempty"`
 	UseProviderManagedRoles  bool                           `json:"useProviderManagedRoles"`
@@ -216,7 +218,7 @@ type CreateSAMLIdentityProviderInput struct {
 
 // CreateSAMLIdentityProviderPayload struct -- updates
 type CreateSAMLIdentityProviderPayload struct {
-	SAMLIdentityProvider SAMLIdentityProvider `json:"samlIdentityProvider"`
+	SAMLIdentityProvider SAMLIdentityProvider `json:"samlIdentityProvider,omitempty"`
 }
 
 // SAMLGroupMappingCreateInput struct -- updates
@@ -231,9 +233,9 @@ type SAMLIdentityProvider struct {
 	AllowManualRoleOverride  *bool               `json:"allowManualRoleOverride"`
 	Certificate              string              `json:"certificate"`
 	Domains                  []string            `json:"domains"`
-	EntityID                 string              `json:"entityID,omitempty"`
 	GroupMapping             []*SAMLGroupMapping `json:"groupMapping,omitempty"`
 	ID                       string              `json:"id"`
+	IssuerURL                string              `json:"issuerURL,omitempty"`
 	LoginURL                 string              `json:"loginURL"`
 	LogoutURL                string              `json:"logoutURL"`
 	MergeGroupsMappingByRole bool                `json:"mergeGroupsMappingByRole"`
@@ -255,7 +257,7 @@ type DeleteSAMLIdentityProviderInput struct {
 
 // DeleteSAMLIdentityProviderPayload struct -- updated
 type DeleteSAMLIdentityProviderPayload struct {
-	Stub string `json:"_stub,omitempty"`
+	Stub string `json:"_stub"`
 }
 
 // DeleteAutomationActionInput struct -- updates
