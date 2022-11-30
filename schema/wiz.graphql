@@ -17,6 +17,7 @@ type ActionTemplate implements Node {
   name: String!
   params: ActionTemplateParams
   project: Project
+  source: ActionTemplateSource!
   type: ActionTemplateType!
 }
 
@@ -36,9 +37,10 @@ input ActionTemplateFilters {
   search: String
   type: [ActionTemplateType!]
   projectId: String
+  source: [ActionTemplateSource!]
 }
 
-union ActionTemplateParams = AwsSnsActionTemplateParams | EmailActionTemplateParams | WebhookActionTemplateParams | SlackActionTemplateParams | AzureServiceBusActionTemplateParams | GcpPubSubActionTemplateParams | PagerDutyActionCreateIncidentTemplateParams | JiraActionCreateTicketTemplateParams | JiraActionTransitionTicketTemplateParams | ServiceNowActionCreateTicketTemplateParams | ServiceNowActionUpdateTicketTemplateParams
+union ActionTemplateParams = AwsSnsActionTemplateParams | EmailActionTemplateParams | WebhookActionTemplateParams | SlackActionTemplateParams | AzureServiceBusActionTemplateParams | GcpPubSubActionTemplateParams | GoogleChatActionTemplateParams | PagerDutyActionCreateIncidentTemplateParams | JiraActionCreateTicketTemplateParams | JiraActionAddCommentTemplateParams | JiraActionTransitionTicketTemplateParams | ServiceNowActionCreateTicketTemplateParams | ServiceNowActionUpdateTicketTemplateParams
 
 input ActionTemplateParamsInput {
   awsSNS: AwsSNSActionTemplateParamsInput
@@ -46,12 +48,20 @@ input ActionTemplateParamsInput {
   webhook: WebhookActionTemplateParamsInput
   slack: SlackActionTemplateParamsInput
   azureServiceBus: AzureServiceBusActionTemplateParamsInput
+  googleChat: GoogleChatActionTemplateParamsInput
   gcpPubSub: GcpPubSubActionTemplateParamsInput
   pagerDutyCreateIncident: PagerDutyActionCreateIncidentTemplateParamsInput
   jiraCreateTicket: JiraActionCreateTicketTemplateParamsInput
+  jiraAddComment: JiraActionAddCommentTemplateParamsInput
   jiraTransitionTicket: JiraActionTransitionTicketTemplateParamsInput
   serviceNowCreateTicket: ServiceNowActionCreateTicketTemplateParamsInput
   serviceNowUpdateTicket: ServiceNowActionUpdateTicketTemplateParamsInput
+}
+
+enum ActionTemplateSource {
+  ISSUES
+  CLOUD_EVENTS
+  CONTROL
 }
 
 enum ActionTemplateType {
@@ -69,6 +79,7 @@ enum ActionTemplateType {
   GOOGLE_CHAT
   GCP_PUB_SUB
   JIRA_CREATE_TICKET
+  JIRA_ADD_COMMENT
   JIRA_TRANSITION_TICKET
   MICROSOFT_TEAMS
   PAGER_DUTY_CREATE_INCIDENT
@@ -76,11 +87,13 @@ enum ActionTemplateType {
   SERVICE_NOW_CREATE_TICKET
   SERVICE_NOW_UPDATE_TICKET
   SLACK
-  SNOWFLAKE
   SPLUNK
   SUMO_LOGIC
   TORQ
   WEBHOOK
+  OPSGENIE_CREATE_ALERT
+  OPSGENIE_CLOSE_ALERT
+  FRESHSERVICE
 }
 
 input AddSecurityScanInput {
@@ -91,6 +104,35 @@ input AddSecurityScanInput {
 
 type AddSecurityScanPayload {
   securityScan: SecurityScan
+}
+
+type AdmissionController implements Node {
+  clientConfig: AdmissionControllerClientConfig!
+  cluster: KubernetesCluster
+  createdAt: DateTime
+  healthStatus: AdmissionControllerStatus
+  healthStatusDetails: JSON
+  id: ID!
+  lastSeen: DateTime
+  serverConfig: JSON
+  updatedAt: DateTime
+}
+
+type AdmissionControllerClientConfig {
+  errorEnforcement: AdmissionControllerEnforcementMethod
+  policies: [String!]
+  policyEnforcement: AdmissionControllerEnforcementMethod
+  version: String!
+}
+
+enum AdmissionControllerEnforcementMethod {
+  BLOCK
+  AUDIT
+}
+
+enum AdmissionControllerStatus {
+  FAILED
+  RUNNING
 }
 
 enum AlibabaCloudType {
@@ -149,8 +191,14 @@ type ArtifactFindingsConnection {
   totalCount: Int!
 }
 
+input AssociateServiceTicketControlTypeInput {
+  controlId: ID!
+  projectId: ID!
+}
+
 input AssociateServiceTicketInput {
-  issueId: ID!
+  issueId: ID
+  control: AssociateServiceTicketControlTypeInput
   ticketId: String!
   ticketUrl: String!
 }
@@ -365,13 +413,15 @@ type AutomationRule implements Node {
   updatedAt: DateTime!
 }
 
-type AutomationRuleAction {
-  actionTemplateParams: ActionTemplateParams!
+type AutomationRuleAction implements Node {
+  actionTemplateParams: ActionTemplateParams
   actionTemplateType: ActionTemplateType!
+  id: ID!
   integration: Integration!
 }
 
 input AutomationRuleActionInput {
+  id: ID
   integrationId: ID!
   actionTemplateParams: ActionTemplateParamsInput!
   actionTemplateType: ActionTemplateType!
@@ -386,6 +436,13 @@ type AutomationRuleConnection {
   nodes: [AutomationRule!]
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+input AutomationRuleControlFilters {
+  control: [String!]
+  project: [String!]
+  severity: [String!]
+  frameworkCategory: [String!]
 }
 
 type AutomationRuleEdge {
@@ -424,11 +481,16 @@ input AutomationRuleIssueFilters {
   hasServiceTicket: Boolean
   hasNote: Boolean
   frameworkCategory: [String!]
+  riskEqualsAny: [String!]
+  riskEqualsAll: [String!]
+  riskExcludesAny: [String!]
+  excludeFrameworkCategory: [String!]
 }
 
 enum AutomationRuleTriggerSource {
   ISSUES
   CLOUD_EVENTS
+  CONTROL
 }
 
 enum AutomationRuleTriggerType {
@@ -594,6 +656,7 @@ enum BuiltinReportTypeIds {
   COMPLIANCE_EXECUTIVE_SUMMARY
   ISSUES
   HOST_CONFIGURATION
+  CLOUD_RESOURCE
 }
 
 enum BuiltInUserRoleId {
@@ -602,6 +665,7 @@ enum BuiltInUserRoleId {
   GLOBAL_LIMITED_RESPONDER
   GLOBAL_RESPONDER
   GLOBAL_POLICY_MANAGER
+  GLOBAL_VULNERABILITY_MANAGER
   GLOBAL_CONTRIBUTOR
   GLOBAL_GRAPH_READER
   CONNECTOR_ADMIN
@@ -609,6 +673,7 @@ enum BuiltInUserRoleId {
   PROJECT_ADMIN
   PROJECT_MEMBER
   PROJECT_READER
+  PROJECT_VULNERABILITY_MANAGER
   PROJECT_GRAPH_READER
   PROJECT_EXTERNAL_DIGITAL_TRUST_READER
   SETTINGS_ADMIN
@@ -633,6 +698,15 @@ input BYONOutpostClusterAWSConfigInput {
   securityGroupIds: [String!]!
 }
 
+input BYONOutpostClusterAzureConfigInput {
+  resourceGroupName: String!
+  vnetId: String!
+  subnetId: String!
+  dnsServiceIp: String
+  serviceCIDR: String
+  serviceAuthorizedIPRanges: [String!]
+}
+
 input BYONOutpostClusterInput {
   perCloudConfig: PerCloudBYONOutpostClusterConfigInput!
 }
@@ -640,6 +714,7 @@ input BYONOutpostClusterInput {
 type CICDDiskScanResult {
   analytics: CICDDiskScanResultAnalytics!
   applications: [CICDDiskScanResultApplication!]
+  cpes: [CICDDiskScanResultCpe!]
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   libraries: [CICDDiskScanResultLibrary!]
   osPackages: [CICDDiskScanResultOSPackage!]
@@ -655,6 +730,14 @@ type CICDDiskScanResultApplication {
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   name: String!
   vulnerabilities: [DiskScanApplicationVulnerability!]!
+}
+
+type CICDDiskScanResultCpe {
+  failedPolicyMatches: [CICDScanPolicyMatch!]!
+  name: String!
+  path: String!
+  version: String!
+  vulnerabilities: [DiskScanVulnerability!]!
 }
 
 type CICDDiskScanResultLibrary {
@@ -703,7 +786,7 @@ type CICDOutdatedScanPolicy {
 type CICDPolicyCustomIgnoreTag {
   ignoreAllRules: Boolean!
   key: String!
-  rules: [CloudConfigurationRule!]!
+  rules: [CloudConfigurationRule]!
   value: String!
 }
 
@@ -721,9 +804,18 @@ input CICDPolicyCustomIgnoreTagUpdateInput {
   ignoreAllRules: Boolean
 }
 
+enum CICDPolicyVulnerabilityDetectionMethod {
+  PACKAGE
+  OS
+  LIBRARY
+  FILE_PATH
+  APPLICATION
+}
+
 type CICDScan implements Node {
   createdAt: DateTime!
   createdBy: CICDScanCreator!
+  extraInfo: ExtraInfo
   id: ID!
   outdatedPolicies: [CICDOutdatedScanPolicy!]
   policies: [CICDScanPolicy!]!
@@ -732,7 +824,7 @@ type CICDScan implements Node {
   scanOriginResource: CICDScanOriginResourceBase!
   scanOriginResourceType: CICDScanOriginResourceType!
   status: CICDScanStatus!
-  tags: [CICDScanTag!]
+  tags: [CICDScanTag!] @deprecated(reason: "use extraInfo instead")
 }
 
 type CICDScanConnection {
@@ -865,10 +957,10 @@ type CICDScanPolicyParamsIAC {
   builtinIgnoreTagsEnabled: Boolean!
   countThreshold: Int!
   customIgnoreTags: [CICDPolicyCustomIgnoreTag!]!
-  ignoredRules: [CloudConfigurationRule!]! @deprecated(reason: "Use validatableIgnoredRules instead")
+  ignoredRules: [CloudConfigurationRule]!
   securityFrameworks: [SecurityFramework!]
   severityThreshold: IACScanSeverity!
-  validatableIgnoredRules: [ValidatableCloudConfigurationRule!]!
+  validatableIgnoredRules: [ValidatableCloudConfigurationRule!]! @deprecated(reason: "Use ignoredRules instead")
 }
 
 type CICDScanPolicyParamsSecrets {
@@ -877,6 +969,7 @@ type CICDScanPolicyParamsSecrets {
 }
 
 type CICDScanPolicyParamsVulnerabilities {
+  detectionMethods: [CICDPolicyVulnerabilityDetectionMethod!]
   ignoreUnfixed: Boolean!
   packageAllowList: [String!]!
   packageCountThreshold: Int!
@@ -926,6 +1019,7 @@ type CLIConfigurationRule {
   securityFrameworkIDs: [String!]
   severity: IACScanSeverity!
   shortName: String!
+  targetNativeTypes: [String!]
 }
 
 type CLIConfigurationRulesConnection {
@@ -1167,6 +1261,11 @@ type CloudConfigurationRuleConnection {
   totalCount: Int!
 }
 
+enum CloudConfigurationRuleCreatorType {
+  USER
+  BUILT_IN
+}
+
 type CloudConfigurationRuleEdge {
   cursor: String!
   node: CloudConfigurationRule!
@@ -1194,6 +1293,7 @@ input CloudConfigurationRuleFilters {
   frameworkCategory: [String!]
   targetNativeType: [String!]
   createdBy: [String!]
+  createdByType: [CloudConfigurationRuleCreatorType!]
   isOPAPolicy: Boolean
   project: [String!]
   matcherType: [CloudConfigurationRuleMatcherTypeFilter!]
@@ -1201,6 +1301,7 @@ input CloudConfigurationRuleFilters {
   functionAsControl: Boolean
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
+  supportsNRT: Boolean
 }
 
 type cloudConfigurationRuleIaCTest {
@@ -1229,6 +1330,7 @@ enum CloudConfigurationRuleMatcherType {
   KUBERNETES
   AZURE_RESOURCE_MANAGER
   DOCKER_FILE
+  ADMISSION_CONTROLLER
 }
 
 enum CloudConfigurationRuleMatcherTypeFilter {
@@ -1238,6 +1340,7 @@ enum CloudConfigurationRuleMatcherTypeFilter {
   KUBERNETES
   AZURE_RESOURCE_MANAGER
   DOCKER_FILE
+  ADMISSION_CONTROLLER
 }
 
 input CloudConfigurationRuleOrder {
@@ -1314,10 +1417,18 @@ type CloudEventActor {
   cloudAccount: CloudAccount
   email: String
   externalId: String
+  externalOwnerTech: Technology
   federated: Boolean
   friendlyName: String
+  hasAdminKubernetesPrivileges: Boolean!
+  hasAdminPrivileges: Boolean!
+  hasHighKubernetesPrivileges: Boolean!
+  hasHighPrivileges: Boolean!
   id: ID!
   IP: String
+  IPMeta: CloudEventActorIPMeta!
+  isExternalCloudAccount: Boolean!
+  isForeignIP: Boolean!
   MFA: Boolean
   name: String
   providerUniqueId: String
@@ -1331,20 +1442,40 @@ input CloudEventActorFilters {
   providerUniqueId: CloudEventStringFilter
   type: CloudEventActorType
   cloudAccountId: CloudEventStringFilter
+  isExternalCloudAccount: CloudEventBooleanFilter
   friendlyName: CloudEventStringFilter
   name: CloudEventStringFilter
   email: CloudEventStringFilter
   IP: CloudEventStringFilter
+  IPMetaCountry: CloudEventStringFilter
+  IPMetaCountryCode: CloudEventStringFilter
+  IPMetaCity: CloudEventStringFilter
+  IPMetaAutonomousSystemNumber: CloudEventIntFilter
+  IPMetaAutonomousSystemOrganization: CloudEventStringFilter
+  isForeignIP: CloudEventBooleanFilter
   userAgent: CloudEventStringFilter
   MFA: CloudEventBooleanFilter
   federated: CloudEventBooleanFilter
   accessKeyId: CloudEventStringFilter
+  externalOwnerTechId: CloudEventStringFilter
   actingAsId: CloudEventStringFilter
   actingAsExternalId: CloudEventStringFilter
   actingAsProviderUniqueId: CloudEventStringFilter
   actingAsType: CloudEventActorType
   actingAsName: CloudEventStringFilter
   actingAsEmail: CloudEventStringFilter
+  hasHighPrivileges: CloudEventBooleanFilter
+  hasAdminPrivileges: CloudEventBooleanFilter
+  hasHighKubernetesPrivileges: CloudEventBooleanFilter
+  hasAdminKubernetesPrivileges: CloudEventBooleanFilter
+}
+
+type CloudEventActorIPMeta {
+  autonomousSystemNumber: Int
+  autonomousSystemOrganization: String
+  city: String
+  country: String
+  countryCode: String
 }
 
 enum CloudEventActorType {
@@ -1424,6 +1555,11 @@ enum CloudEventGroupByTimeBin {
   DAY
 }
 
+input CloudEventIntFilter {
+  equals: [Int!]
+  notEquals: [Int!]
+}
+
 type CloudEventMatchedRule {
   rule: CloudEventRule!
   version: Int!
@@ -1435,6 +1571,7 @@ type CloudEventResource {
   id: ID
   name: String
   nativeType: String
+  openToAllInternet: Boolean!
   providerUniqueId: String
   region: String
   type: GraphEntityTypeValue
@@ -1449,6 +1586,7 @@ input CloudEventResourceFilters {
   name: CloudEventStringFilter
   cloudAccountId: CloudEventStringFilter
   region: CloudEventStringFilter
+  openToAllInternet: CloudEventBooleanFilter
 }
 
 input CloudEventResourceTypeFilter {
@@ -1473,6 +1611,7 @@ type CloudEventRule {
   project: Project
   rateLimitedAt: DateTime
   severity: CloudEventRuleSeverity!
+  sourceType: CloudEventSourceType
   subCategories: [SecuritySubCategory]
   targetEventNames: [String!]
   updatedAt: DateTime!
@@ -1506,6 +1645,9 @@ input CloudEventRuleFilters {
   enabled: Boolean
   cloudProvider: [CloudProvider!]
   hasMatches: Boolean
+  riskEqualsAny: [String!]
+  riskEqualsAll: [String!]
+  sourceType: [CloudEventSourceType!]
 }
 
 type CloudEventRuleJsonTest {
@@ -1545,6 +1687,13 @@ type CloudEventSearchResultConnection {
 type CloudEventSearchResultEdge {
   cursor: String!
   node: CloudEventSearchResult!
+}
+
+enum CloudEventSourceType {
+  WIZ
+  GUARD_DUTY
+  SECURITY_COMMAND_CENTER
+  DEFENDER_FOR_CLOUD
 }
 
 input CloudEventStringFilter {
@@ -1884,6 +2033,9 @@ input ConnectorAuthConfigContainerRegistryInput {
   username: String!
   password: String!
   proxyURL: String
+  isOnPrem: Boolean
+  onPremTunnelDomain: String
+  onPremTunnelToken: String
 }
 
 input ConnectorAuthConfigECRInput {
@@ -2073,7 +2225,11 @@ type ConnectorConfigAzureMonitorEventHub {
 type ConnectorConfigContainerRegistry {
   authParams: JSON
   filter: ConnectorConfigContainerRegistryFilter
+  isOnPrem: Boolean!
+  onPremTunnelDomain: String
+  onPremTunnelToken: String
   proxyURL: String @deprecated(reason: "Set through auth params instead")
+  pullURL: String
   registryURL: String
   scan: ConnectorConfigContainerRegistryScan
   url: String!
@@ -2093,6 +2249,7 @@ input ConnectorConfigContainerRegistryInput {
 
 type ConnectorConfigContainerRegistryScan {
   cap: Int!
+  maxImageAgeDays: Int
   scanIntervalHours: Int!
 }
 
@@ -2341,6 +2498,14 @@ enum ConnectorEventTriggeredScanningStatus {
   ERROR
 }
 
+input ConnectorExtraConfigContainerRegistryAccessTokenInput {
+  provider: ConnectorExtraConfigContainerRegistryAccessTokenProvider!
+}
+
+enum ConnectorExtraConfigContainerRegistryAccessTokenProvider {
+  artifactory
+}
+
 input ConnectorExtraConfigContainerRegistryFilterInput {
   include: [String!]
   exclude: [String!]
@@ -2348,15 +2513,18 @@ input ConnectorExtraConfigContainerRegistryFilterInput {
 
 input ConnectorExtraConfigContainerRegistryInput {
   url: String!
-  registryURL: String
-  proxyURL: String
+  pullURL: String
   filter: ConnectorExtraConfigContainerRegistryFilterInput
   scan: ConnectorExtraConfigContainerRegistryScanInput
+  accessToken: ConnectorExtraConfigContainerRegistryAccessTokenInput
+  registryURL: String
+  proxyURL: String
 }
 
 input ConnectorExtraConfigContainerRegistryScanInput {
   scanIntervalHours: Int!
   cap: Int!
+  maxImageAgeDays: Int
 }
 
 input ConnectorExtraConfigGCPInput {
@@ -2395,6 +2563,7 @@ input ConnectorFilters {
   createdByType: [ConnectorCreatorType!]
   outpostID: [String!]
   kubernetesClusterExternalIds: [String!]
+  eventTriggeredScanningEnabled: Boolean
 }
 
 type ConnectorIssue {
@@ -2705,6 +2874,7 @@ type Control implements Node {
   enabledForMBI: Boolean!
   enabledForUnattributed: Boolean!
   externalReferences: [ControlExternalReference!]
+  hasAutoRemediation: Boolean!
   id: ID!
   issueAnalytics(selection: ControlIssueAnalyticsSelection): IssueAnalytics!
   issues(after: String, filterBy: IssueFilters, first: Int, orderBy: IssueOrder): IssueConnection!
@@ -2717,6 +2887,7 @@ type Control implements Node {
   scopeProject: Project
   scopeQuery: GraphEntityQueryValue
   securitySubCategories: [SecuritySubCategory!]
+  serviceTickets(selection: ControlServiceTicketsSelectionFilter): [ServiceTicket!]
   severity: Severity!
   sourceCloudConfigurationRule: CloudConfigurationRule
   supportsNRT: Boolean!
@@ -2763,6 +2934,7 @@ input ControlFilters {
   severity: [Severity!]
   withIssues: IssueFilters
   enabled: Boolean
+  hasAutoRemediation: Boolean
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
 }
@@ -2781,6 +2953,10 @@ enum ControlOrderField {
   ISSUE_COUNT
 }
 
+input ControlServiceTicketsSelectionFilter {
+  project: [String!]
+}
+
 enum ControlType {
   SECURITY_GRAPH
   CLOUD_CONFIGURATION
@@ -2789,6 +2965,7 @@ enum ControlType {
 input CreateActionTemplateInput {
   name: String!
   projectId: String
+  source: ActionTemplateSource!
   type: ActionTemplateType!
   params: ActionTemplateParamsInput!
 }
@@ -2825,7 +3002,7 @@ input CreateAutomationRuleInput {
   triggerSource: AutomationRuleTriggerSource!
   triggerType: [AutomationRuleTriggerType!]!
   filters: JSON
-  actionId: String!
+  actionId: String
   overrideActionParams: JSON
   enabled: Boolean = true
   projectId: String
@@ -2868,6 +3045,7 @@ input CreateCICDScanPolicyDiskVulnerabilitiesInput {
   packageCountThreshold: Int!
   ignoreUnfixed: Boolean!
   packageAllowList: [String!]
+  detectionMethods: [CICDPolicyVulnerabilityDetectionMethod!]
 }
 
 input CreateCICDScanPolicyIACInput {
@@ -3019,6 +3197,7 @@ input CreateGooglePubSubAutomationActionParamsInput {
 input CreateHostConfigurationRuleInput {
   name: String!
   description: String
+  severity: Severity!
   directOVAL: String!
   targetPlatformIds: [String!]
   enabled: Boolean
@@ -3064,6 +3243,7 @@ input CreateJiraAutomationActionParamInput {
 
 input CreateJiraIntegrationParamsInput {
   serverUrl: String!
+  serverType: JiraServerType!
   isOnPrem: Boolean!
   tlsConfig: IntegrationTLSConfigInput
   authorization: JiraIntegrationAuthorizationInput!
@@ -3152,6 +3332,7 @@ input CreateOutpostManagedConfigInput {
   kubernetesLoggingEnabled: Boolean
   kubernetesCloudMonitoringEnabled: Boolean
   bringYourOwnNetworkOutpost: Boolean
+  enableNatGateway: Boolean
 }
 
 type CreateOutpostPayload {
@@ -3188,6 +3369,16 @@ input CreateProjectInput {
 
 type CreateProjectPayload {
   project: Project
+}
+
+input CreateReportCloudResourceParamsInput {
+  includeCloudNativeJSON: Boolean!
+  includeWizJSON: Boolean!
+  entityType: [GraphEntityTypeValue!]!
+  subscriptionId: [String!]
+  nativeType: [String!]
+  region: [String!]
+  cloudPlatform: [String!]
 }
 
 input CreateReportComplianceExecutiveSummaryParamsInput {
@@ -3233,6 +3424,7 @@ input CreateReportInput {
   securityFrameworkParams: CreateReportSecurityFrameworkParamsInput
   issueParams: CreateReportIssueParamsInput
   hostConfigurationParams: CreateReportHostConfigurationParamsInput
+  cloudResourceParams: CreateReportCloudResourceParamsInput
 }
 
 input CreateReportIssueParamsInput {
@@ -3244,20 +3436,6 @@ input CreateReportIssueParamsInput {
 input CreateReportNetworkExposureParamsInput {
   subscriptionIds: [String!]
   entityIds: [String!]
-}
-
-input CreateReportParams {
-  subscriptionIds: [String!]
-  entityIds: [String!]
-  query: GraphEntityQueryValue
-  projectId: String
-  vulnerabilitiesSince: DateTime
-  vulnerabilitiesUpdatedAfter: DateTime
-  vulnerabilitiesIds: [String!]
-  assetObjectType: VulnerabilityReportGraphEntityType
-  vulnerabilityReportType: VulnerabilityReportType
-  vulnerabilitiesVendorSeverity: [VulnerabilitySeverity!]
-  securityFrameworkId: String
 }
 
 type CreateReportPayload {
@@ -3352,8 +3530,9 @@ type CreateSecurityFrameworkPayload {
 
 input CreateServiceAccountInput {
   name: String!
-  scopes: [String!]!
+  scopes: [String!]
   assignedProjectIds: [String!]
+  type: ServiceAccountType
 }
 
 type CreateServiceAccountPayload {
@@ -3540,6 +3719,115 @@ enum DashboardWidgetViewType {
   METRICS
 }
 
+enum DataAnonymizerType {
+  DEFAULT
+  EMAIL
+  CREDIT_CARD
+}
+
+type DataClassifier {
+  anonymizerType: DataAnonymizerType
+  category: DataClassifierCategory!
+  createdAt: DateTime
+  createdBy: DataClassifierCreatedBy!
+  enabled: Boolean!
+  exampleCount: Int
+  excludeRegex: String
+  id: ID!
+  keyRegex: String
+  maxLength: Int
+  minLength: Int
+  minUniqueMatches: Int
+  name: String!
+  opaValidator: String
+  query: GraphEntityQueryValue!
+  updatedAt: DateTime
+  valueRegex: String!
+}
+
+enum DataClassifierCategory {
+  PII
+  PHI
+  FINANCIAL
+  DIGITAL_IDENTITY
+  SECRETS
+}
+
+type DataClassifierConnection {
+  edges: [DataClassifierEdge!]
+  nodes: [DataClassifier!]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum DataClassifierCreatedBy {
+  BUILT_IN
+  USER
+}
+
+type DataClassifierEdge {
+  cursor: String!
+  node: DataClassifier!
+}
+
+input DataClassifierFilters {
+  search: String
+  id: [String!]
+  category: [DataClassifierCategory!]
+  createdBy: [DataClassifierCreatedBy!]
+  enabled: Boolean
+}
+
+type DataScannerBucketConfig {
+  enabled: Boolean!
+  privateBucketsEnabled: Boolean!
+  scanIntervalDays: Int!
+}
+
+type DataScannerCloudDbConfig {
+  enabled: Boolean!
+  scanIntervalDays: Int!
+}
+
+type DataScannerDiskDbConfig {
+  enabled: Boolean!
+  scanIntervalDays: Int!
+}
+
+type DataScannerDiskFileConfig {
+  enabled: Boolean!
+  scanIntervalDays: Int!
+}
+
+type DataScannerSettings {
+  bucketConfig: DataScannerBucketConfig!
+  cloudDbConfig: DataScannerCloudDbConfig!
+  diskDbConfig: DataScannerDiskDbConfig!
+  diskFileConfig: DataScannerDiskFileConfig!
+  enabled: Boolean!
+}
+
+input DataScannerSettingsBucketConfigInput {
+  enabled: Boolean!
+  privateBucketsEnabled: Boolean
+  scanIntervalDays: Int!
+}
+
+input DataScannerSettingsCloudDbConfigInput {
+  enabled: Boolean!
+  scanIntervalDays: Int!
+}
+
+input DataScannerSettingsDiskDbConfigInput {
+  enabled: Boolean!
+  scanIntervalDays: Int!
+}
+
+input DataScannerSettingsDiskFileConfigInput {
+  enabled: Boolean!
+  scanIntervalDays: Int!
+}
+
 scalar DateTime
 
 input DeleteActionTemplateInput {
@@ -3564,6 +3852,14 @@ input DeleteAutomationRuleInput {
 
 type DeleteAutomationRulePayload {
   _stub: String!
+}
+
+input DeleteCICDScanInput {
+  id: ID!
+}
+
+type DeleteCICDScanPayload {
+  id: ID!
 }
 
 input DeleteCICDScanPolicyInput {
@@ -3875,6 +4171,19 @@ type DuplicateSecurityFrameworkPayload {
   framework: SecurityFramework
 }
 
+input DurationFilter {
+  amount: Int
+  unit: DurationFilterValueUnit
+}
+
+enum DurationFilterValueUnit {
+  DurationFilterValueUnitInvalid
+  DurationFilterValueUnitHours
+  DurationFilterValueUnitDays
+  DurationFilterValueUnitWeeks
+  DurationFilterValueUnitMonths
+}
+
 input ECRRoleConfig {
   roleARN: String!
 }
@@ -3964,6 +4273,12 @@ type ExternalExposureScannerSettings {
   scanIntervalDays: Int
 }
 
+type ExtraInfo {
+  clientName: String
+  clientVersion: String
+  tags: [CICDScanTag!]
+}
+
 type FileUpload implements Node {
   createdAt: DateTime!
   createdBy: UserOrConnector!
@@ -3982,6 +4297,26 @@ input FinalizeCICDScanInput {
   token: String!
   scanPolicies: [String!]
   tags: [CICDScanTagInput!]
+}
+
+enum FindingCommonResolutionReason {
+  OBJECT_DELETED
+  FINDING_FIXED
+  FALSE_POSITIVE
+  EXCEPTION
+  WONT_FIX
+}
+
+enum FindingCommonStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+type FindingCommonStatusNote {
+  id: ID!
+  text: String!
 }
 
 type GcpPubSubActionTemplateParams {
@@ -4275,7 +4610,7 @@ type GEAllowedHostPath {
   vertexId: ID!
 }
 
-union GEAny = GEAPIGateway | GEAccessKey | GEAccessRole | GEAccessRoleBinding | GEAccessRolePermission | GEApplication | GEAuthenticationConfiguration | GEAuthenticationPolicy | GEBackendBucket | GEBackupService | GEBranchPackage | GEBucket | GECdn | GECICDService | GECallCenterService | GECertificate | GECloudLogConfiguration | GECloudOrganization | GEComputeInstanceGroup | GEConfigMap | GEConfigurationFinding | GEConfigurationRule | GEConfigurationScan | GEContainer | GEContainerGroup | GEContainerImage | GEContainerRegistry | GEContainerRepository | GEContainerService | GEControllerRevision | GEDBServer | GEDNSRecord | GEDNSZone | GEDaemonSet | GEDataFinding | GEDataInventory | GEDataSchema | GEDataStore | GEDataWorkflow | GEDataWorkload | GEDatabase | GEDeployment | GEDomain | GEEmailService | GEEncryptionKey | GEEndpoint | GEExcessiveAccessFinding | GEFileDescriptor | GEFileDescriptorFinding | GEFileSystemService | GEFirewall | GEGateway | GEGovernancePolicy | GEGovernancePolicyGroup | GEGroup | GEHostedApplication | GEHostedTechnology | GEIACDeclarationInstance | GEIACResourceDeclaration | GEIACStateInstance | GEIAMBinding | GEIPRange | GEIdentityProvider | GEKubernetesCluster | GEKubernetesCronJob | GEKubernetesIngress | GEKubernetesIngressController | GEKubernetesJob | GEKubernetesNetworkPolicy | GEKubernetesNode | GEKubernetesPersistentVolume | GEKubernetesPersistentVolumeClaim | GEKubernetesPodSecurityPolicy | GEKubernetesService | GEKubernetesStorageClass | GEKubernetesVolume | GELastLogin | GELateralMovementFinding | GELoadBalancer | GELocalUser | GEMalware | GEMalwareInstance | GEManagedCertificate | GEManagementService | GEMapReduceCluster | GEMessagingService | GENamespace | GENat | GENetworkAddress | GENetworkInterface | GENetworkRoutingRule | GENetworkSecurityRule | GEPackage | GEPeering | GEPod | GEPortRange | GEPredefinedGroup | GEPrivateEndpoint | GEPrivateLink | GEProject | GEProductKubernetesCluster | GEProductOrganization | GEProxy | GEProxyRule | GERawAccessPolicy | GERegion | GERegisteredDomain | GEReplicaSet | GERepository | GERepositoryBranch | GERepositoryTag | GEResourceGroup | GERouteTable | GESearchIndex | GESecret | GESecretContainer | GESecretData | GESecretInstance | GESecurityEventFinding | GESecurityToolFinding | GESecurityToolFindingType | GESecurityToolScan | GEServerless | GEServerlessPackage | GEServiceAccount | GEServiceConfiguration | GEServiceUsageTechnology | GEStatefulSet | GEStorageAccount | GESubnet | GESubscription | GESwitch | GETechnology | GEUserAccount | GEVirtualDesktop | GEVirtualMachine | GEVirtualMachineImage | GEVirtualNetwork | GEVolume | GEVulnerability | GEWeakness | GEWebService
+union GEAny = GEAPIGateway | GEAccessKey | GEAccessRole | GEAccessRoleBinding | GEAccessRolePermission | GEApplication | GEAuthenticationConfiguration | GEAuthenticationPolicy | GEBackendBucket | GEBackupService | GEBranchPackage | GEBucket | GECdn | GECICDService | GECallCenterService | GECertificate | GECloudLogConfiguration | GECloudOrganization | GEComputeInstanceGroup | GEConfigMap | GEConfigurationFinding | GEConfigurationRule | GEConfigurationScan | GEContainer | GEContainerGroup | GEContainerImage | GEContainerRegistry | GEContainerRepository | GEContainerService | GEControllerRevision | GEDBServer | GEDNSRecord | GEDNSZone | GEDaemonSet | GEDataFinding | GEDataInventory | GEDataSchema | GEDataStore | GEDataWorkflow | GEDataWorkload | GEDatabase | GEDeployment | GEDomain | GEEmailService | GEEncryptionKey | GEEndpoint | GEExcessiveAccessFinding | GEFileDescriptor | GEFileDescriptorFinding | GEFileSystemService | GEFirewall | GEGateway | GEGovernancePolicy | GEGovernancePolicyGroup | GEGroup | GEHostedApplication | GEHostedTechnology | GEIACDeclarationInstance | GEIACResourceDeclaration | GEIACStateInstance | GEIAMBinding | GEIPRange | GEIdentityProvider | GEKubernetesCluster | GEKubernetesCronJob | GEKubernetesIngress | GEKubernetesIngressController | GEKubernetesJob | GEKubernetesNetworkPolicy | GEKubernetesNode | GEKubernetesPersistentVolume | GEKubernetesPersistentVolumeClaim | GEKubernetesPodSecurityPolicy | GEKubernetesService | GEKubernetesStorageClass | GEKubernetesVolume | GELastLogin | GELateralMovementFinding | GELoadBalancer | GELocalUser | GEMalware | GEMalwareInstance | GEManagedCertificate | GEManagementService | GEMapReduceCluster | GEMessagingService | GENamespace | GENat | GENetworkAddress | GENetworkAppliance | GENetworkInterface | GENetworkRoutingRule | GENetworkSecurityRule | GEPackage | GEPeering | GEPod | GEPortRange | GEPredefinedGroup | GEPrivateEndpoint | GEPrivateLink | GEProject | GEProductKubernetesCluster | GEProductOrganization | GEProxy | GEProxyRule | GERawAccessPolicy | GERegion | GERegisteredDomain | GEReplicaSet | GERepository | GERepositoryBranch | GERepositoryTag | GEResourceGroup | GERouteTable | GESearchIndex | GESecret | GESecretContainer | GESecretData | GESecretInstance | GESecurityEventFinding | GESecurityToolFinding | GESecurityToolFindingType | GESecurityToolScan | GEServerless | GEServerlessPackage | GEServiceAccount | GEServiceConfiguration | GEServiceUsageTechnology | GEStatefulSet | GEStorageAccount | GESubnet | GESubscription | GESwitch | GETechnology | GEUserAccount | GEVirtualDesktop | GEVirtualMachine | GEVirtualMachineImage | GEVirtualNetwork | GEVolume | GEVulnerability | GEWeakness | GEWebService
 
 type GEAPIGateway {
   accessibleFrom: GEScopeToBool
@@ -5094,6 +5429,7 @@ type GECloudLogConfiguration {
   openPorts: [Int!]
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
+  organizationScope: Boolean
   portValidationResult: GEPortValidationResult
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
@@ -5655,6 +5991,7 @@ type GEContainerImage {
   containsContainerHosts: Boolean
   creationDate: DateTime
   digest: String
+  encrypted: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6247,6 +6584,8 @@ type GEDataFinding {
   totalMatchCount: Int
   uniqueMatchCount: Int
   vertexId: ID!
+  withContext: Boolean
+  withValidator: Boolean
 }
 
 type GEDataInventory {
@@ -6300,6 +6639,7 @@ enum GEDataSampleProviderKind {
   DISK
   BUCKET
   SQL
+  APPLICATION_ENDPOINT
 }
 
 type GEDataSchema {
@@ -7021,6 +7361,7 @@ type GEEndpoint {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  dynamicScannerExtractedText: String
   dynamicScannerResponse: String
   dynamicScannerScreenshotUrl: String
   externalId: String
@@ -8340,6 +8681,7 @@ type GEKubernetesCluster {
   versionReleaseDate: DateTime
   vertexId: ID!
   wizMockResource: Boolean
+  workloadIdentityEnabled: Boolean
   zone: String
 }
 
@@ -9806,6 +10148,7 @@ type GELocalUser {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  hasRemoteAccess: Boolean
   hasShell: Boolean
   homeDirectory: String
   httpGETStatus: String
@@ -10361,6 +10704,56 @@ enum GENetworkAddressType {
   IPV6
   DNS
   URL
+}
+
+type GENetworkAppliance {
+  accessibleFrom: GEScopeToBool
+  accessibleFromScopes: [String!]
+  allowsExternalRead: Boolean
+  allowsExternalWrite: Boolean
+  cloudPlatform: String
+  cloudProviderURL: String
+  containsContainerHosts: Boolean
+  creationDate: DateTime
+  externalId: String
+  externalOwners: [String!]
+  hasAdminKubernetesPrivileges: Boolean
+  hasAdminPrivileges: Boolean
+  hasHighKubernetesPrivileges: Boolean
+  hasHighPrivileges: Boolean
+  hasIAMAccessFromExternalSubscription: [GEAccessType!]
+  hasIAMAccessFromOutsideOrganization: [GEAccessType!]
+  hasIAMAccessToExternalSubscription: [GEAccessType!]
+  hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpGETStatus: String
+  httpGETStatusCode: Int
+  httpTitleSnippet: String
+  name: String
+  nativeType: String
+  numAddressesOpenForHTTP: Int
+  numAddressesOpenForHTTPS: Int
+  numAddressesOpenForNonStandardPorts: Int
+  numAddressesOpenForRDP: Int
+  numAddressesOpenForSSH: Int
+  numAddressesOpenForWINRM: Int
+  numAddressesOpenTo: GEScopeToInt
+  numPortsOpenTo: GEScopeToInt
+  openPorts: [Int!]
+  openToAllInternet: Boolean
+  openToEntireInternet: Boolean
+  portValidationResult: GEPortValidationResult
+  privateIPRangesWithAccess: [String!]
+  providerUniqueId: String
+  publicAccessTypes: [GEAccessType!]
+  publicIPRangesWithAccess: [String!]
+  region: String
+  resourceGroupExternalId: String
+  status: String
+  subscriptionExternalId: String
+  tags: JSON
+  vertexId: ID!
+  wizMockResource: Boolean
+  zone: String
 }
 
 type GENetworkInterface {
@@ -12139,6 +12532,7 @@ enum GEScanStatus {
   SUCCESS
   ERROR
   SKIPPED
+  NOT_APPLICABLE
 }
 
 type GEScopeToBool {
@@ -12581,6 +12975,7 @@ type GESecurityEventFinding {
   ruleBuiltinId: String
   ruleId: String
   ruleVersion: Int
+  securityFrameworkSubCategoryIds: [String!]
   severity: GECSESeverity
   source: GESecurityEventFindingSource
   vertexId: ID!
@@ -12817,6 +13212,7 @@ type GESecurityToolScanHostInfo {
 
 type GESecurityToolScanWorkloadAnalysisInfo {
   hasCriticalSeverityVulns: Boolean
+  hasHighCriticalKernelVulns: Boolean
   hasHighCriticalNetworkExploitableVulns: Boolean
   hasHighSeverityVulns: Boolean
   vertexId: ID!
@@ -14049,6 +14445,7 @@ type GEVulnerability {
   cvssV3PrivilegesRequired: GEPrivilegesRequired
   cvssV3UserInteractionRequired: Boolean
   description: String
+  effectiveAttackVector: GEAttackVector
   exploitabilityScore: Float
   externalId: String
   hasCisaKevExploit: Boolean
@@ -14151,6 +14548,14 @@ type GEWindowsSecurityContextOptions {
   gmsaCredentialSpecName: String
   runAsUserName: String
   vertexId: ID!
+}
+
+type GoogleChatActionTemplateParams {
+  note: String
+}
+
+input GoogleChatActionTemplateParamsInput {
+  note: String
 }
 
 type GoogleChatMessageAutomationActionParams {
@@ -14346,6 +14751,7 @@ enum GraphEntityType {
   NAMESPACE
   NAT
   NETWORK_ADDRESS
+  NETWORK_APPLIANCE
   NETWORK_INTERFACE
   NETWORK_ROUTING_RULE
   NETWORK_SECURITY_RULE
@@ -14592,9 +14998,11 @@ type HostConfigurationRule implements Node {
   externalId: String
   id: ID!
   name: String!
+  ruleTargetPlatforms: [HostConfigurationRuleTargetPlatform!]!
   securitySubCategories: [SecuritySubCategory!]
+  severity: Severity!
   shortName: String!
-  targetPlatforms: [Technology!]!
+  targetPlatforms: [Technology!]! @deprecated
 }
 
 type HostConfigurationRuleAnalytics {
@@ -14636,6 +15044,7 @@ input HostConfigurationRuleAssessmentFilters {
   resource: HostConfigurationRuleAssessmentResourceFilters
   result: [HostConfigurationRuleAssessmentResult!]
   frameworkCategory: [String!]
+  severity: [Severity!]
 }
 
 input HostConfigurationRuleAssessmentOrder {
@@ -14698,6 +15107,10 @@ input HostConfigurationRuleFilters {
   enabled: Boolean
   frameworkCategory: [String!]
   targetPlatforms: [String!]
+  severity: [Severity!]
+  createdBy: [HostConfigurationRuleCreatorType!]
+  riskEqualsAny: [String!]
+  riskEqualsAll: [String!]
 }
 
 input HostConfigurationRuleOrder {
@@ -14708,6 +15121,12 @@ input HostConfigurationRuleOrder {
 enum HostConfigurationRuleOrderField {
   FAILED_CHECK_COUNT
   NAME
+}
+
+type HostConfigurationRuleTargetPlatform implements Node {
+  id: ID!
+  technology: Technology!
+  version: String
 }
 
 input HostConfigurationTargetPlatformsFilters {
@@ -14731,7 +15150,7 @@ type IACScanRuleResult {
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   failedResourceCount: Int!
   matches: [IACScanMatch!]
-  rule: CloudConfigurationRule!
+  rule: CloudConfigurationRule
   severity: IACScanSeverity!
 }
 
@@ -14872,11 +15291,12 @@ enum IntegrationType {
   PAGER_DUTY
   SERVICE_NOW
   SLACK
-  SNOWFLAKE
   SPLUNK
   SUMO_LOGIC
   TORQ
   WEBHOOK
+  FRESHSERVICE
+  OPSGENIE
 }
 
 scalar IntegrationTypeValue
@@ -14936,6 +15356,8 @@ type IssueConnection {
 input IssueDateFilter {
   before: DateTime
   after: DateTime
+  inLast: DurationFilter
+  beforeLast: DurationFilter
 }
 
 type IssueEdge {
@@ -15012,6 +15434,7 @@ input IssueFilters {
   hasServiceTicket: Boolean
   hasNote: Boolean
   hasRemediation: Boolean
+  hasAutoRemediation: Boolean
   sourceControlType: [ControlType!]
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
@@ -15048,6 +15471,7 @@ enum IssueResolutionReason {
   ISSUE_FIXED
   CONTROL_CHANGED
   CONTROL_DISABLED
+  CONTROL_DELETED
   FALSE_POSITIVE
   EXCEPTION
   WONT_FIX
@@ -15180,6 +15604,18 @@ enum IssueTrendType {
   CREATED_VS_RESOLVED
 }
 
+type JiraActionAddCommentTemplateParams {
+  addIssuesReport: Boolean!
+  comment: String!
+  projectKey: String
+}
+
+input JiraActionAddCommentTemplateParamsInput {
+  projectKey: String
+  comment: String!
+  addIssuesReport: Boolean!
+}
+
 type JiraActionCreateTicketTemplateParams {
   fields: JiraTicketFields!
 }
@@ -15243,12 +15679,18 @@ type JiraIntegrationBasicAuthorization {
 type JiraIntegrationParams {
   authorization: JiraIntegrationAuthorization!
   onPremConfig: OnPremIntegrationConfig
+  serverType: JiraServerType!
   tlsConfig: AutomationActionTLSConfig
   url: String!
 }
 
 type JiraIntegrationTokenBearerAuthorization {
   token: String!
+}
+
+enum JiraServerType {
+  CLOUD
+  SELF_HOSTED
 }
 
 type JiraTicketFields {
@@ -15287,6 +15729,7 @@ scalar JSON
 union KnownErrors = ErrorBadUserInput | ErrorUnauthorizedAction
 
 type KubernetesCluster implements Node {
+  admissionController: AdmissionController
   cloudAccount: CloudAccount
   connectors: [Connector!]
   containerCount: Int
@@ -15330,6 +15773,7 @@ input KubernetesClusterFilters {
   connectorId: [String!]
   connectionType: [KubernetesClusterConnectionType!]
   usingBroker: Boolean
+  usingAdmissionController: Boolean
 }
 
 enum KubernetesClusterKind {
@@ -15422,7 +15866,7 @@ input LateralMovementPathFilters {
 
 type LateralMovementPathStep {
   description: String
-  entity: GraphEntity!
+  entity: GraphEntity
   remediation: String
   type: LateralMovementStepType
 }
@@ -15445,6 +15889,7 @@ enum LateralMovementStepType {
   COMPUTE_RESOURCE_ACTING_AS_PRINCIPAL
   LOGIN_USING_CLOUD_KEY
   CONTAINS_CLOUD_KEY
+  DATA_ACCESS
 }
 
 enum License {
@@ -15534,6 +15979,7 @@ type Mutation {
   deleteActionTemplate(input: DeleteActionTemplateInput!): DeleteActionTemplatePayload
   deleteAutomationAction(input: DeleteAutomationActionInput!): DeleteAutomationActionPayload!
   deleteAutomationRule(input: DeleteAutomationRuleInput!): DeleteAutomationRulePayload!
+  deleteCICDScan(input: DeleteCICDScanInput!): DeleteCICDScanPayload!
   deleteCICDScanPolicy(input: DeleteCICDScanPolicyInput!): DeleteCICDScanPolicyPayload!
   deleteCloudConfigurationRule(input: DeleteCloudConfigurationRuleInput!): DeleteCloudConfigurationRulePayload!
   deleteCloudEventRule(input: DeleteCloudEventRuleInput!): DeleteCloudEventRulePayload!
@@ -15570,6 +16016,7 @@ type Mutation {
   migrateUsers: MigrateUsersPayload!
   processContainerImageScan(policyName: String, scanFileId: ID!): ContainerImageScanResult! @deprecated(reason: "Use the initiate* and finalizeCICDScan instead")
   reassessIssue(input: ReassessIssueInput!): ReassessIssuePayload!
+  RegisterAgent(input: RegisterAgentInput!): RegisterAgentPayload!
   requestConnectorEntityScan(input: RequestConnectorEntityScanInput!): RequestScanPayload
   requestConnectorScan(input: RequestConnectorScanInput!): RequestScanPayload
   rerunReport(input: RerunReportInput!): RerunReportPayload!
@@ -15596,6 +16043,7 @@ type Mutation {
   updateControl(input: UpdateControlInput!): UpdateControlPayload!
   updateControls(input: UpdateControlsInput!): UpdateControlsPayload!
   updateCustomIPRange(input: UpdateCustomIPRangeInput!): UpdateCustomIPRangePayload!
+  updateDataScannerSettings(input: UpdateDataScannerSettingsInput!): UpdateDataScannerSettingsPayload!
   updateDigitalTrustDashboardSettings(input: UpdateDigitalTrustDashboardSettingsInput!): UpdateDigitalTrustDashboardSettingsPayload!
   updateExternalExposureScannerSettings(input: UpdateExternalExposureScannerSettingsInput!): UpdateExternalExposureScannerSettingsPayload!
   updateGraphEntity(input: UpdateGraphEntityInput!): UpdateGraphEntityPayload!
@@ -15627,6 +16075,8 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
   updateViewerPreferences(input: UpdateViewerPreferencesInput!): UpdateViewerPreferencesPayload!
   updateVulnerability(input: UpdateVulnerabilityInput!): UpdateVulnerabilityPayload!
+  updateVulnerabilityFinding(input: UpdateFindingInput!): UpdateVulnerabilityFindingPayload!
+  UpsertAgentTelemetry(input: UpsertAgentTelemetryInput!): UpsertAgentTelemetryPayload!
 }
 
 type NetworkExposure implements Node {
@@ -15918,6 +16368,7 @@ type OutpostClusterAWSConfig {
   httpProxyURL: String @deprecated(reason: "Use httpProxyConfig->httpProxyURL instead")
   httpsProxyURL: String @deprecated(reason: "Use httpProxyConfig->httpsProxyURL instead")
   kubernetesServiceAccountName: String
+  regionalReplicaStateBucketName: String
   securityGroupIds: [String!]!
   sqsURL: String!
   subnetIds: [String!]!
@@ -15932,16 +16383,22 @@ input OutpostClusterAWSConfigInput {
   clusterName: String!
   sqsURL: String!
   kubernetesServiceAccountName: String
+  regionalReplicaStateBucketName: String
 }
 
 type OutpostClusterAzureConfig {
   clusterName: String!
+  dnsServiceIp: String!
   podIdentityName: String
   resourceGroupName: String!
+  serviceAuthorizedIPRanges: [String!]
   servicebusNamespace: String!
   servicebusQueueName: String!
+  serviceCIDR: String!
   storageAccountNames: [String!]!
+  subnetId: String!
   subscriptionId: String!
+  vnetId: String!
 }
 
 input OutpostClusterAzureConfigInput {
@@ -16082,6 +16539,7 @@ input OutpostGCPConfigInput {
 
 type OutpostManagedConfig {
   bringYourOwnNetworkOutpost: Boolean
+  enableNatGateway: Boolean
   kubernetesCloudMonitoringEnabled: Boolean
   kubernetesLoggingEnabled: Boolean
   resourceTags: [OutpostCustomTag!]
@@ -16178,6 +16636,7 @@ type PagerDutyIntegrationParams {
 
 input PerCloudBYONOutpostClusterConfigInput {
   awsConfig: BYONOutpostClusterAWSConfigInput
+  azureConfig: BYONOutpostClusterAzureConfigInput
 }
 
 input PerCloudSelfManagedOutpostClusterInput {
@@ -16338,6 +16797,7 @@ type Project implements Node {
   subCategory: ProjectSubCategory @deprecated(reason: "Deprecated property")
   teamMemberCount: Int!
   technologyCount: Int!
+  workloadCount: Int!
 }
 
 enum ProjectCategory {
@@ -16573,6 +17033,7 @@ input PublicInternetNetworkExposureFilters {
 type Query {
   actionTemplate(id: ID!): ActionTemplate!
   actionTemplates(after: String, filterBy: ActionTemplateFilters, first: Int): ActionTemplateConnection!
+  admissionController(id: ID!): AdmissionController
   auditLogEntries(after: String, filterBy: AuditLogEntryFilters, first: Int): AuditLogEntryConnection!
   auditLogEntry(id: ID!): AuditLogEntry
   authMigration: AuthMigration
@@ -16584,7 +17045,7 @@ type Query {
   backendScanResults(payload: String!, policyName: String): ContainerImageScanResult!
   backendScanStatus(payload: String!): BackendScanStatusPayload!
   basicAuthSettings: BasicAuthSettings
-  billableWorkloadTrend(endDate: DateTime!, startDate: DateTime!): BillableWorkloadTrendData!
+  billableWorkloadTrend(endDate: DateTime!, maxResults: Int, project: [String!], startDate: DateTime!): BillableWorkloadTrendData!
   builtinControl(slug: ID!): Control
   builtinSavedGraphQuery(slug: ID!): SavedGraphQuery
   cicdScan(id: ID!): CICDScan
@@ -16596,7 +17057,7 @@ type Query {
   cloudAccount(id: ID!): CloudAccount
   cloudAccounts(after: String, filterBy: CloudAccountFilters, first: Int): CloudAccountConnection!
   cloudAccountsWithComplianceAnalytics(after: String, filterBy: CloudAccountWithComplianceAnalyticsFilters, first: Int, orderBy: CloudAccountWithComplianceAnalyticsOrder): CloudAccountWithComplianceAnalyticsConnection!
-  cloudConfigurationRule(id: ID!): CloudConfigurationRule @deprecated(reason: "use validatableCloudConfigurationRule query instead")
+  cloudConfigurationRule(id: ID!): CloudConfigurationRule
   cloudConfigurationRuleIaCTest(IaCFileContent: String!, rule: String!, type: CloudConfigurationRuleMatcherType!): cloudConfigurationRuleIaCTest!
   cloudConfigurationRuleJsonTest(json: JSON!, rule: String!): CloudConfigurationRuleJsonTest!
   cloudConfigurationRules(after: String, filterBy: CloudConfigurationRuleFilters, first: Int, orderBy: CloudConfigurationRuleOrder): CloudConfigurationRuleConnection!
@@ -16606,7 +17067,7 @@ type Query {
   cloudEventRule(id: ID!): CloudEventRule
   cloudEventRuleJsonTest(json: JSON!, rule: String!): CloudEventRuleJsonTest!
   cloudEventRules(after: String, filterBy: CloudEventRuleFilters, first: Int, orderBy: CloudEventRuleOrder): CloudEventRuleConnection!
-  cloudEvents(after: String, filterBy: CloudEventFilters, first: Int, groupBy: CloudEventGroupBy, projectId: [String!]): CloudEventSearchResultConnection!
+  cloudEvents(after: String, filterBy: CloudEventFilters, first: Int, groupBy: CloudEventGroupBy, orderDirection: OrderDirection = DESC, projectId: [String!]): CloudEventSearchResultConnection!
   cloudEventTypes(filterBy: CloudEventTypeFilters): [CloudEventType!]!
   cloudOrganization(id: ID!): CloudOrganization
   cloudOrganizations(after: String, filterBy: CloudOrganizationFilters, first: Int): CloudOrganizationConnection!
@@ -16631,6 +17092,8 @@ type Query {
   customIPRanges(after: String, filterBy: CustomIPRangeFilters, first: Int): CustomIPRangeConnection!
   dashboard(id: ID!): Dashboard
   dashboards(after: String, filterBy: DashboardFilters, first: Int): DashboardConnection!
+  dataClassifiers(after: String, filterBy: DataClassifierFilters, first: Int): DataClassifierConnection!
+  dataScannerSettings: DataScannerSettings!
   digitalTrustDashboardSettings: DigitalTrustDashboardSettings!
   directoryUser(id: ID!): DirectoryUser
   directoryUsers(after: String, first: Int, search: String): DirectoryUserConnection!
@@ -16640,7 +17103,9 @@ type Query {
   hostConfigurationRule(id: ID!): HostConfigurationRule
   hostConfigurationRuleAssessments(after: String, filterBy: HostConfigurationRuleAssessmentFilters, first: Int, orderBy: HostConfigurationRuleAssessmentOrder): HostConfigurationRuleAssessmentConnection!
   hostConfigurationRules(after: String, filterBy: HostConfigurationRuleFilters, first: Int, orderBy: HostConfigurationRuleOrder): HostConfigurationRuleConnection!
-  hostConfigurationTargetPlatforms(filterBy: HostConfigurationTargetPlatformsFilters): [Technology!]!
+  hostConfigurationRuleTargetPlatform(id: ID!): HostConfigurationRuleTargetPlatform
+  hostConfigurationRuleTargetPlatforms(filterBy: HostConfigurationTargetPlatformsFilters): [HostConfigurationRuleTargetPlatform!]!
+  hostConfigurationTargetPlatforms(filterBy: HostConfigurationTargetPlatformsFilters): [Technology!]! @deprecated(reason: "use hostConfigurationRuleTargetPlatforms query instead")
   integration(id: ID!): Integration!
   integrations(after: String, filterBy: IntegrationFilters, first: Int): IntegrationConnection!
   ipRestrictions: IPRestrictions
@@ -16653,6 +17118,7 @@ type Query {
   issuesTrend(endDate: DateTime!, filterBy: IssueFilters, interval: TimeInterval, startDate: DateTime!, type: IssueTrendType): [IssuesTrendDataSeries!]!
   kubernetesCluster(id: ID!): KubernetesCluster
   kubernetesClusters(after: String, filterBy: KubernetesClusterFilters, first: Int): KubernetesClusterConnection!
+  lateralMovementPath(id: ID!): LateralMovementPath
   lateralMovementPaths(after: String, filterBy: LateralMovementPathFilters, first: Int): LateralMovementPathConnection!
   loginInfo(email: String!): LoginInfo!
   loginSettings: LoginSettings
@@ -16722,12 +17188,11 @@ type Query {
   user(id: ID!): User
   userRoles(after: String, first: Int): UserRoleConnection!
   users(after: String, filterBy: UserFilters, first: Int): UserConnection!
-  validatableCloudConfigurationRule(id: ID!): ValidatableCloudConfigurationRule!
+  validatableCloudConfigurationRule(id: ID!): ValidatableCloudConfigurationRule! @deprecated(reason: "use cloudConfigurationRule query instead")
   viewer: User!
   vulnerabilities(after: String, filterBy: VulnerabilityFilters, first: Int, orderBy: VulnerabilityOrder): VulnerabilityConnection!
   vulnerability(id: ID!): Vulnerability
   vulnerabilityByExternalId(externalId: String!): Vulnerability
-  vulnerabilityByName(name: String!): Vulnerability @deprecated(reason: "use vulnerabilityByExternalId instead")
   vulnerabilityFinding(id: ID!): VulnerabilityFinding
   vulnerabilityFindings(after: String, filterBy: VulnerabilityFindingFilters, first: Int, orderBy: VulnerabilityFindingOrder): VulnerabilityFindingConnection!
   vulnerabilityVendorAdvisories(after: String, filterBy: VulnerabilityVendorAdvisoryFilters, first: Int): VulnerabilityVendorAdvisoryConnection!
@@ -16740,6 +17205,24 @@ input ReassessIssueInput {
 
 type ReassessIssuePayload {
   _stub: String!
+}
+
+input RegisterAgentClientConfigInput {
+  version: String!
+  policies: [String!]
+  errorEnforcement: AdmissionControllerEnforcementMethod
+  policyEnforcement: AdmissionControllerEnforcementMethod
+}
+
+input RegisterAgentInput {
+  externalId: String!
+  referenceObjectExternalId: String!
+  referenceObjectObjectType: String!
+  clientConfig: RegisterAgentClientConfigInput!
+}
+
+type RegisterAgentPayload {
+  agentId: String!
 }
 
 enum RegulatoryStandard {
@@ -16813,7 +17296,17 @@ type ReportParameters {
   subscriptions: [GraphEntity]
 }
 
-union ReportParams = ReportParamsGraphQuery | ReportParamsVulnerabilities | ReportParamsComplianceExecutiveSummary | ReportParamsNetworkExposure | ReportParamsConfigurationFindings | ReportParamsSecurityFramework | ReportParamsIssue | ReportParamsHostConfiguration
+union ReportParams = ReportParamsGraphQuery | ReportParamsVulnerabilities | ReportParamsComplianceExecutiveSummary | ReportParamsNetworkExposure | ReportParamsConfigurationFindings | ReportParamsSecurityFramework | ReportParamsIssue | ReportParamsHostConfiguration | ReportParamsCloudResource
+
+type ReportParamsCloudResource {
+  cloudPlatform: [String!]
+  entityType: [GraphEntityTypeValue!]!
+  includeCloudNativeJSON: Boolean!
+  includeWizJSON: Boolean!
+  nativeType: [String!]
+  region: [String!]
+  subscriptionId: [String!]
+}
 
 type ReportParamsComplianceExecutiveSummary {
   framework: SecurityFramework
@@ -16831,9 +17324,7 @@ type ReportParamsGraphQuery {
 }
 
 type ReportParamsHostConfiguration {
-  frameworkCategory: [String!] @deprecated(reason: "Use the field inside hostConfigurationRuleAssessmentsFilters")
   hostConfigurationRuleAssessmentsFilters: JSON
-  subscriptionIds: [String!] @deprecated(reason: "Use the field inside hostConfigurationRuleAssessmentsFilters")
 }
 
 type ReportParamsIssue {
@@ -16853,15 +17344,9 @@ type ReportParamsSecurityFramework {
 }
 
 type ReportParamsVulnerabilities {
-  assetObjectType: VulnerabilityReportGraphEntityType @deprecated(reason: "Use 'assetType' instead")
   assetType: VulnerableAssetObjectType
-  entities: [GraphEntity] @deprecated(reason: "Use 'filters.assetId' instead")
   filters: JSON
-  since: DateTime @deprecated(reason: "Use 'filters.createdAfter' instead")
-  subscriptions: [GraphEntity] @deprecated(reason: "Use 'filters.subscriptionExternalId' instead")
   type: VulnerabilityReportType
-  vendorSeverity: [VulnerabilitySeverity!] @deprecated(reason: "Use 'filters.vendorSeverity' instead")
-  vulnerabilityIds: [String!] @deprecated(reason: "Use 'filters.vulnerabilityId' instead")
 }
 
 type ReportRun implements Node {
@@ -16891,13 +17376,18 @@ input ReportRunFilters {
   reportId: String
 }
 
-union ReportRunResults = ReportRunResultsBenchmark | ReportRunResultsGraphQuery | ReportRunResultsNetworkExposure | ReportRunResultsConfigurationFindings | ReportRunResultsVulnerabilities | ReportRunResultsIssues
+union ReportRunResults = ReportRunResultsBenchmark | ReportRunResultsGraphQuery | ReportRunResultsNetworkExposure | ReportRunResultsConfigurationFindings | ReportRunResultsVulnerabilities | ReportRunResultsIssues | ReportRunResultsCloudResource
 
 type ReportRunResultsBenchmark {
   errorCount: Int!
   failedCount: Int!
   passedCount: Int!
   scannedCount: Int!
+}
+
+type ReportRunResultsCloudResource {
+  count: Int!
+  limitReached: Boolean!
 }
 
 type ReportRunResultsConfigurationFindings {
@@ -17102,7 +17592,7 @@ input RunIssuesIntegrationInput {
   issueFilters: IssueFilters
   integrationId: ID!
   actionTemplateType: ActionTemplateType!
-  actionTemplateParams: ActionTemplateParamsInput!
+  actionTemplateParams: ActionTemplateParamsInput
 }
 
 type RunIssuesIntegrationPayload {
@@ -17325,6 +17815,10 @@ type ScannerSettingsAwsInspectorConfig {
   enabled: Boolean!
 }
 
+type ScannerSettingsAwsMacieConfig {
+  enabled: Boolean!
+}
+
 type ScannerSettingsAzureSecurityCenterConfig {
   enabled: Boolean!
 }
@@ -17340,6 +17834,7 @@ type ScannerSettingsCustomFileDetectionListUpload implements Node {
 
 type ScannerSettingsExternalFindingSources {
   awsInspectorConfig: ScannerSettingsAwsInspectorConfig!
+  awsMacieConfig: ScannerSettingsAwsMacieConfig!
   azureSecurityCenterConfig: ScannerSettingsAzureSecurityCenterConfig!
 }
 
@@ -17569,6 +18064,7 @@ type ServiceAccount implements Node {
   lastRotatedAt: DateTime!
   name: String!
   scopes: [String!]!
+  type: ServiceAccountType!
 }
 
 type ServiceAccountConnection {
@@ -17586,6 +18082,13 @@ type ServiceAccountEdge {
 input ServiceAccountFilters {
   name: String
   source: AuthenticationSource
+  type: [ServiceAccountType!]
+}
+
+enum ServiceAccountType {
+  THIRD_PARTY
+  SENSOR
+  KUBERNETES_ADMISSION_CONTROLLER
 }
 
 type ServiceNowActionCreateTicketTemplateParams {
@@ -17665,6 +18168,7 @@ type ServiceTicket implements Node {
   id: ID!
   integration: Integration
   name: String!
+  project: Project
   url: String!
 }
 
@@ -17765,8 +18269,8 @@ type SystemActivityAnalyzerContext {
 
 type SystemActivityAutomationActionContext {
   action: SystemActivityAutomationActionSnapshot!
-  entity: SystemActivityGraphEntitySnapshot!
-  issue: SystemActivityIssueSnapshot!
+  entity: SystemActivityGraphEntitySnapshot
+  issue: SystemActivityIssueSnapshot
   parameters: JSON!
   project: SystemActivityAutomationActionProjectSnapshot
   rule: SystemActivityAutomationRuleSnapshot
@@ -17809,6 +18313,11 @@ type SystemActivityConnectorSnapshot {
 
 union SystemActivityContext = SystemActivityAutomationActionContext | SystemActivityIntegrationActionContext | SystemActivityScanContext | SystemActivityAnalyzerContext | SystemActivityUninstallOutpostContext | SystemActivityReassessIssueContext
 
+type SystemActivityControlSnapshot {
+  id: String!
+  name: String!
+}
+
 type SystemActivityEdge {
   cursor: String!
   node: SystemActivity!
@@ -17841,9 +18350,10 @@ type SystemActivityGraphEntitySnapshot {
 
 type SystemActivityIntegrationActionContext {
   action: SystemActivityIntegrationActionSnapshot!
-  entity: SystemActivityGraphEntitySnapshot!
+  control: SystemActivityControlSnapshot
+  entity: SystemActivityGraphEntitySnapshot
   integration: SystemActivityIntegrationSnapshot!
-  issue: SystemActivityIssueSnapshot!
+  issue: SystemActivityIssueSnapshot
   project: Project
   rule: SystemActivityAutomationRuleSnapshot
 }
@@ -17931,7 +18441,8 @@ enum SystemActivityTriggerType {
   ISSUE_UPDATED
   MANUAL
   SCHEDULED
-  CLOUD_EVENT
+  CLOUD_EVENT_MATCHED
+  CONTROL_MATCHED
 }
 
 enum SystemActivityType {
@@ -18181,7 +18692,7 @@ enum TenantStatus {
 input TestIntegrationActionInput {
   id: ID!
   actionTemplateType: ActionTemplateType!
-  params: ActionTemplateParamsInput!
+  params: ActionTemplateParamsInput
 }
 
 enum TimeInterval {
@@ -18297,6 +18808,7 @@ input UpdateCICDScanPolicyDiskVulnerabilitiesPatch {
   packageCountThreshold: Int
   ignoreUnfixed: Boolean
   packageAllowList: [String!]
+  detectionMethods: [CICDPolicyVulnerabilityDetectionMethod!]
 }
 
 input UpdateCICDScanPolicyIACPatch {
@@ -18513,6 +19025,22 @@ type UpdateCustomIPRangePayload {
   customIPRange: CustomIPRange
 }
 
+input UpdateDataScannerSettingsInput {
+  patch: UpdateDataScannerSettingsPatch!
+}
+
+input UpdateDataScannerSettingsPatch {
+  enabled: Boolean!
+  bucketConfig: DataScannerSettingsBucketConfigInput
+  diskFileConfig: DataScannerSettingsDiskFileConfigInput
+  diskDbConfig: DataScannerSettingsDiskDbConfigInput
+  cloudDbConfig: DataScannerSettingsCloudDbConfigInput
+}
+
+type UpdateDataScannerSettingsPayload {
+  dataScannerSettings: DataScannerSettings!
+}
+
 input UpdateDigitalTrustDashboardSettingsInput {
   override: UpdateDigitalTrustDashboardSettingsOverride!
 }
@@ -18547,6 +19075,20 @@ input UpdateExternalExposureScannerSettingsPatch {
 
 type UpdateExternalExposureScannerSettingsPayload {
   externalExposureScannerSettings: ExternalExposureScannerSettings!
+}
+
+input UpdateFindingInput {
+  id: ID!
+  patch: UpdateFindingPatch
+  override: UpdateFindingPatch
+}
+
+input UpdateFindingPatch {
+  status: FindingCommonStatus
+  resolutionReason: FindingCommonResolutionReason
+  note: String
+  dueAt: DateTime
+  rejectionExpiredAt: DateTime
 }
 
 input UpdateGcpPubSubIntegrationParamsInput {
@@ -18598,6 +19140,7 @@ input UpdateHostConfigurationRuleInput {
 
 input UpdateHostConfigurationRulePatch {
   enabled: Boolean
+  severity: Severity
   securitySubCategories: [String!]
   name: String
   description: String
@@ -18735,6 +19278,7 @@ input UpdateJiraAutomationActionParamInput {
 
 input UpdateJiraIntegrationParamsInput {
   serverUrl: String
+  serverType: JiraServerType
   isOnPrem: Boolean
   tlsConfig: IntegrationTLSConfigInput
   authorization: JiraIntegrationAuthorizationInput
@@ -18836,6 +19380,7 @@ input UpdateOutpostManagedConfigInput {
   resourceTags: [UpdateOutpostCustomTagInput!]
   kubernetesLoggingEnabled: Boolean
   kubernetesCloudMonitoringEnabled: Boolean
+  enableNatGateway: Boolean
 }
 
 input UpdateOutpostOCIConfigInput {
@@ -18917,6 +19462,17 @@ input UpdateReportChange {
   securityFrameworkParams: UpdateReportSecurityFrameworkParamsInput
   issueParams: UpdateReportIssuesParamsInput
   hostConfigurationParams: UpdateReportHostConfigurationParamsInput
+  cloudResourceParams: UpdateReportCloudResourceParamsInput
+}
+
+input UpdateReportCloudResourceParamsInput {
+  includeCloudNativeJSON: Boolean!
+  includeWizJSON: Boolean!
+  entityType: [GraphEntityTypeValue!]!
+  subscriptionId: [String!]
+  nativeType: [String!]
+  region: [String!]
+  cloudPlatform: [String!]
 }
 
 input UpdateReportComplianceExecutiveSummaryParamsInput {
@@ -19088,12 +19644,17 @@ input UpdateScannerSettingsAwsInspectorConfigPatch {
   enabled: Boolean
 }
 
+input UpdateScannerSettingsAwsMacieConfigPatch {
+  enabled: Boolean
+}
+
 input UpdateScannerSettingsAzureSecurityCenterConfigPatch {
   enabled: Boolean
 }
 
 input UpdateScannerSettingsExternalFindingSourcesPatch {
   awsInspectorConfig: UpdateScannerSettingsAwsInspectorConfigPatch
+  awsMacieConfig: UpdateScannerSettingsAwsMacieConfigPatch
   azureSecurityCenterConfig: UpdateScannerSettingsAzureSecurityCenterConfigPatch
 }
 
@@ -19232,6 +19793,10 @@ type UpdateViewerPreferencesPayload {
   userPreferences: UserPreferences
 }
 
+type UpdateVulnerabilityFindingPayload {
+  vulnerabilityFinding: VulnerabilityFinding
+}
+
 input UpdateVulnerabilityInput {
   id: ID
   externalId: String
@@ -19266,6 +19831,16 @@ input UpdateWebhookIntegrationParamsInput {
   tlsConfig: IntegrationTLSConfigInput
 }
 
+input UpsertAgentTelemetryInput {
+  agentId: String!
+  requestTime: DateTime!
+  healthStatus: String!
+}
+
+type UpsertAgentTelemetryPayload {
+  agentId: String!
+}
+
 type User implements Node {
   assignedProjects: [Project] @deprecated
   assignedSAMLGroups: [SAMLGroupMapping!]
@@ -19293,6 +19868,7 @@ type User implements Node {
   smoochAuth: SmoochAuth
   tenant: Tenant!
   updatedAt: DateTime!
+  xmlLanguageServerToken: String
   zendeskAuthToken: String
 }
 
@@ -19372,7 +19948,6 @@ type Vulnerability implements Node {
   severity: VulnerabilitySeverity
   sourceFeeds: [VulnerabilitySourceFeed!]!
   sourceUrl: String
-  technologies: [Technology!]! @deprecated(reason: "use nullable affectedTechnologies")
 }
 
 type VulnerabilityAffectedPlatform implements Node {
@@ -19487,9 +20062,13 @@ type VulnerabilityFinding {
   link: String
   locationPath: String
   name: String!
+  note: FindingCommonStatusNote
   portalUrl: String!
   remediation: String
+  resolutionReason: FindingCommonResolutionReason
+  resolvedAt: DateTime
   score: Float
+  status: FindingCommonStatus!
   vendorSeverity: VulnerabilitySeverity
   version: String
   vulnerabilityExternalId: String
@@ -19515,8 +20094,10 @@ input VulnerabilityFindingFilters {
   subscriptionExternalId: [String!]
   firstSeenAt: VulnerabilityDateFilters
   updatedAt: VulnerabilityDateFilters
+  resolvedAt: VulnerabilityDateFilters
   assetType: [VulnerableAssetObjectType!]
   vendorSeverity: [VulnerabilitySeverity!]
+  status: [FindingCommonStatus!]
   assetId: [String!]
   vulnerabilityId: [String!]
   vulnerabilityExternalId: [String!]
@@ -19526,6 +20107,7 @@ input VulnerabilityFindingFilters {
   detectionMethod: [VulnerabilityDetectionMethod!]
   projectId: [String!]
   isAssetAccessibleFromInternet: Boolean
+  IncludeLastDetected: Boolean
   isAssetOpenToAllInternet: Boolean
   assetHasHighPrivileges: Boolean
   assetHasAdminPrivileges: Boolean
