@@ -29,6 +29,13 @@ type CloudOrganizationFilters struct {
 	Search        []string `json:"search,omitempty"`
 }
 
+// KubernetesClusterFilters struct
+type KubernetesClusterFilters struct {
+	Search       string   `json:"search,omitempty"`
+	Kind         []string `json:"kind,omitempty"`
+	CloudAccount []string `json:"cloudAccount,omitempty"`
+}
+
 // YesNoUnknown enum
 var YesNoUnknown = []string{
 	"YES",
@@ -387,6 +394,20 @@ type User struct {
 	Preferences                      string               `json:"preferences"`
 	ReadmeAuthToken                  string               `json:"readmeAuthToken"`
 	ZendeskAuthToken                 string               `json:"zendeskAuthToken"`
+}
+
+// KubernetesCluster struct
+type KubernetesCluster struct {
+	ID                     string       `json:"id"`
+	ExternalID             string       `json:"externalId"`
+	Name                   string       `json:"name"`
+	Kind                   string       `json:"kind"`
+	Status                 string       `json:"status"`
+	CloudAccount           CloudAccount `json:"cloudAccount"`
+	IsPrivate              bool         `json:"isPrivate"`
+	Project                []Project    `json:"projects"`
+	Connectors             []Connector  `json:"connectors"`
+	IsConnectedUsingBroker bool         `json:"isConnectedUsingBroker"`
 }
 
 // UserRole struct
@@ -1455,6 +1476,16 @@ var CloudProvider = []string{
 	"Kubernetes",
 }
 
+// KubernetesClusterKind enum
+var KubernetesClusterKind = []string{
+	"EKS",
+	"GKE",
+	"AKS",
+	"OKE",
+	"OPEN_SHIFT",
+	"SELF_HOSTED",
+}
+
 // Control struct -- updates
 type Control struct {
 	CreatedAt                    string                      `json:"createdAt,omitempty"`
@@ -2115,6 +2146,13 @@ type CloudAccountConnection struct {
 	Nodes      []*CloudAccount     `json:"nodes,omitempty"`
 	PageInfo   PageInfo            `json:"pageInfo"`
 	TotalCount int                 `json:"totalCount"`
+}
+
+// KubernetesClusters struct
+type KubernetesClusters struct {
+	Nodes      []*KubernetesCluster `json:"nodes,omitempty"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
 }
 
 // CloudAccountEdge struct
