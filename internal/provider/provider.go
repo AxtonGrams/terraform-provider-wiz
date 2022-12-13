@@ -254,6 +254,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_host_config_rules":   dataSourceWizHostConfigurationRules(),
 				"wiz_kubernetes_clusters": dataSourceWizKubernetesClusters(),
 				"wiz_organizations":       dataSourceWizOrganizations(),
+				"wiz_users":               dataSourceWizUsers(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"wiz_automation_action":              resourceWizAutomationAction(),
