@@ -252,7 +252,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_cloud_accounts":      dataSourceWizCloudAccounts(),
 				"wiz_cloud_config_rules":  dataSourceWizCloudConfigurationRules(),
 				"wiz_host_config_rules":   dataSourceWizHostConfigurationRules(),
-				"wiz_kubernetes_clusters": dataSourceKubernetesClusters(),
+				"wiz_kubernetes_clusters": dataSourceWizKubernetesClusters(),
 				"wiz_organizations":       dataSourceWizOrganizations(),
 			},
 			ResourcesMap: map[string]*schema.Resource{

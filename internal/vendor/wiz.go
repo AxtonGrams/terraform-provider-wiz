@@ -2149,7 +2149,7 @@ type CloudAccountConnection struct {
 }
 
 // KubernetesClusters struct
-type KubernetesClusters struct {
+type KubernetesClusterConnection struct {
 	Nodes      []*KubernetesCluster `json:"nodes,omitempty"`
 	PageInfo   PageInfo             `json:"pageInfo"`
 	TotalCount int                  `json:"totalCount"`

@@ -20,10 +20,10 @@ import (
 
 // ReadKubernetesClusters struct
 type ReadKubernetesClusters struct {
-	KubernetesClusters vendor.KubernetesClusters `json:"kubernetesClusters"`
+	KubernetesClusters vendor.KubernetesClusterConnection `json:"kubernetesClusters"`
 }
 
-func dataSourceKubernetesClusters() *schema.Resource {
+func dataSourceWizKubernetesClusters() *schema.Resource {
 	return &schema.Resource{
 		Description: "Get the details for Kubernetes clusters.",
 		Schema: map[string]*schema.Schema{
