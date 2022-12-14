@@ -21,7 +21,7 @@ import (
 
 // ReadUsers struct
 type ReadUsers struct {
-	Users vendor.Users `json:"users"`
+	Users vendor.UserConnection `json:"users"`
 }
 
 func dataSourceWizUsers() *schema.Resource {

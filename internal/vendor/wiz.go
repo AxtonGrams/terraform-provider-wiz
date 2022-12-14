@@ -2168,8 +2168,8 @@ type KubernetesClusterConnection struct {
 	TotalCount int                  `json:"totalCount"`
 }
 
-// Users struct
-type Users struct {
+// UserConnection struct
+type UserConnection struct {
 	Nodes      []*User  `json:"nodes,omitempty"`
 	PageInfo   PageInfo `json:"pageInfo"`
 	TotalCount int      `json:"totalCount"`
