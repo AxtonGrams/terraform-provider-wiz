@@ -36,6 +36,13 @@ type KubernetesClusterFilters struct {
 	CloudAccount []string `json:"cloudAccount,omitempty"`
 }
 
+// UserFilters struct
+type UserFilters struct {
+	Search               string   `json:"search,omitempty"`
+	Roles                []string `json:"role,omitempty"`
+	AuthenticationSource string   `json:"source,omitempty"`
+}
+
 // YesNoUnknown enum
 var YesNoUnknown = []string{
 	"YES",
@@ -80,6 +87,12 @@ var BusinessImpact = []string{
 	"LBI",
 	"MBI",
 	"HBI",
+}
+
+// AuthenticationSource enum
+var AuthenticationSource = []string{
+	"LEGACY",
+	"MODERN",
 }
 
 // ProjectRiskProfileInput struct
@@ -2153,6 +2166,13 @@ type KubernetesClusterConnection struct {
 	Nodes      []*KubernetesCluster `json:"nodes,omitempty"`
 	PageInfo   PageInfo             `json:"pageInfo"`
 	TotalCount int                  `json:"totalCount"`
+}
+
+// UserConnection struct
+type UserConnection struct {
+	Nodes      []*User  `json:"nodes,omitempty"`
+	PageInfo   PageInfo `json:"pageInfo"`
+	TotalCount int      `json:"totalCount"`
 }
 
 // CloudAccountEdge struct
