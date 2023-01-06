@@ -150,6 +150,32 @@ enum AlibabaCredentialsType {
   RESOURCE_DIRECTORY
 }
 
+type AlibabaOutpostCredentials {
+  autoscalerRoleARN: String!
+  csiDriverRoleARN: String!
+  externalSecretsRoleARN: String!
+  orchestratorAccessKeyID: String!
+  orchestratorAccessKeySecret: String!
+  orchestratorRoleARN: String!
+  outpostFilesCsiDriverRoleARN: String!
+  scanBrokerRoleARN: String!
+  scanSourceOperatorRoleARN: String!
+  stateBucketRoleARN: String!
+}
+
+input AlibabaOutpostCredentialsInput {
+  orchestratorAccessKeyID: String!
+  orchestratorAccessKeySecret: String!
+  orchestratorRoleARN: String!
+  scanBrokerRoleARN: String!
+  scanSourceOperatorRoleARN: String!
+  csiDriverRoleARN: String!
+  stateBucketRoleARN: String!
+  autoscalerRoleARN: String!
+  externalSecretsRoleARN: String!
+  outpostFilesCsiDriverRoleARN: String!
+}
+
 scalar AnyValue
 
 type ArtifactAnalyticsVulnerabilities {
@@ -193,7 +219,7 @@ type ArtifactFindingsConnection {
 
 input AssociateServiceTicketControlTypeInput {
   controlId: ID!
-  projectId: ID!
+  projectId: ID
 }
 
 input AssociateServiceTicketInput {
@@ -423,12 +449,13 @@ type AutomationRuleAction implements Node {
 input AutomationRuleActionInput {
   id: ID
   integrationId: ID!
-  actionTemplateParams: ActionTemplateParamsInput!
+  actionTemplateParams: ActionTemplateParamsInput
   actionTemplateType: ActionTemplateType!
 }
 
 input AutomationRuleCloudEventFilters {
-  matchedRules: [String!]!
+  matchedRules: [String!]
+  severity: [String!]
 }
 
 type AutomationRuleConnection {
@@ -594,18 +621,6 @@ type AzureServiceBusIntegrationParams {
   queueUrl: String!
 }
 
-enum BackendScanStatus {
-  PENDING
-  FAILED
-  SUCCESS
-  SKIPPED
-}
-
-type BackendScanStatusPayload {
-  details: String
-  status: BackendScanStatus!
-}
-
 type BasicAuthSettings {
   requireMFA: Boolean!
 }
@@ -657,6 +672,7 @@ enum BuiltinReportTypeIds {
   ISSUES
   HOST_CONFIGURATION
   CLOUD_RESOURCE
+  COMPLIANCE_ASSESSMENTS
 }
 
 enum BuiltInUserRoleId {
@@ -692,25 +708,6 @@ enum BusinessImpactFilter {
   HBI
 }
 
-input BYONOutpostClusterAWSConfigInput {
-  vpcId: String!
-  subnetIds: [String!]!
-  securityGroupIds: [String!]!
-}
-
-input BYONOutpostClusterAzureConfigInput {
-  resourceGroupName: String!
-  vnetId: String!
-  subnetId: String!
-  dnsServiceIp: String
-  serviceCIDR: String
-  serviceAuthorizedIPRanges: [String!]
-}
-
-input BYONOutpostClusterInput {
-  perCloudConfig: PerCloudBYONOutpostClusterConfigInput!
-}
-
 type CICDDiskScanResult {
   analytics: CICDDiskScanResultAnalytics!
   applications: [CICDDiskScanResultApplication!]
@@ -727,12 +724,14 @@ type CICDDiskScanResultAnalytics {
 }
 
 type CICDDiskScanResultApplication {
+  detectionMethod: VulnerabilityDetectionMethod!
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   name: String!
   vulnerabilities: [DiskScanApplicationVulnerability!]!
 }
 
 type CICDDiskScanResultCpe {
+  detectionMethod: VulnerabilityDetectionMethod!
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   name: String!
   path: String!
@@ -741,6 +740,7 @@ type CICDDiskScanResultCpe {
 }
 
 type CICDDiskScanResultLibrary {
+  detectionMethod: VulnerabilityDetectionMethod!
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   name: String!
   path: String!
@@ -749,6 +749,7 @@ type CICDDiskScanResultLibrary {
 }
 
 type CICDDiskScanResultOSPackage {
+  detectionMethod: VulnerabilityDetectionMethod!
   failedPolicyMatches: [CICDScanPolicyMatch!]!
   name: String!
   version: String!
@@ -802,14 +803,6 @@ input CICDPolicyCustomIgnoreTagUpdateInput {
   value: String!
   ruleIDs: [String!]
   ignoreAllRules: Boolean
-}
-
-enum CICDPolicyVulnerabilityDetectionMethod {
-  PACKAGE
-  OS
-  LIBRARY
-  FILE_PATH
-  APPLICATION
 }
 
 type CICDScan implements Node {
@@ -918,6 +911,7 @@ type CICDScanPolicy implements Node {
   id: ID!
   name: String!
   params: CICDScanPolicyParams!
+  type: CICDScanPolicyType!
 }
 
 type CICDScanPolicyConnection {
@@ -934,6 +928,7 @@ type CICDScanPolicyEdge {
 
 input CICDScanPolicyFilters {
   search: String
+  type: [CICDScanPolicyType!]
   builtin: Boolean
   names: [String!]
 }
@@ -969,11 +964,17 @@ type CICDScanPolicyParamsSecrets {
 }
 
 type CICDScanPolicyParamsVulnerabilities {
-  detectionMethods: [CICDPolicyVulnerabilityDetectionMethod!]
+  detectionMethods: [VulnerabilityDetectionMethod!]
   ignoreUnfixed: Boolean!
   packageAllowList: [String!]!
   packageCountThreshold: Int!
   severity: DiskScanVulnerabilitySeverity!
+}
+
+enum CICDScanPolicyType {
+  VULNERABILITIES
+  SECRETS
+  IAC
 }
 
 union CICDScanResult = CICDDiskScanResult | CICDIACScanResult
@@ -1011,6 +1012,15 @@ enum CICDScanVerdict {
   PASSED_BY_POLICY
 }
 
+input ClearUIUserPreferencesInput {
+  keys: [String!]
+  all: Boolean
+}
+
+type ClearUIUserPreferencesPayload {
+  preferences: UIUserPreferences
+}
+
 type CLIConfigurationRule {
   description: String
   iacMatchers: [CloudConfigurationRuleMatcher!]
@@ -1041,11 +1051,8 @@ input CLIConfigurationRulesFilters {
 
 type CLIDownloadInformation {
   docker: CLIDownloadInformationDocker!
-  downloadURL: String! @deprecated(reason: "use linux field instead")
   linux: CLIDownloadInformationBinary!
   mac: CLIDownloadInformationBinary!
-  sha256: String @deprecated(reason: "use linux field instead")
-  version: String @deprecated(reason: "use linux field instead")
   windows: CLIDownloadInformationBinary!
 }
 
@@ -1215,6 +1222,7 @@ type CloudConfigurationRule implements Node {
   builtin: Boolean!
   cloudProvider: CloudProvider
   control: Control
+  createdAt: DateTime!
   createdBy: User
   description: String
   enabled: Boolean!
@@ -1238,6 +1246,7 @@ type CloudConfigurationRule implements Node {
   supportsNRT: Boolean!
   targetNativeType: String
   targetNativeTypes: [String!]
+  updatedAt: DateTime!
 }
 
 type CloudConfigurationRuleAnalytics {
@@ -1302,6 +1311,8 @@ input CloudConfigurationRuleFilters {
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
   supportsNRT: Boolean
+  createdAt: CommonDateFilter
+  updatedAt: CommonDateFilter
 }
 
 type cloudConfigurationRuleIaCTest {
@@ -1425,6 +1436,7 @@ type CloudEventActor {
   hasHighKubernetesPrivileges: Boolean!
   hasHighPrivileges: Boolean!
   id: ID!
+  inactiveInLast90Days: Boolean!
   IP: String
   IPMeta: CloudEventActorIPMeta!
   isExternalCloudAccount: Boolean!
@@ -1468,6 +1480,7 @@ input CloudEventActorFilters {
   hasAdminPrivileges: CloudEventBooleanFilter
   hasHighKubernetesPrivileges: CloudEventBooleanFilter
   hasAdminKubernetesPrivileges: CloudEventBooleanFilter
+  inactiveInLast90Days: CloudEventBooleanFilter
 }
 
 type CloudEventActorIPMeta {
@@ -1776,6 +1789,13 @@ enum CloudResourceStatus {
   Error
 }
 
+input CommonDateFilter {
+  before: DateTime
+  after: DateTime
+  inLast: DurationFilter
+  beforeLast: DurationFilter
+}
+
 type CompleteAuthMigrationStatusPayload {
   authMigration: AuthMigration!
 }
@@ -1823,13 +1843,16 @@ type ConfigurationFinding implements Node {
   evidence: ConfigurationFindingEvidence!
   firstSeenAt: DateTime!
   id: ID!
+  note: FindingCommonStatusNote
   remediation: String
+  resolutionReason: FindingCommonResolutionReason
   resource: ConfigurationFindingResource
   result: ConfigurationFindingResult!
   rule: CloudConfigurationRule!
   securitySubCategories: [SecuritySubCategory!]
   severity: ConfigurationFindingSeverity!
   source: ConfigurationSource!
+  status: FindingCommonStatus!
   subscription: CloudAccount
   targetExternalId: String
   targetObjectProviderUniqueId: String
@@ -1888,6 +1911,7 @@ input ConfigurationFindingFilters {
   frameworkCategory: [String!]
   type: [ConfigurationFindingType!]
   hasRemediationInstructions: Boolean
+  status: [FindingCommonStatus!]
 }
 
 input ConfigurationFindingOrder {
@@ -2006,6 +2030,7 @@ input ConnectorAuthConfigAlibabaInput {
   assumeRoleDelegatorARN: String!
   accessRoleARN: String!
   accessRoleName: String
+  resourceScanner: ConnectorConfigAlibabaResourceScannerInput
 }
 
 input ConnectorAuthConfigAWSInput {
@@ -2047,6 +2072,14 @@ input ConnectorAuthConfigEKSInput {
   apiServerEndpoint: String!
   tlsConfig: TLSConfigInput!
   authProviderConfig: AuthProviderConfigEKSInput!
+}
+
+input ConnectorAuthConfigFiremonInput {
+  host: String
+  username: String!
+  password: String!
+  serverUrl: String
+  isOnPrem: Boolean!
 }
 
 input ConnectorAuthConfigGCPInput {
@@ -2152,7 +2185,10 @@ type ConnectorConfigAlibaba {
   assumeRoleDelegatorARN: String!
   cloudType: String!
   credentialsType: AlibabaCredentialsType!
+  diskAnalyzerInFlightDisabled: Boolean
   excludedAccounts: [String!]
+  includedAccounts: [String!]
+  resourceScanner: ConnectorConfigAlibabaResourceScanner
 }
 
 input ConnectorConfigAlibabaInput {
@@ -2161,14 +2197,26 @@ input ConnectorConfigAlibabaInput {
   type: String!
 }
 
+type ConnectorConfigAlibabaResourceScanner {
+  resourcesGroupID: String!
+  roleName: String!
+}
+
+input ConnectorConfigAlibabaResourceScannerInput {
+  roleName: String!
+  resourcesGroupID: String!
+}
+
 type ConnectorConfigAWS {
   auditLogMonitorEnabled: Boolean
   cloudTrailConfig: ConnectorConfigAWSCloudTrail
   customerRoleARN: String!
   diskAnalyzer: ConnectorAuthConfigAWSOutpost
+  diskAnalyzerInFlightDisabled: Boolean
   excludedAccounts: [String!]
   excludedOUs: [String!]
   externalIdNonce: String!
+  includedAccounts: [String!]
   optedInRegions: [String!]
   region: String
   skipOrganizationScan: Boolean
@@ -2199,9 +2247,11 @@ type ConnectorConfigAzure {
   azureMonitorConfig: ConnectorConfigAzureMonitor
   clientId: String
   clientSecret: String
+  diskAnalyzerInFlightDisabled: Boolean
   diskanalyzerSecretName: String
   environment: String
   excludedSubscriptions: [String!]
+  includedSubscriptions: [String!]
   monitorEventHubConnectionString: String!
   snapshotsResourceGroupId: String
   tenantId: String!
@@ -2266,6 +2316,22 @@ input ConnectorConfigEKSInput {
   type: String!
 }
 
+type ConnectorConfigFiremon {
+  host: String!
+  isOnPrem: Boolean!
+  onPremTunnelDomain: String
+  onPremTunnelToken: String
+  password: String!
+  serverUrl: String
+  username: String!
+}
+
+input ConnectorConfigFiremonInput {
+  authParams: ConnectorAuthConfigFiremonInput!
+  name: String!
+  type: String!
+}
+
 type ConnectorConfigGCP {
   auditLogMonitorEnabled: Boolean
   auditLogsConfig: ConnectorConfigGCPAuditLogs
@@ -2275,6 +2341,7 @@ type ConnectorConfigGCP {
   client_id: String
   client_x509_cert_url: String
   delegateUser: String
+  diskAnalyzerInFlightDisabled: Boolean
   excludedFolders: [String!]
   excludedProjects: [String!]
   isManagedIdentity: Boolean!
@@ -2395,6 +2462,7 @@ input ConnectorConfigKubernetesInput {
 }
 
 type ConnectorConfigOCI {
+  diskAnalyzerInFlightDisabled: Boolean
   fingerprint: String!
   homeRegion: String!
   privateKey: String!
@@ -2414,7 +2482,7 @@ input ConnectorConfigOKEInput {
   type: String!
 }
 
-union ConnectorConfigs = ConnectorConfigAWS | ConnectorConfigAzure | ConnectorConfigGCP | ConnectorConfigOCI | ConnectorConfigAlibaba | ConnectorConfigVSphere | ConnectorConfigKubernetes | ConnectorConfigContainerRegistry | ConnectorConfigGithub | ConnectorConfigJFrogArtifactory | ConnectorConfigServiceNow | ConnectorConfigJira
+union ConnectorConfigs = ConnectorConfigAWS | ConnectorConfigAzure | ConnectorConfigGCP | ConnectorConfigOCI | ConnectorConfigAlibaba | ConnectorConfigVSphere | ConnectorConfigKubernetes | ConnectorConfigContainerRegistry | ConnectorConfigGithub | ConnectorConfigJFrogArtifactory | ConnectorConfigServiceNow | ConnectorConfigJira | ConnectorConfigFiremon
 
 type ConnectorConfigServiceNow {
   baseUrl: String!
@@ -2708,14 +2776,6 @@ type ContainerImageGeneric implements Node & ContainerImageBase {
   updatedAt: DateTime
 }
 
-type ContainerImageLibrary {
-  name: String!
-  path: String!
-  policyMatched: Boolean!
-  version: String!
-  vulnerabilities: [ContainerImageVulnerability!]!
-}
-
 input ContainerImageOrder {
   field: ContainerImageOrderField!
   direction: OrderDirection!
@@ -2726,74 +2786,8 @@ enum ContainerImageOrderField {
   SEVERITY
 }
 
-type ContainerImageOSPackage {
-  name: String!
-  policyMatched: Boolean!
-  version: String!
-  vulnerabilities: [ContainerImageVulnerability!]!
-}
-
-type ContainerImageScanPolicy implements Node {
-  builtin: Boolean!
-  description: String
-  id: ID! @deprecated(reason: "Use cicdScanPolicy instead")
-  ignoreUnfixed: Boolean!
-  name: String! @deprecated(reason: "Use cicdScanPolicy instead")
-  packageAllowlist: [String!]
-  packageCountThreshold: Int!
-  severityThreshold: ContainerImageVulnerabilitySeverity!
-}
-
-type ContainerImageScanPolicyConnection {
-  edges: [ContainerImageScanPolicyEdge!]
-  nodes: [ContainerImageScanPolicy!]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type ContainerImageScanPolicyEdge {
-  cursor: String!
-  node: ContainerImageScanPolicy!
-}
-
-input ContainerImageScanPolicyFilters {
-  search: String
-  builtin: Boolean
-}
-
-input ContainerImageScanPolicyOrder {
-  direction: OrderDirection!
-  field: ContainerImageScanPolicyOrderField!
-}
-
-enum ContainerImageScanPolicyOrderField {
-  NAME
-}
-
-type ContainerImageScanResult {
-  libraries: [ContainerImageLibrary!] @deprecated(reason: "Use CICDScan instead")
-  osPackages: [ContainerImageOSPackage!] @deprecated(reason: "Use CICDScan instead")
-  secrets: [DiskScanSecret!] @deprecated(reason: "Use CICDScan instead")
-  success: Boolean! @deprecated(reason: "Use CICDScan instead")
-}
-
-type ContainerImageVulnerability {
-  cveId: String!
-  fixedVersion: String
-  severity: ContainerImageVulnerabilitySeverity!
-  source: String!
-}
-
 input ContainerImageVulnerabilityFilter {
   severity: [ContainerImageVulnerabilitySeverityFilter!]
-}
-
-enum ContainerImageVulnerabilitySeverity {
-  INFORMATIONAL
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
 }
 
 input ContainerImageVulnerabilitySeverityFilter {
@@ -2937,6 +2931,7 @@ input ControlFilters {
   hasAutoRemediation: Boolean
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
+  excludeFrameworkCategory: [String!]
 }
 
 input ControlIssueAnalyticsSelection {
@@ -3045,7 +3040,7 @@ input CreateCICDScanPolicyDiskVulnerabilitiesInput {
   packageCountThreshold: Int!
   ignoreUnfixed: Boolean!
   packageAllowList: [String!]
-  detectionMethods: [CICDPolicyVulnerabilityDetectionMethod!]
+  detectionMethods: [VulnerabilityDetectionMethod!]
 }
 
 input CreateCICDScanPolicyIACInput {
@@ -3131,19 +3126,6 @@ type CreateConnectorPayload {
   connector: Connector
 }
 
-input CreateContainerImageScanPolicyInput {
-  name: String!
-  description: String
-  packageAllowlist: [String!]
-  packageCountThreshold: Int!
-  severityThreshold: ContainerImageVulnerabilitySeverity!
-  ignoreUnfixed: Boolean!
-}
-
-type CreateContainerImageScanPolicyPayload {
-  scanPolicy: ContainerImageScanPolicy
-}
-
 input CreateControlInput {
   query: GraphEntityQueryValue!
   name: String!
@@ -3167,6 +3149,26 @@ input CreateCustomIPRangeInput {
 
 type CreateCustomIPRangePayload {
   customIPRange: CustomIPRange
+}
+
+input CreateDataClassifierInput {
+  name: String!
+  description: String
+  enabled: Boolean
+  category: DataClassifierCategory!
+  valueRegex: String!
+  excludeRegex: String
+  keyRegex: String
+  minLength: Int
+  maxLength: Int
+  minUniqueMatches: Int
+  opaValidator: String
+  exampleCount: Int
+  anonymizerType: DataAnonymizerType
+}
+
+type CreateDataClassifierPayload {
+  dataClassifier: DataClassifier!
 }
 
 input CreateEmailAutomationActionParamsInput {
@@ -3197,6 +3199,7 @@ input CreateGooglePubSubAutomationActionParamsInput {
 input CreateHostConfigurationRuleInput {
   name: String!
   description: String
+  remediationInstructions: String
   severity: Severity!
   directOVAL: String!
   targetPlatformIds: [String!]
@@ -3229,6 +3232,15 @@ input CreateIntegrationParamsInput {
 
 type CreateIntegrationPayload {
   integration: Integration!
+}
+
+input CreateIssueNoteInput {
+  issueId: ID!
+  text: String!
+}
+
+type CreateIssueNotePayload {
+  issueNote: IssueNote!
 }
 
 input CreateJiraAutomationActionParamInput {
@@ -3294,9 +3306,9 @@ input CreateOutpostClusterInput {
   outpostId: ID!
   region: String!
   httpProxyConfig: OutpostClusterHttpProxyConfigInput
-  internetAccessCertificates: OutpostClusterInternetAccessCertificatesInput
+  internetAccessConfig: OutpostClusterInternetAccessConfigInput
   selfManagedOutpostCluster: SelfManagedOutpostClusterInput
-  byonOutpostCluster: BYONOutpostClusterInput
+  manualNetworkOutpostCluster: ManualNetworkOutpostClusterInput
   config: OutpostClusterConfigInput
 }
 
@@ -3317,6 +3329,7 @@ input CreateOutpostInput {
   gcpConfig: OutpostGCPConfigInput
   azureConfig: OutpostAzureConfigInput
   ociConfig: OutpostOCIConfigInput
+  alibabaConfig: OutpostAlibabaConfigInput
   selfManagedConfig: CreateOutpostSelfManagedConfigInput
   managedConfig: CreateOutpostManagedConfigInput
   clusterNamespacePrefix: String
@@ -3331,7 +3344,7 @@ input CreateOutpostManagedConfigInput {
   resourceTags: [CreateOutpostCustomTagInput!]
   kubernetesLoggingEnabled: Boolean
   kubernetesCloudMonitoringEnabled: Boolean
-  bringYourOwnNetworkOutpost: Boolean
+  manualNetwork: Boolean
   enableNatGateway: Boolean
 }
 
@@ -3365,6 +3378,7 @@ input CreateProjectInput {
   cloudAccountLinks: [ProjectCloudAccountLinkInput!]
   cloudOrganizationLinks: [ProjectCloudOrganizationLinkInput!]
   kubernetesClusterLinks: [ProjectKubernetesClusterLinkInput!]
+  resourceTagLinks: [ProjectResourceTagsLinkInput!]
 }
 
 type CreateProjectPayload {
@@ -3379,6 +3393,13 @@ input CreateReportCloudResourceParamsInput {
   nativeType: [String!]
   region: [String!]
   cloudPlatform: [String!]
+}
+
+input CreateReportComplianceAssessmentsParamsInput {
+  subscriptionIds: [String!]
+  securityFrameworkIds: [String!]
+  securityCategories: [String!]
+  result: [PolicyAssessmentResult!]
 }
 
 input CreateReportComplianceExecutiveSummaryParamsInput {
@@ -3419,12 +3440,14 @@ input CreateReportInput {
   graphQueryParams: CreateReportGraphQueryParamsInput
   vulnerabilityParams: CreateReportVulnerabilityParamsInput
   complianceExecutiveSummaryParams: CreateReportComplianceExecutiveSummaryParamsInput
+  complianceAssessmentsParams: CreateReportComplianceAssessmentsParamsInput
   networkExposureParams: CreateReportNetworkExposureParamsInput
   configurationFindingParams: CreateReportConfigurationFindingParamsInput
   securityFrameworkParams: CreateReportSecurityFrameworkParamsInput
   issueParams: CreateReportIssueParamsInput
   hostConfigurationParams: CreateReportHostConfigurationParamsInput
   cloudResourceParams: CreateReportCloudResourceParamsInput
+  columnSelection: [String!]
 }
 
 input CreateReportIssueParamsInput {
@@ -3588,13 +3611,10 @@ type CreateServiceTicketPayload {
 
 input CreateSlackIntegrationParamsInput {
   url: String!
-  channel: String
 }
 
 input CreateSlackMessageAutomationActionParamsInput {
   url: String!
-  note: String
-  channel: String
 }
 
 input CreateUserInput {
@@ -3730,6 +3750,7 @@ type DataClassifier {
   category: DataClassifierCategory!
   createdAt: DateTime
   createdBy: DataClassifierCreatedBy!
+  description: String
   enabled: Boolean!
   exampleCount: Int
   excludeRegex: String
@@ -3751,6 +3772,7 @@ enum DataClassifierCategory {
   FINANCIAL
   DIGITAL_IDENTITY
   SECRETS
+  OTHER
 }
 
 type DataClassifierConnection {
@@ -3778,14 +3800,30 @@ input DataClassifierFilters {
   enabled: Boolean
 }
 
+input DataClassifierTestMatchInput {
+  valueRegex: String!
+  excludeRegex: String
+  minLength: Int
+  maxLength: Int
+  opaValidator: String
+}
+
+type DataClassifierTestMatchResult {
+  match: Boolean!
+}
+
 type DataScannerBucketConfig {
   enabled: Boolean!
+  excludedScope: DataScannerScanScope
+  includedScope: DataScannerScanScope
   privateBucketsEnabled: Boolean!
   scanIntervalDays: Int!
 }
 
 type DataScannerCloudDbConfig {
   enabled: Boolean!
+  excludedScope: DataScannerScanScope
+  includedScope: DataScannerScanScope
   scanIntervalDays: Int!
 }
 
@@ -3797,6 +3835,10 @@ type DataScannerDiskDbConfig {
 type DataScannerDiskFileConfig {
   enabled: Boolean!
   scanIntervalDays: Int!
+}
+
+type DataScannerScanScope {
+  tags: [ScannerResourceTag!]
 }
 
 type DataScannerSettings {
@@ -3811,11 +3853,15 @@ input DataScannerSettingsBucketConfigInput {
   enabled: Boolean!
   privateBucketsEnabled: Boolean
   scanIntervalDays: Int!
+  excludedScope: DataScannerSettingsScanScopeInput
+  includedScope: DataScannerSettingsScanScopeInput
 }
 
 input DataScannerSettingsCloudDbConfigInput {
   enabled: Boolean!
   scanIntervalDays: Int!
+  excludedScope: DataScannerSettingsScanScopeInput
+  includedScope: DataScannerSettingsScanScopeInput
 }
 
 input DataScannerSettingsDiskDbConfigInput {
@@ -3826,6 +3872,15 @@ input DataScannerSettingsDiskDbConfigInput {
 input DataScannerSettingsDiskFileConfigInput {
   enabled: Boolean!
   scanIntervalDays: Int!
+}
+
+input DataScannerSettingsResourceTagInput {
+  key: String!
+  value: String
+}
+
+input DataScannerSettingsScanScopeInput {
+  tags: [DataScannerSettingsResourceTagInput!]
 }
 
 scalar DateTime
@@ -3902,14 +3957,6 @@ type DeleteConnectorPayload {
   _stub: String!
 }
 
-input DeleteContainerImageScanPolicyInput {
-  id: ID!
-}
-
-type DeleteContainerImageScanPolicyPayload {
-  _stub: String!
-}
-
 input DeleteControlInput {
   id: ID!
 }
@@ -3926,6 +3973,14 @@ type DeleteCustomIPRangePayload {
   _stub: String!
 }
 
+input DeleteDataClassifierInput {
+  id: ID!
+}
+
+type DeleteDataClassifierPayload {
+  _stub: String!
+}
+
 input DeleteHostConfigurationRuleInput {
   id: ID!
 }
@@ -3939,6 +3994,14 @@ input DeleteIntegrationInput {
 }
 
 type DeleteIntegrationPayload {
+  _stub: String!
+}
+
+input DeleteIssueNoteInput {
+  id: ID!
+}
+
+type DeleteIssueNotePayload {
   _stub: String!
 }
 
@@ -4361,6 +4424,7 @@ type GEAccessKey {
   createdAt: DateTime
   credentialId: String
   credentialType: GECredentialType
+  danglingDomain: Boolean
   everUsed: Boolean
   externalId: String
   externalOwners: [String!]
@@ -4372,6 +4436,7 @@ type GEAccessKey {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4393,6 +4458,7 @@ type GEAccessKey {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4415,6 +4481,7 @@ type GEAccessRole {
   cloudPlatform: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   description: String
   externalId: String
   externalOwners: [String!]
@@ -4426,6 +4493,7 @@ type GEAccessRole {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4446,6 +4514,7 @@ type GEAccessRole {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4465,6 +4534,7 @@ type GEAccessRoleBinding {
   cloudPlatform: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   gcpCondition: GEGCPAccessRoleCondition
@@ -4476,6 +4546,7 @@ type GEAccessRoleBinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4496,6 +4567,7 @@ type GEAccessRoleBinding {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4530,6 +4602,7 @@ type GEAccessRolePermission {
   cloudPlatform: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   description: String
   documentation: String
   externalId: String
@@ -4542,6 +4615,7 @@ type GEAccessRolePermission {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4561,6 +4635,7 @@ type GEAccessRolePermission {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4610,7 +4685,7 @@ type GEAllowedHostPath {
   vertexId: ID!
 }
 
-union GEAny = GEAPIGateway | GEAccessKey | GEAccessRole | GEAccessRoleBinding | GEAccessRolePermission | GEApplication | GEAuthenticationConfiguration | GEAuthenticationPolicy | GEBackendBucket | GEBackupService | GEBranchPackage | GEBucket | GECdn | GECICDService | GECallCenterService | GECertificate | GECloudLogConfiguration | GECloudOrganization | GEComputeInstanceGroup | GEConfigMap | GEConfigurationFinding | GEConfigurationRule | GEConfigurationScan | GEContainer | GEContainerGroup | GEContainerImage | GEContainerRegistry | GEContainerRepository | GEContainerService | GEControllerRevision | GEDBServer | GEDNSRecord | GEDNSZone | GEDaemonSet | GEDataFinding | GEDataInventory | GEDataSchema | GEDataStore | GEDataWorkflow | GEDataWorkload | GEDatabase | GEDeployment | GEDomain | GEEmailService | GEEncryptionKey | GEEndpoint | GEExcessiveAccessFinding | GEFileDescriptor | GEFileDescriptorFinding | GEFileSystemService | GEFirewall | GEGateway | GEGovernancePolicy | GEGovernancePolicyGroup | GEGroup | GEHostedApplication | GEHostedTechnology | GEIACDeclarationInstance | GEIACResourceDeclaration | GEIACStateInstance | GEIAMBinding | GEIPRange | GEIdentityProvider | GEKubernetesCluster | GEKubernetesCronJob | GEKubernetesIngress | GEKubernetesIngressController | GEKubernetesJob | GEKubernetesNetworkPolicy | GEKubernetesNode | GEKubernetesPersistentVolume | GEKubernetesPersistentVolumeClaim | GEKubernetesPodSecurityPolicy | GEKubernetesService | GEKubernetesStorageClass | GEKubernetesVolume | GELastLogin | GELateralMovementFinding | GELoadBalancer | GELocalUser | GEMalware | GEMalwareInstance | GEManagedCertificate | GEManagementService | GEMapReduceCluster | GEMessagingService | GENamespace | GENat | GENetworkAddress | GENetworkAppliance | GENetworkInterface | GENetworkRoutingRule | GENetworkSecurityRule | GEPackage | GEPeering | GEPod | GEPortRange | GEPredefinedGroup | GEPrivateEndpoint | GEPrivateLink | GEProject | GEProductKubernetesCluster | GEProductOrganization | GEProxy | GEProxyRule | GERawAccessPolicy | GERegion | GERegisteredDomain | GEReplicaSet | GERepository | GERepositoryBranch | GERepositoryTag | GEResourceGroup | GERouteTable | GESearchIndex | GESecret | GESecretContainer | GESecretData | GESecretInstance | GESecurityEventFinding | GESecurityToolFinding | GESecurityToolFindingType | GESecurityToolScan | GEServerless | GEServerlessPackage | GEServiceAccount | GEServiceConfiguration | GEServiceUsageTechnology | GEStatefulSet | GEStorageAccount | GESubnet | GESubscription | GESwitch | GETechnology | GEUserAccount | GEVirtualDesktop | GEVirtualMachine | GEVirtualMachineImage | GEVirtualNetwork | GEVolume | GEVulnerability | GEWeakness | GEWebService
+union GEAny = GEAPIGateway | GEAccessKey | GEAccessRole | GEAccessRoleBinding | GEAccessRolePermission | GEApplication | GEAuthenticationConfiguration | GEAuthenticationPolicy | GEBackendBucket | GEBackupService | GEBranchPackage | GEBucket | GECdn | GECICDService | GECallCenterService | GECertificate | GECloudLogConfiguration | GECloudOrganization | GEComputeInstanceGroup | GEConfigMap | GEConfigurationFinding | GEConfigurationRule | GEConfigurationScan | GEContainer | GEContainerGroup | GEContainerImage | GEContainerRegistry | GEContainerRepository | GEContainerService | GEControllerRevision | GEDBServer | GEDNSRecord | GEDNSZone | GEDaemonSet | GEDataFinding | GEDataInventory | GEDataSchema | GEDataStore | GEDataWorkflow | GEDataWorkload | GEDatabase | GEDeployment | GEDomain | GEEmailService | GEEncryptionKey | GEEndpoint | GEExcessiveAccessFinding | GEFileDescriptor | GEFileDescriptorFinding | GEFileSystemService | GEFirewall | GEGateway | GEGovernancePolicy | GEGovernancePolicyGroup | GEGroup | GEHostConfigurationFinding | GEHostConfigurationRule | GEHostedApplication | GEHostedTechnology | GEIACDeclarationInstance | GEIACResourceDeclaration | GEIACStateInstance | GEIAMBinding | GEIPRange | GEIdentityProvider | GEKubernetesCluster | GEKubernetesCronJob | GEKubernetesIngress | GEKubernetesIngressController | GEKubernetesJob | GEKubernetesNetworkPolicy | GEKubernetesNode | GEKubernetesPersistentVolume | GEKubernetesPersistentVolumeClaim | GEKubernetesPodSecurityPolicy | GEKubernetesService | GEKubernetesStorageClass | GEKubernetesVolume | GELastLogin | GELateralMovementFinding | GELoadBalancer | GELocalUser | GEMalware | GEMalwareInstance | GEManagedCertificate | GEManagementService | GEMapReduceCluster | GEMessagingService | GENamespace | GENat | GENetworkAddress | GENetworkAppliance | GENetworkInterface | GENetworkRoutingRule | GENetworkSecurityRule | GEPackage | GEPeering | GEPod | GEPortRange | GEPredefinedGroup | GEPrivateEndpoint | GEPrivateLink | GEProject | GEProductKubernetesCluster | GEProductOrganization | GEProxy | GEProxyRule | GERawAccessPolicy | GERegion | GERegisteredDomain | GEReplicaSet | GERepository | GERepositoryBranch | GERepositoryTag | GEResourceGroup | GERouteTable | GESearchIndex | GESecret | GESecretContainer | GESecretData | GESecretInstance | GESecurityEventFinding | GESecurityToolFinding | GESecurityToolFindingType | GESecurityToolScan | GEServerless | GEServerlessPackage | GEServiceAccount | GEServiceConfiguration | GEServiceUsageTechnology | GESnapshot | GEStatefulSet | GEStorageAccount | GESubnet | GESubscription | GESwitch | GETechnology | GEUserAccount | GEVirtualDesktop | GEVirtualMachine | GEVirtualMachineImage | GEVirtualNetwork | GEVolume | GEVulnerability | GEWeakness | GEWebService
 
 type GEAPIGateway {
   accessibleFrom: GEScopeToBool
@@ -4621,6 +4696,7 @@ type GEAPIGateway {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -4631,6 +4707,7 @@ type GEAPIGateway {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4648,6 +4725,7 @@ type GEAPIGateway {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4672,6 +4750,7 @@ type GEApplication {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deploymentType: GEDeploymentType
   externalId: String
   externalOwners: [String!]
@@ -4683,6 +4762,7 @@ type GEApplication {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4700,6 +4780,7 @@ type GEApplication {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4744,6 +4825,7 @@ type GEAuthenticationConfiguration {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -4754,6 +4836,7 @@ type GEAuthenticationConfiguration {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4781,6 +4864,7 @@ type GEAuthenticationConfiguration {
   permitEmptyPasswords: Boolean
   permitRootLogin: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4806,6 +4890,7 @@ type GEAuthenticationPolicy {
   cloudPlatform: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -4816,6 +4901,7 @@ type GEAuthenticationPolicy {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4835,6 +4921,7 @@ type GEAuthenticationPolicy {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4897,6 +4984,7 @@ type GEBackendBucket {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -4907,6 +4995,7 @@ type GEBackendBucket {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4924,6 +5013,7 @@ type GEBackendBucket {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4948,6 +5038,7 @@ type GEBackupService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -4958,6 +5049,7 @@ type GEBackupService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -4975,6 +5067,7 @@ type GEBackupService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -4995,6 +5088,7 @@ type GEBranchPackage {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -5005,6 +5099,7 @@ type GEBranchPackage {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5022,6 +5117,7 @@ type GEBranchPackage {
   openToEntireInternet: Boolean
   path: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -5041,6 +5137,7 @@ type GEBucket {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   encrypted: Boolean
   encryptionInTransit: Boolean
   externalId: String
@@ -5053,6 +5150,7 @@ type GEBucket {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5072,6 +5170,7 @@ type GEBucket {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5122,6 +5221,7 @@ type GECallCenterService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -5132,6 +5232,7 @@ type GECallCenterService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5149,6 +5250,7 @@ type GECallCenterService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5182,6 +5284,7 @@ type GECdn {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -5193,6 +5296,7 @@ type GECdn {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5211,6 +5315,7 @@ type GECdn {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5257,6 +5362,7 @@ type GECertificate {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   domainName: String
   externalId: String
   externalOwners: [String!]
@@ -5268,6 +5374,7 @@ type GECertificate {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5285,6 +5392,7 @@ type GECertificate {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5315,6 +5423,7 @@ type GECICDService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -5325,6 +5434,7 @@ type GECICDService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5342,6 +5452,7 @@ type GECICDService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5403,6 +5514,7 @@ type GECloudLogConfiguration {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -5413,6 +5525,7 @@ type GECloudLogConfiguration {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5431,6 +5544,7 @@ type GECloudLogConfiguration {
   openToEntireInternet: Boolean
   organizationScope: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5455,6 +5569,7 @@ type GECloudOrganization {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   governancePolicyAssignments: GEGovernancePolicyAssignments
@@ -5466,6 +5581,7 @@ type GECloudOrganization {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5484,6 +5600,7 @@ type GECloudOrganization {
   openToEntireInternet: Boolean
   path: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5507,6 +5624,7 @@ type GEComputeInstanceGroup {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   ecs: GEComputeInstanceGroupECSExtraData
   externalId: String
   externalOwners: [String!]
@@ -5518,6 +5636,7 @@ type GEComputeInstanceGroup {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5536,6 +5655,7 @@ type GEComputeInstanceGroup {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5576,6 +5696,7 @@ type GEConfigMap {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   data: JSON
   deletionGracePeriodSeconds: Int
   externalId: String
@@ -5591,6 +5712,7 @@ type GEConfigMap {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5613,6 +5735,7 @@ type GEConfigMap {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5681,6 +5804,7 @@ type GEConfigurationFinding {
   containsContainerHosts: Boolean
   currentConfig: String
   customFindingDescription: String
+  danglingDomain: Boolean
   detailed: GEConfigurationFindingDataExtraInfo
   expectedConfig: String
   externalId: String
@@ -5694,6 +5818,7 @@ type GEConfigurationFinding {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hasRemediationInstructions: Boolean
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5710,6 +5835,7 @@ type GEConfigurationFinding {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -5736,6 +5862,7 @@ type GEConfigurationRule {
   cloudPlatform: String
   configLink: String
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   description: String
   externalId: String
   externalOwners: [String!]
@@ -5747,6 +5874,7 @@ type GEConfigurationRule {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5763,6 +5891,7 @@ type GEConfigurationRule {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -5780,6 +5909,7 @@ type GEConfigurationScan {
   allowsExternalWrite: Boolean
   analysisDate: DateTime
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -5790,6 +5920,7 @@ type GEConfigurationScan {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5806,6 +5937,7 @@ type GEConfigurationScan {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -5857,6 +5989,7 @@ type GEContainer {
   containerHostScanned: Boolean
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   ecs: GEContainerECSExtraData
   env: JSON
   externalId: String
@@ -5869,6 +6002,7 @@ type GEContainer {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5890,6 +6024,7 @@ type GEContainer {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5928,6 +6063,7 @@ type GEContainerGroup {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   ecs: GEContainerGroupECSExtraData
   externalId: String
   externalOwners: [String!]
@@ -5939,6 +6075,7 @@ type GEContainerGroup {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -5957,6 +6094,7 @@ type GEContainerGroup {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -5990,6 +6128,7 @@ type GEContainerImage {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   digest: String
   encrypted: Boolean
   externalId: String
@@ -6002,6 +6141,7 @@ type GEContainerImage {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6022,6 +6162,7 @@ type GEContainerImage {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6070,6 +6211,7 @@ type GEContainerRegistry {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6080,6 +6222,7 @@ type GEContainerRegistry {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6099,6 +6242,7 @@ type GEContainerRegistry {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6122,6 +6266,7 @@ type GEContainerRepository {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6132,6 +6277,7 @@ type GEContainerRepository {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6149,6 +6295,7 @@ type GEContainerRepository {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6172,6 +6319,7 @@ type GEContainerService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   ecs: GEContainerServiceECSExtraData
   edition: String
   encryptsSecrets: Boolean
@@ -6186,6 +6334,7 @@ type GEContainerService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6211,6 +6360,7 @@ type GEContainerService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6245,6 +6395,7 @@ type GEControllerRevision {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -6259,6 +6410,7 @@ type GEControllerRevision {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6280,6 +6432,7 @@ type GEControllerRevision {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6401,6 +6554,7 @@ type GEDaemonSet {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -6415,6 +6569,7 @@ type GEDaemonSet {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6436,6 +6591,7 @@ type GEDaemonSet {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6491,6 +6647,7 @@ type GEDatabase {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6501,6 +6658,7 @@ type GEDatabase {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6519,6 +6677,7 @@ type GEDatabase {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6538,6 +6697,7 @@ enum GEDataCategory {
   PHI
   FINANCIAL
   DIGITAL_IDENTITY
+  OTHER
 }
 
 type GEDataFinding {
@@ -6546,6 +6706,7 @@ type GEDataFinding {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   dataCategory: GEDataCategory
   dataClassifierId: String
   dataPaths: [String!]
@@ -6560,6 +6721,7 @@ type GEDataFinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6578,6 +6740,7 @@ type GEDataFinding {
   percentWithContext: Int
   percentWithValidator: Int
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -6594,6 +6757,7 @@ type GEDataInventory {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   entries: [GEDataInventoryEntry!]
   externalId: String
   externalOwners: [String!]
@@ -6605,6 +6769,7 @@ type GEDataInventory {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6622,6 +6787,7 @@ type GEDataInventory {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -6648,6 +6814,7 @@ type GEDataSchema {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   fieldNames: [String!]
@@ -6659,6 +6826,7 @@ type GEDataSchema {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6675,6 +6843,7 @@ type GEDataSchema {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -6689,6 +6858,7 @@ type GEDataStore {
   approxItems: Int
   approxSizeBytes: Int
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   examplePaths: [String!]
   externalId: String
   externalOwners: [String!]
@@ -6700,6 +6870,7 @@ type GEDataStore {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6724,6 +6895,7 @@ type GEDataStore {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerKind: GEDataSampleProviderKind
   publicAccessTypes: [GEAccessType!]
@@ -6775,6 +6947,7 @@ type GEDataWorkflow {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   encrypted: Boolean
   externalId: String
   externalOwners: [String!]
@@ -6786,6 +6959,7 @@ type GEDataWorkflow {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6803,6 +6977,7 @@ type GEDataWorkflow {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6827,6 +7002,7 @@ type GEDataWorkload {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6837,6 +7013,7 @@ type GEDataWorkload {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6856,6 +7033,7 @@ type GEDataWorkload {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6880,6 +7058,7 @@ type GEDBServer {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -6891,6 +7070,7 @@ type GEDBServer {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6911,6 +7091,7 @@ type GEDBServer {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -6940,6 +7121,7 @@ type GEDeployment {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -6954,6 +7136,7 @@ type GEDeployment {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -6975,6 +7158,7 @@ type GEDeployment {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7055,6 +7239,7 @@ type GEDNSRecord {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7065,6 +7250,7 @@ type GEDNSRecord {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7082,6 +7268,7 @@ type GEDNSRecord {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7129,6 +7316,7 @@ type GEDNSZone {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   dnsName: String
   externalId: String
   externalOwners: [String!]
@@ -7140,6 +7328,7 @@ type GEDNSZone {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7158,6 +7347,7 @@ type GEDNSZone {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7181,6 +7371,7 @@ type GEDomain {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7191,6 +7382,7 @@ type GEDomain {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7208,6 +7400,7 @@ type GEDomain {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7250,6 +7443,7 @@ type GEEmailService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7260,6 +7454,7 @@ type GEEmailService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7277,6 +7472,7 @@ type GEEmailService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7307,6 +7503,7 @@ type GEEncryptionKey {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7317,6 +7514,7 @@ type GEEncryptionKey {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7336,6 +7534,7 @@ type GEEncryptionKey {
   openToEntireInternet: Boolean
   pendingDeletion: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7361,6 +7560,7 @@ type GEEndpoint {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   dynamicScannerExtractedText: String
   dynamicScannerResponse: String
   dynamicScannerScreenshotUrl: String
@@ -7375,6 +7575,7 @@ type GEEndpoint {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   host: String
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7397,7 +7598,9 @@ type GEEndpoint {
   portRange: Boolean
   portStart: Int
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
+  protocol: String
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -7478,6 +7681,11 @@ type GEEphemeralVolumeSource {
   volumeClaimTemplate: GEPersistentVolumeClaimTemplate
 }
 
+enum GEError {
+  ACCESS_DENIED
+  MESSAGE
+}
+
 type GEExcessiveAccessFinding {
   accessibleFrom: GEScopeToBool
   accessibleFromScopes: [String!]
@@ -7486,9 +7694,10 @@ type GEExcessiveAccessFinding {
   cloudPlatform: String
   cloudProviderURL: String
   containsContainerHosts: Boolean
-  currentConfig: String! @deprecated(reason: "use currentConfiguration field instead")
+  currentConfig: String! @deprecated(reason: "use currentPolicyConfiguration field instead")
   currentConfiguration: GEExcessiveAccessFindingConfigurationInformation
   currentPolicyConfiguration: ExcessiveAccessFindingConfigurationInformation
+  danglingDomain: Boolean
   description: String
   documentation: String
   excessiveServices: [String!]
@@ -7502,6 +7711,7 @@ type GEExcessiveAccessFinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7518,6 +7728,7 @@ type GEExcessiveAccessFinding {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -7528,9 +7739,10 @@ type GEExcessiveAccessFinding {
   removedHighPermissions: Boolean
   severity: GEExcessiveAccessFindingSeverity
   source: GEExcessiveAccessFindingSource
-  suggestedConfig: String! @deprecated(reason: "use suggestedConfiguration field instead")
+  suggestedConfig: String! @deprecated(reason: "use suggestedPolicyConfiguration field instead")
   suggestedConfiguration: GEExcessiveAccessFindingConfigurationInformation
   suggestedPolicyConfiguration: ExcessiveAccessFindingConfigurationInformation
+  suggestedPolicyConfigurationDiff: String
   unusedAdminPermissions: Boolean
   unusedDataPermissions: Boolean
   unusedHighPermissions: Boolean
@@ -7583,6 +7795,7 @@ type GEFileDescriptor {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   findingType: String
@@ -7594,6 +7807,7 @@ type GEFileDescriptor {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7611,6 +7825,7 @@ type GEFileDescriptor {
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -7628,6 +7843,7 @@ type GEFileDescriptorFinding {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   findingType: String
@@ -7639,6 +7855,7 @@ type GEFileDescriptorFinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7658,6 +7875,7 @@ type GEFileDescriptorFinding {
   originalId: String
   path: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -7689,6 +7907,7 @@ type GEFileSystemService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   fileShareName: String
@@ -7700,6 +7919,7 @@ type GEFileSystemService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7718,6 +7938,7 @@ type GEFileSystemService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7741,6 +7962,7 @@ type GEFirewall {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7752,6 +7974,7 @@ type GEFirewall {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7770,6 +7993,7 @@ type GEFirewall {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7841,6 +8065,7 @@ type GEGateway {
   connectedToOnPrem: Boolean
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   gatewayType: GENetworkRoutingGatewayType
@@ -7853,6 +8078,7 @@ type GEGateway {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hasRouteTable: Boolean
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7870,6 +8096,7 @@ type GEGateway {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7923,6 +8150,7 @@ type GEGovernancePolicy {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7933,6 +8161,7 @@ type GEGovernancePolicy {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -7950,6 +8179,7 @@ type GEGovernancePolicy {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -7977,6 +8207,7 @@ type GEGovernancePolicyGroup {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -7987,6 +8218,7 @@ type GEGovernancePolicyGroup {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8004,6 +8236,7 @@ type GEGovernancePolicyGroup {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8029,6 +8262,7 @@ type GEGroup {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   createdAt: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -8039,6 +8273,7 @@ type GEGroup {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8060,6 +8295,7 @@ type GEGroup {
   openToEntireInternet: Boolean
   partialMemberVisibility: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8084,6 +8320,33 @@ type GEHostAlias {
   vertexId: ID!
 }
 
+type GEHostConfigurationFinding {
+  assessmentError: GEError
+  assessmentErrorMessage: String
+  description: String
+  externalId: String
+  name: String
+  ruleName: String
+  ruleShortName: String
+  severity: GESeverity
+  status: GEStatus
+  targetObjectCloudPlatform: String
+  targetObjectName: String
+  targetObjectNativeType: String
+  targetObjectRegion: String
+  targetObjectStatus: String
+  vertexId: ID!
+}
+
+type GEHostConfigurationRule {
+  description: String
+  externalId: String
+  name: String
+  severity: GESeverity
+  shortName: String
+  vertexId: ID!
+}
+
 type GEHostedApplication {
   accessibleFrom: GEScopeToBool
   accessibleFromScopes: [String!]
@@ -8093,6 +8356,7 @@ type GEHostedApplication {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deployment: GEHostedApplicationApplicationFiles
   detectionMethod: GEDetectionMethod
   externalId: String
@@ -8105,6 +8369,7 @@ type GEHostedApplication {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8123,6 +8388,7 @@ type GEHostedApplication {
   openToEntireInternet: Boolean
   path: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8176,6 +8442,7 @@ type GEHostedTechnology {
   containsContainerHosts: Boolean
   cpe: String
   creationDate: DateTime
+  danglingDomain: Boolean
   detectedByClonedRepositories: [String!]
   detectedByConfigFilePaths: [String!]
   detectedByDefaultPackageNames: [String!]
@@ -8201,6 +8468,7 @@ type GEHostedTechnology {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hostname: String
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8230,6 +8498,7 @@ type GEHostedTechnology {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8352,6 +8621,7 @@ type GEIAMBinding {
   cloudPlatform: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -8362,6 +8632,7 @@ type GEIAMBinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8384,6 +8655,7 @@ type GEIAMBinding {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8403,6 +8675,7 @@ type GEIdentityProvider {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   createdAt: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -8413,6 +8686,7 @@ type GEIdentityProvider {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8434,6 +8708,7 @@ type GEIdentityProvider {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8505,6 +8780,7 @@ type GEIPRange {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   endAddr: String
   endInt: Int
   externalId: String
@@ -8517,6 +8793,7 @@ type GEIPRange {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8534,6 +8811,7 @@ type GEIPRange {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8626,6 +8904,7 @@ type GEKubernetesCluster {
   containerClusterConnected: Boolean
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   edition: String
   encryptsSecrets: Boolean
   extendedSupport: Boolean
@@ -8639,6 +8918,7 @@ type GEKubernetesCluster {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8665,6 +8945,7 @@ type GEKubernetesCluster {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8754,6 +9035,7 @@ type GEKubernetesCronJob {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -8768,6 +9050,7 @@ type GEKubernetesCronJob {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8789,6 +9072,7 @@ type GEKubernetesCronJob {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8842,6 +9126,7 @@ type GEKubernetesIngress {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -8856,6 +9141,7 @@ type GEKubernetesIngress {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8877,6 +9163,7 @@ type GEKubernetesIngress {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8904,6 +9191,7 @@ type GEKubernetesIngressController {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -8914,6 +9202,7 @@ type GEKubernetesIngressController {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -8931,6 +9220,7 @@ type GEKubernetesIngressController {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -8970,6 +9260,7 @@ type GEKubernetesJob {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -8984,6 +9275,7 @@ type GEKubernetesJob {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9005,6 +9297,7 @@ type GEKubernetesJob {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9062,6 +9355,7 @@ type GEKubernetesNetworkPolicy {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -9076,6 +9370,7 @@ type GEKubernetesNetworkPolicy {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9097,6 +9392,7 @@ type GEKubernetesNetworkPolicy {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9137,6 +9433,7 @@ type GEKubernetesNode {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -9152,6 +9449,7 @@ type GEKubernetesNode {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9173,6 +9471,7 @@ type GEKubernetesNode {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9241,6 +9540,7 @@ type GEKubernetesPersistentVolume {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -9255,6 +9555,7 @@ type GEKubernetesPersistentVolume {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9276,6 +9577,7 @@ type GEKubernetesPersistentVolume {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9306,6 +9608,7 @@ type GEKubernetesPersistentVolumeClaim {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -9320,6 +9623,7 @@ type GEKubernetesPersistentVolumeClaim {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9341,6 +9645,7 @@ type GEKubernetesPersistentVolumeClaim {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9429,6 +9734,7 @@ type GEKubernetesPodSecurityPolicy {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -9443,6 +9749,7 @@ type GEKubernetesPodSecurityPolicy {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9464,6 +9771,7 @@ type GEKubernetesPodSecurityPolicy {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9617,6 +9925,7 @@ type GEKubernetesService {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalHostnames: [String!]
   externalId: String
@@ -9633,6 +9942,7 @@ type GEKubernetesService {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hasPublicAddress: Boolean
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9654,6 +9964,7 @@ type GEKubernetesService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9713,6 +10024,7 @@ type GEKubernetesStorageClass {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -9727,6 +10039,7 @@ type GEKubernetesStorageClass {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9750,6 +10063,7 @@ type GEKubernetesStorageClass {
   openToEntireInternet: Boolean
   parameters: JSON
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   provisioner: String
@@ -9779,6 +10093,7 @@ type GEKubernetesVolume {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -9789,6 +10104,7 @@ type GEKubernetesVolume {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9807,6 +10123,7 @@ type GEKubernetesVolume {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9945,6 +10262,7 @@ type GELastLogin {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -9955,6 +10273,7 @@ type GELastLogin {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -9973,6 +10292,7 @@ type GELastLogin {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -9995,6 +10315,7 @@ type GELateralMovementFinding {
   allowsExternalWrite: Boolean
   cloudPlatform: String
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   description: String
   exploitExample: String
   externalId: String
@@ -10007,6 +10328,7 @@ type GELateralMovementFinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10031,6 +10353,7 @@ type GELateralMovementFinding {
   openToEntireInternet: Boolean
   permissionCombination: [String!]
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -10068,6 +10391,7 @@ type GELoadBalancer {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10078,6 +10402,7 @@ type GELoadBalancer {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10095,11 +10420,13 @@ type GELoadBalancer {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
   region: String
+  requiresAuth: Boolean
   resourceGroupExternalId: String
   status: String
   subscriptionExternalId: String
@@ -10136,6 +10463,7 @@ type GELocalUser {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   createdAt: DateTime
+  danglingDomain: Boolean
   description: String
   enabled: Boolean
   externalId: String
@@ -10151,6 +10479,7 @@ type GELocalUser {
   hasRemoteAccess: Boolean
   hasShell: Boolean
   homeDirectory: String
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10176,6 +10505,7 @@ type GELocalUser {
   passwordEnabled: Boolean
   passwordLocked: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10201,6 +10531,7 @@ type GEMalware {
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
   cveDetails: GECVE
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   familyName: String
@@ -10212,6 +10543,7 @@ type GEMalware {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10232,6 +10564,7 @@ type GEMalware {
   originalId: String
   platform: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -10257,6 +10590,7 @@ type GEMalwareInstance {
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
   cveDetails: GECVE
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   familyName: String
@@ -10268,6 +10602,7 @@ type GEMalwareInstance {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10290,6 +10625,7 @@ type GEMalwareInstance {
   path: String
   platform: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -10320,6 +10656,7 @@ type GEManagedCertificate {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   domainName: String
   expiration: DateTime
   externalId: String
@@ -10332,6 +10669,7 @@ type GEManagedCertificate {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10350,6 +10688,7 @@ type GEManagedCertificate {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10375,6 +10714,7 @@ type GEManagementService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10386,6 +10726,7 @@ type GEManagementService {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hasIssues: Boolean
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10404,6 +10745,7 @@ type GEManagementService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10433,6 +10775,7 @@ type GEMapReduceCluster {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10443,6 +10786,7 @@ type GEMapReduceCluster {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10461,6 +10805,7 @@ type GEMapReduceCluster {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10484,6 +10829,7 @@ type GEMessagingService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   destinationBucketExternalIds: [String!]
   encrypted: Boolean
   encryptionInTransit: Boolean
@@ -10497,6 +10843,7 @@ type GEMessagingService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10517,6 +10864,7 @@ type GEMessagingService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10541,6 +10889,7 @@ type GENamespace {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10551,6 +10900,7 @@ type GENamespace {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10569,6 +10919,7 @@ type GENamespace {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10592,6 +10943,7 @@ type GENat {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10602,6 +10954,7 @@ type GENat {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10619,6 +10972,7 @@ type GENat {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10655,6 +11009,7 @@ type GENetworkAddress {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10665,6 +11020,7 @@ type GENetworkAddress {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10685,6 +11041,7 @@ type GENetworkAddress {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10715,6 +11072,7 @@ type GENetworkAppliance {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -10725,6 +11083,7 @@ type GENetworkAppliance {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10742,6 +11101,7 @@ type GENetworkAppliance {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10765,6 +11125,7 @@ type GENetworkInterface {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   directlyInternetFacing: Boolean
   externalId: String
   externalOwners: [String!]
@@ -10776,6 +11137,7 @@ type GENetworkInterface {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10794,6 +11156,7 @@ type GENetworkInterface {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10859,6 +11222,7 @@ type GENetworkRoutingRule {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   dstAddress: String
   dstAddressType: GENetworkRuleAddressType
   externalId: String
@@ -10873,6 +11237,7 @@ type GENetworkRoutingRule {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10890,6 +11255,7 @@ type GENetworkRoutingRule {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -10922,6 +11288,7 @@ type GENetworkSecurityRule {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   dstServiceTags: [String!]
   externalId: String
   externalOwners: [String!]
@@ -10933,6 +11300,7 @@ type GENetworkSecurityRule {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -10952,6 +11320,7 @@ type GENetworkSecurityRule {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   priority: Int
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
@@ -11101,6 +11470,7 @@ type GEPeering {
   containsContainerHosts: Boolean
   creationDate: DateTime
   crossAccountPeering: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -11111,6 +11481,7 @@ type GEPeering {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11128,6 +11499,7 @@ type GEPeering {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11216,6 +11588,7 @@ type GEPod {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -11230,6 +11603,7 @@ type GEPod {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11252,6 +11626,7 @@ type GEPod {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11402,6 +11777,7 @@ type GEPortRange {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   endPort: Int
   externalId: String
   externalOwners: [String!]
@@ -11413,6 +11789,7 @@ type GEPortRange {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11430,6 +11807,7 @@ type GEPortRange {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11477,6 +11855,7 @@ type GEPredefinedGroup {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   createdAt: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   groupType: GEPredefinedGroupType
@@ -11488,6 +11867,7 @@ type GEPredefinedGroup {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11508,6 +11888,7 @@ type GEPredefinedGroup {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11546,6 +11927,7 @@ type GEPrivateEndpoint {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -11556,6 +11938,7 @@ type GEPrivateEndpoint {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11573,6 +11956,7 @@ type GEPrivateEndpoint {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11597,6 +11981,7 @@ type GEPrivateLink {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -11607,6 +11992,7 @@ type GEPrivateLink {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11624,6 +12010,7 @@ type GEPrivateLink {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11702,6 +12089,12 @@ enum GEProductResourceStatus {
   AUTO_SUGGESTED
 }
 
+type GEProductResourceTags {
+  environments: [GEEnvironment!]
+  tags: JSON
+  vertexId: ID!
+}
+
 enum GEProductSubCategory {
   PUBLIC_CLOUD
   PRIVATE_CLOUD
@@ -11736,6 +12129,7 @@ type GEProject {
   productSubCategory: GEProductSubCategory
   regulatoryStandards: [GERegulatoryStandards!]
   repositories: [GEProjectRepository!]
+  resourceTags: [GEProductResourceTags!]
   securityChampIds: [String!]
   sensitiveDataTypes: [GEProductDataType!]
   slug: String
@@ -11778,6 +12172,7 @@ type GEProxy {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -11788,6 +12183,7 @@ type GEProxy {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11806,6 +12202,7 @@ type GEProxy {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11837,6 +12234,7 @@ type GEProxyRule {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   directServerReturn: Boolean
   domainIds: [String!]
   externalId: String
@@ -11856,6 +12254,7 @@ type GEProxyRule {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hostConditions: [String!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpMethodMatchType: String
@@ -11877,6 +12276,7 @@ type GEProxyRule {
   openToEntireInternet: Boolean
   pathConditions: [String!]
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -11927,6 +12327,7 @@ type GERawAccessPolicy {
   cloudPlatform: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -11937,6 +12338,7 @@ type GERawAccessPolicy {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -11956,6 +12358,7 @@ type GERawAccessPolicy {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12022,6 +12425,7 @@ type GERegion {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12032,6 +12436,7 @@ type GERegion {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12049,6 +12454,7 @@ type GERegion {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12073,6 +12479,7 @@ type GERegisteredDomain {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   expiry: DateTime
   externalId: String
   externalOwners: [String!]
@@ -12084,6 +12491,7 @@ type GERegisteredDomain {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12101,6 +12509,7 @@ type GERegisteredDomain {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12149,6 +12558,7 @@ type GEReplicaSet {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -12163,6 +12573,7 @@ type GEReplicaSet {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12184,6 +12595,7 @@ type GEReplicaSet {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12225,6 +12637,7 @@ type GERepository {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12235,6 +12648,7 @@ type GERepository {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12254,6 +12668,7 @@ type GERepository {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   private: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
@@ -12269,6 +12684,7 @@ type GERepositoryBranch {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12281,6 +12697,7 @@ type GERepositoryBranch {
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   headCommit: String
   headCommitTimestamp: DateTime
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12297,6 +12714,7 @@ type GERepositoryBranch {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -12311,6 +12729,7 @@ type GERepositoryTag {
   allowsExternalWrite: Boolean
   commit: String
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12321,6 +12740,7 @@ type GERepositoryTag {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12337,6 +12757,7 @@ type GERepositoryTag {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -12360,6 +12781,7 @@ type GEResourceGroup {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   governancePolicyAssignments: GEGovernancePolicyAssignments
@@ -12371,6 +12793,7 @@ type GEResourceGroup {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12388,6 +12811,7 @@ type GEResourceGroup {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12440,6 +12864,7 @@ type GERouteTable {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12450,6 +12875,7 @@ type GERouteTable {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12467,6 +12893,7 @@ type GERouteTable {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12562,6 +12989,7 @@ type GESearchIndex {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12572,6 +13000,7 @@ type GESearchIndex {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12589,6 +13018,7 @@ type GESearchIndex {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12619,6 +13049,7 @@ type GESecret {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   description: String
   externalId: String
   externalOwners: [String!]
@@ -12631,6 +13062,7 @@ type GESecret {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12651,6 +13083,7 @@ type GESecret {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12677,6 +13110,7 @@ type GESecretContainer {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -12687,6 +13121,7 @@ type GESecretContainer {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12705,6 +13140,7 @@ type GESecretContainer {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -12728,6 +13164,7 @@ type GESecretData {
   cloudKey: GESecretDataCloudKeyDetails
   containsContainerHosts: Boolean
   crackedPassword: GESecretDataCrackedPasswordDetails
+  danglingDomain: Boolean
   dbConnectionString: GESecretDataDBConnectionStringDetails
   externalId: String
   externalOwners: [String!]
@@ -12740,6 +13177,7 @@ type GESecretData {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12761,6 +13199,7 @@ type GESecretData {
   openToEntireInternet: Boolean
   password: GESecretDataPasswordDetails
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   presignedURL: GESecretDataPresignedURLDetails
   privateIPRangesWithAccess: [String!]
   privateKey: GESecretDataPKIKeyDetails
@@ -12864,6 +13303,7 @@ type GESecretInstance {
   allowsExternalWrite: Boolean
   confidence: GEConfidence
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   endOffset: Int
   externalId: String
   externalOwners: [String!]
@@ -12876,6 +13316,7 @@ type GESecretInstance {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -12896,6 +13337,7 @@ type GESecretInstance {
   packageName: String
   path: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -12994,6 +13436,7 @@ type GESecurityToolFinding {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   dataSourceLink: String
   dataSourceName: String
   description: String
@@ -13017,10 +13460,13 @@ type GESecurityToolFinding {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
   isPotentiallyHidden: Boolean
+  layerDetails: String
+  layerId: String
   name: String
   numAddressesOpenForHTTP: Int
   numAddressesOpenForHTTPS: Int
@@ -13035,6 +13481,7 @@ type GESecurityToolFinding {
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -13042,6 +13489,7 @@ type GESecurityToolFinding {
   resolutionRecommendation: String
   severity: GEVulnerabilitySeverity
   type: GEVulnerabilityType
+  validatedInRuntime: Boolean
   vertexId: ID!
 }
 
@@ -13100,6 +13548,7 @@ type GESecurityToolFindingType {
   allowsExternalRead: Boolean
   allowsExternalWrite: Boolean
   containsContainerHosts: Boolean
+  danglingDomain: Boolean
   dataSourceLink: String
   description: String
   externalId: String
@@ -13112,6 +13561,7 @@ type GESecurityToolFindingType {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13129,6 +13579,7 @@ type GESecurityToolFindingType {
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -13146,6 +13597,7 @@ type GESecurityToolScan {
   containsContainerHosts: Boolean
   createdByConnector: String
   createdByUser: String
+  danglingDomain: Boolean
   dataSource: GESecurityToolScanDataSourceInfo
   dataSourceId: String
   dataSourceLink: String
@@ -13163,6 +13615,7 @@ type GESecurityToolScan {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hostInfo: GESecurityToolScanHostInfo
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13181,6 +13634,7 @@ type GESecurityToolScan {
   openToEntireInternet: Boolean
   originalId: String
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
@@ -13242,6 +13696,7 @@ type GEServerless {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -13252,6 +13707,7 @@ type GEServerless {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13270,6 +13726,7 @@ type GEServerless {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13306,6 +13763,7 @@ type GEServerlessPackage {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -13316,6 +13774,7 @@ type GEServerlessPackage {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13333,6 +13792,7 @@ type GEServerlessPackage {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13358,6 +13818,7 @@ type GEServiceAccount {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   createdAt: DateTime
+  danglingDomain: Boolean
   description: String
   displayName: String
   email: String
@@ -13372,6 +13833,7 @@ type GEServiceAccount {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13392,6 +13854,7 @@ type GEServiceAccount {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13420,6 +13883,7 @@ type GEServiceConfiguration {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -13430,6 +13894,7 @@ type GEServiceConfiguration {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13447,6 +13912,7 @@ type GEServiceConfiguration {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13480,6 +13946,7 @@ type GEServiceUsageTechnology {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -13490,6 +13957,7 @@ type GEServiceUsageTechnology {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13507,6 +13975,7 @@ type GEServiceUsageTechnology {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13525,6 +13994,68 @@ type GEServiceUsageTechnology {
 type GESessionAffinityConfig {
   clientIP: GEClientIPConfig
   vertexId: ID!
+}
+
+enum GESeverity {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+type GESnapshot {
+  accessibleFrom: GEScopeToBool
+  accessibleFromScopes: [String!]
+  allowsExternalRead: Boolean
+  allowsExternalWrite: Boolean
+  cloudPlatform: String
+  cloudProviderURL: String
+  containsContainerHosts: Boolean
+  creationDate: DateTime
+  danglingDomain: Boolean
+  externalId: String
+  externalOwners: [String!]
+  hasAdminKubernetesPrivileges: Boolean
+  hasAdminPrivileges: Boolean
+  hasHighKubernetesPrivileges: Boolean
+  hasHighPrivileges: Boolean
+  hasIAMAccessFromExternalSubscription: [GEAccessType!]
+  hasIAMAccessFromOutsideOrganization: [GEAccessType!]
+  hasIAMAccessToExternalSubscription: [GEAccessType!]
+  hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
+  httpGETStatus: String
+  httpGETStatusCode: Int
+  httpTitleSnippet: String
+  isPublic: Boolean
+  name: String
+  nativeType: String
+  numAddressesOpenForHTTP: Int
+  numAddressesOpenForHTTPS: Int
+  numAddressesOpenForNonStandardPorts: Int
+  numAddressesOpenForRDP: Int
+  numAddressesOpenForSSH: Int
+  numAddressesOpenForWINRM: Int
+  numAddressesOpenTo: GEScopeToInt
+  numPortsOpenTo: GEScopeToInt
+  openPorts: [Int!]
+  openToAllInternet: Boolean
+  openToEntireInternet: Boolean
+  portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
+  privateIPRangesWithAccess: [String!]
+  providerUniqueId: String
+  publicAccessTypes: [GEAccessType!]
+  publicIPRangesWithAccess: [String!]
+  region: String
+  resourceGroupExternalId: String
+  status: String
+  subscriptionExternalId: String
+  tags: JSON
+  vertexId: ID!
+  wizMockResource: Boolean
+  zone: String
 }
 
 enum GESource {
@@ -13552,6 +14083,7 @@ type GEStatefulSet {
   clusterName: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   deletionGracePeriodSeconds: Int
   externalId: String
   externalOwners: [String!]
@@ -13566,6 +14098,7 @@ type GEStatefulSet {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13587,6 +14120,7 @@ type GEStatefulSet {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13635,6 +14169,13 @@ type GEStatefulSetUpdateStrategy {
   vertexId: ID!
 }
 
+enum GEStatus {
+  FAIL
+  PASS
+  ASSESSMENT_ERROR
+  NOT_ASSESSED
+}
+
 type GEStorageAccount {
   accessibleFrom: GEScopeToBool
   accessibleFromScopes: [String!]
@@ -13644,6 +14185,7 @@ type GEStorageAccount {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   encryptionInTransit: Boolean
   externalId: String
   externalOwners: [String!]
@@ -13655,6 +14197,7 @@ type GEStorageAccount {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13672,6 +14215,7 @@ type GEStorageAccount {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13714,6 +14258,7 @@ type GESubnet {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -13724,6 +14269,7 @@ type GESubnet {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13741,6 +14287,7 @@ type GESubnet {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13764,6 +14311,7 @@ type GESubscription {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   governancePolicyAssignments: GEGovernancePolicyAssignments
@@ -13775,6 +14323,7 @@ type GESubscription {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13792,6 +14341,7 @@ type GESubscription {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13822,6 +14372,7 @@ type GESwitch {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -13832,6 +14383,7 @@ type GESwitch {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -13849,6 +14401,7 @@ type GESwitch {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -13954,6 +14507,14 @@ type GETopologySpreadConstraint {
   whenUnsatisfiable: String
 }
 
+input GetReportAvailableColumnsInput {
+  type: String!
+}
+
+type GetReportAvailableColumnsPayload {
+  columns: [String!]
+}
+
 enum GEType {
   STATIC
   SESSION_CONTEXT
@@ -13989,6 +14550,7 @@ type GEUserAccount {
   containsContainerHosts: Boolean
   createdAt: DateTime
   credentials: [GECredential!]
+  danglingDomain: Boolean
   department: String
   description: String
   directoryLastSyncTime: DateTime
@@ -14007,6 +14569,7 @@ type GEUserAccount {
   hasMfa: Boolean
   hasShell: Boolean
   homeDirectory: String
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14037,6 +14600,7 @@ type GEUserAccount {
   passwordEnabled: Boolean
   passwordLocked: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   premisesDistinguishedName: String
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
@@ -14063,6 +14627,7 @@ type GEVirtualDesktop {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -14073,6 +14638,7 @@ type GEVirtualDesktop {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14090,6 +14656,7 @@ type GEVirtualDesktop {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -14115,6 +14682,7 @@ type GEVirtualMachine {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   hasAdminKubernetesPrivileges: Boolean
@@ -14125,6 +14693,7 @@ type GEVirtualMachine {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14150,6 +14719,7 @@ type GEVirtualMachine {
   operatingSystem: String
   passwordAuthDisabled: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -14175,6 +14745,7 @@ type GEVirtualMachineImage {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   extraData: GEVirtualMachineImageExtraData
@@ -14187,6 +14758,7 @@ type GEVirtualMachineImage {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14205,6 +14777,7 @@ type GEVirtualMachineImage {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -14251,6 +14824,7 @@ type GEVirtualNetwork {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   flowLogsEnabled: Boolean
@@ -14263,6 +14837,7 @@ type GEVirtualNetwork {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14281,6 +14856,7 @@ type GEVirtualNetwork {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -14310,6 +14886,7 @@ type GEVolume {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   encrypted: Boolean
   externalId: String
   externalOwners: [String!]
@@ -14322,6 +14899,7 @@ type GEVolume {
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
   hasRecentSnapshot: Boolean
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14342,6 +14920,7 @@ type GEVolume {
   openToEntireInternet: Boolean
   partitionsEncryptionSecretVersion: [String!]
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -14491,6 +15070,7 @@ type GEWebService {
   cloudProviderURL: String
   containsContainerHosts: Boolean
   creationDate: DateTime
+  danglingDomain: Boolean
   externalId: String
   externalOwners: [String!]
   fqdn: String
@@ -14502,6 +15082,7 @@ type GEWebService {
   hasIAMAccessFromOutsideOrganization: [GEAccessType!]
   hasIAMAccessToExternalSubscription: [GEAccessType!]
   hasIAMAccessToOutsideOrganization: [GEAccessType!]
+  httpContentType: String
   httpGETStatus: String
   httpGETStatusCode: Int
   httpTitleSnippet: String
@@ -14521,6 +15102,7 @@ type GEWebService {
   openToAllInternet: Boolean
   openToEntireInternet: Boolean
   portValidationResult: GEPortValidationResult
+  potentialSubdomainTakeover: Boolean
   privateIPRangesWithAccess: [String!]
   providerUniqueId: String
   publicAccessTypes: [GEAccessType!]
@@ -14719,6 +15301,8 @@ enum GraphEntityType {
   GROUP
   HOSTED_APPLICATION
   HOSTED_TECHNOLOGY
+  HOST_CONFIGURATION_FINDING
+  HOST_CONFIGURATION_RULE
   IAC_DECLARATION_INSTANCE
   IAC_RESOURCE_DECLARATION
   IAC_STATE_INSTANCE
@@ -14788,6 +15372,7 @@ enum GraphEntityType {
   SERVICE_ACCOUNT
   SERVICE_CONFIGURATION
   SERVICE_USAGE_TECHNOLOGY
+  SNAPSHOT
   STATEFUL_SET
   STORAGE_ACCOUNT
   SUBNET
@@ -14917,6 +15502,7 @@ enum GraphRelationshipType {
   HAS_ORGANIZATION_POLICY
   HAS_PRINCIPAL_POLICY
   HAS_RESOURCE_POLICY
+  HAS_SNAPSHOT
   HAS_SOURCE
   HAS_STANDARD_WEB_ACCESS_FROM
   HAS_TECH
@@ -14998,6 +15584,7 @@ type HostConfigurationRule implements Node {
   externalId: String
   id: ID!
   name: String!
+  remediationInstructions: String
   ruleTargetPlatforms: [HostConfigurationRuleTargetPlatform!]!
   securitySubCategories: [SecuritySubCategory!]
   severity: Severity!
@@ -15014,10 +15601,14 @@ type HostConfigurationRuleAnalytics {
 }
 
 type HostConfigurationRuleAssessment implements Node {
+  hasGraphObject: Boolean!
   id: ID!
+  note: FindingCommonStatusNote
+  resolutionReason: FindingCommonResolutionReason
   resource: HostConfigurationRuleAssessmentResource!
   result: HostConfigurationRuleAssessmentResult!
   rule: HostConfigurationRule!
+  status: FindingCommonStatus!
 }
 
 type HostConfigurationRuleAssessmentConnection {
@@ -15045,6 +15636,7 @@ input HostConfigurationRuleAssessmentFilters {
   result: [HostConfigurationRuleAssessmentResult!]
   frameworkCategory: [String!]
   severity: [Severity!]
+  status: [FindingCommonStatus!]
 }
 
 input HostConfigurationRuleAssessmentOrder {
@@ -15058,7 +15650,7 @@ type HostConfigurationRuleAssessmentResource implements Node {
   name: String!
   nativeType: String!
   status: HostConfigurationRuleAssessmentResourceStatus!
-  subscription: CloudAccount!
+  subscription: CloudAccount
   type: GraphEntityTypeValue!
 }
 
@@ -15176,6 +15768,7 @@ type IACScanStatistics {
 }
 
 input InitiateDiskScanContainerImageInput {
+  requestID: String
   name: String!
 }
 
@@ -15212,21 +15805,6 @@ input initiateIACScanInput {
 type initiateIACScanPayload {
   token: String!
   uploadURL: String!
-}
-
-input InitiateVirtualMachineImageScanInput {
-  resourceId: ID!
-  region: String!
-  subscriptionId: ID!
-  connectorName: String!
-}
-
-type InitiateVirtualMachineImageScanPayload {
-  payload: String!
-}
-
-type InitiateVirtualMachineScanPayload {
-  payload: String!
 }
 
 type Integration implements Node {
@@ -15326,6 +15904,7 @@ type Issue implements Node {
   serviceTickets: [ServiceTicket!]
   severity: Severity!
   status: IssueStatus!
+  statusChangedAt: DateTime
   updatedAt: DateTime!
 }
 
@@ -15436,8 +16015,11 @@ input IssueFilters {
   hasRemediation: Boolean
   hasAutoRemediation: Boolean
   sourceControlType: [ControlType!]
+  statusChangedAt: IssueDateFilter
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
+  hasDueDate: Boolean
+  hasUserNote: Boolean
 }
 
 type IssueNote implements Node {
@@ -15459,6 +16041,7 @@ enum IssueOrderField {
   SEVERITY
   CREATED_AT
   RESOLVED_AT
+  STATUS_CHANGED_AT
 }
 
 enum IssueReportType {
@@ -15892,6 +16475,11 @@ enum LateralMovementStepType {
   DATA_ACCESS
 }
 
+type LayerMetadata {
+  details: String
+  id: ID!
+}
+
 enum License {
   GNU_AGPLV3
   GNU_GPLV2
@@ -15941,6 +16529,25 @@ type MalwareExclusionEdge {
   node: MalwareExclusion!
 }
 
+input ManualNetworkOutpostClusterAWSConfigInput {
+  vpcId: String!
+  subnetIds: [String!]!
+  securityGroupIds: [String!]!
+}
+
+input ManualNetworkOutpostClusterAzureConfigInput {
+  resourceGroupName: String!
+  vnetId: String!
+  subnetId: String!
+  dnsServiceIp: String
+  serviceCIDR: String
+  serviceAuthorizedIPRanges: [String!]
+}
+
+input ManualNetworkOutpostClusterInput {
+  perCloudConfig: PerCloudManualNetworkOutpostClusterConfigInput!
+}
+
 type MigrateUsersPayload {
   success: Boolean!
 }
@@ -15948,6 +16555,7 @@ type MigrateUsersPayload {
 type Mutation {
   addSecurityScan(input: AddSecurityScanInput!): AddSecurityScanPayload!
   associateServiceTicket(input: AssociateServiceTicketInput!): AssociateServiceTicketPayload!
+  clearUIUserPreferences(input: ClearUIUserPreferencesInput!): ClearUIUserPreferencesPayload!
   completeAuthMigration: CompleteAuthMigrationStatusPayload!
   createActionTemplate(input: CreateActionTemplateInput!): CreateActionTemplatePayload
   createAutomationAction(input: CreateAutomationActionInput!): CreateAutomationActionPayload!
@@ -15957,11 +16565,12 @@ type Mutation {
   createCloudEventRule(input: CreateCloudEventRuleInput!): CreateCloudEventRulePayload!
   createComputeGroupTagsSet(input: CreateComputeGroupTagsSetInput!): CreateComputeGroupTagsSetPayload!
   createConnector(input: CreateConnectorInput!): CreateConnectorPayload!
-  createContainerImageScanPolicy(input: CreateContainerImageScanPolicyInput!): CreateContainerImageScanPolicyPayload! @deprecated(reason: "Use createCICDScanPolicy instead")
   createControl(input: CreateControlInput!): CreateControlPayload!
   createCustomIPRange(input: CreateCustomIPRangeInput!): CreateCustomIPRangePayload!
+  createDataClassifier(input: CreateDataClassifierInput!): CreateDataClassifierPayload!
   createHostConfigurationRule(input: CreateHostConfigurationRuleInput!): CreateHostConfigurationRulePayload!
   createIntegration(input: CreateIntegrationInput!): CreateIntegrationPayload!
+  createIssueNote(input: CreateIssueNoteInput!): CreateIssueNotePayload!
   createMalwareExclusion(input: CreateMalwareExclusionInput!): CreateMalwareExclusionPayload!
   createOutpost(input: CreateOutpostInput!): CreateOutpostPayload!
   createOutpostCluster(input: CreateOutpostClusterInput!): CreateOutpostClusterPayload!
@@ -15985,11 +16594,12 @@ type Mutation {
   deleteCloudEventRule(input: DeleteCloudEventRuleInput!): DeleteCloudEventRulePayload!
   deleteComputeGroupTagsSet(input: DeleteComputeGroupTagsSetInput): DeleteComputeGroupTagsSetPayload!
   deleteConnector(input: DeleteConnectorInput!): DeleteConnectorPayload!
-  deleteContainerImageScanPolicy(input: DeleteContainerImageScanPolicyInput!): DeleteContainerImageScanPolicyPayload! @deprecated(reason: "Use deleteCICDScanPolicy instead")
   deleteControl(input: DeleteControlInput!): DeleteControlPayload!
   deleteCustomIPRange(input: DeleteCustomIPRangeInput!): DeleteCustomIPRangePayload!
+  deleteDataClassifier(input: DeleteDataClassifierInput!): DeleteDataClassifierPayload!
   deleteHostConfigurationRule(input: DeleteHostConfigurationRuleInput!): DeleteHostConfigurationRulePayload!
   deleteIntegration(input: DeleteIntegrationInput!): DeleteIntegrationPayload!
+  deleteIssueNote(input: DeleteIssueNoteInput!): DeleteIssueNotePayload!
   deleteMalwareExclusion(input: DeleteMalwareExclusionInput!): DeleteMalwareExclusionPayload!
   deleteOutpost(input: DeleteOutpostInput!): DeleteOutpostPayload!
   deleteOutpostCluster(input: DeleteOutpostClusterInput!): DeleteOutpostClusterPayload!
@@ -16011,10 +16621,7 @@ type Mutation {
   initiateDiskScanVirtualMachine(input: InitiateDiskScanVirtualMachineInput!): InitiateDiskScanVirtualMachinePayload!
   initiateDiskScanVirtualMachineImage(input: InitiateDiskScanVirtualMachineImageInput!): InitiateDiskScanVirtualMachineImagePayload!
   initiateIACScan(input: initiateIACScanInput!): initiateIACScanPayload!
-  initiateVirtualMachineImageScan(input: InitiateVirtualMachineImageScanInput!): InitiateVirtualMachineImageScanPayload! @deprecated(reason: "Use the initiateDiskScanVirtualMachineImage instead")
-  initiateVirtualMachineScan(resourceId: ID!): InitiateVirtualMachineScanPayload! @deprecated(reason: "Use the initiateDiskScanVirtualMachine instead")
   migrateUsers: MigrateUsersPayload!
-  processContainerImageScan(policyName: String, scanFileId: ID!): ContainerImageScanResult! @deprecated(reason: "Use the initiate* and finalizeCICDScan instead")
   reassessIssue(input: ReassessIssueInput!): ReassessIssuePayload!
   RegisterAgent(input: RegisterAgentInput!): RegisterAgentPayload!
   requestConnectorEntityScan(input: RequestConnectorEntityScanInput!): RequestScanPayload
@@ -16034,24 +16641,27 @@ type Mutation {
   updateAutomationRule(input: UpdateAutomationRuleInput!): UpdateAutomationRulePayload!
   updateBasicAuthSettings(input: UpdateBasicAuthSettingsInput!): UpdateBasicAuthSettingsPayload!
   updateCICDScanPolicy(input: UpdateCICDScanPolicyInput): UpdateCICDScanPolicyPayload!
+  updateCloudConfigurationFinding(input: UpdateFindingInput!): UpdateCloudConfigurationFindingPayload!
   updateCloudConfigurationRule(input: UpdateCloudConfigurationRuleInput!): UpdateCloudConfigurationRulePayload!
   updateCloudConfigurationRules(input: UpdateCloudConfigurationRulesInput!): UpdateCloudConfigurationRulesPayload!
   updateCloudEventRule(input: UpdateCloudEventRuleInput!): UpdateCloudEventRulePayload!
   updateComputeGroupTagsSet(input: UpdateComputeGroupTagsSetInput!): UpdateComputeGroupTagsSetPayload!
   updateConnector(input: UpdateConnectorInput!): UpdateConnectorPayload!
-  updateContainerImageScanPolicy(input: UpdateContainerImageScanPolicyInput!): UpdateContainerImageScanPolicyPayload! @deprecated(reason: "Use updateCICDScanPolicy instead")
   updateControl(input: UpdateControlInput!): UpdateControlPayload!
   updateControls(input: UpdateControlsInput!): UpdateControlsPayload!
   updateCustomIPRange(input: UpdateCustomIPRangeInput!): UpdateCustomIPRangePayload!
+  updateDataClassifier(input: UpdateDataClassifierInput!): UpdateDataClassifierPayload!
   updateDataScannerSettings(input: UpdateDataScannerSettingsInput!): UpdateDataScannerSettingsPayload!
   updateDigitalTrustDashboardSettings(input: UpdateDigitalTrustDashboardSettingsInput!): UpdateDigitalTrustDashboardSettingsPayload!
   updateExternalExposureScannerSettings(input: UpdateExternalExposureScannerSettingsInput!): UpdateExternalExposureScannerSettingsPayload!
   updateGraphEntity(input: UpdateGraphEntityInput!): UpdateGraphEntityPayload!
   updateHostConfigurationRule(input: UpdateHostConfigurationRuleInput!): UpdateHostConfigurationRulePayload!
+  updateHostConfigurationRuleAssessment(input: UpdateFindingInput!): UpdateHostConfigurationRuleAssessmentPayload!
   updateHostConfigurationRules(input: UpdateHostConfigurationRulesInput!): UpdateHostConfigurationRulesPayload!
   updateIntegration(input: UpdateIntegrationInput!): UpdateIntegrationPayload!
   updateIPRestrictions(input: UpdateIPRestrictionsInput!): UpdateIPRestrictionsPayload!
   updateIssue(input: UpdateIssueInput!): UpdateIssuePayload!
+  updateIssueNote(input: UpdateIssueNoteInput!): UpdateIssueNotePayload!
   updateIssues(input: UpdateIssuesInput!): UpdateIssuesPayload!
   updateIssueSettings(input: UpdateIssueSettingsInput!): UpdateIssueSettingsPayload!
   updateLoginSettings(input: UpdateLoginSettingsInput!): UpdateLoginSettingsPayload!
@@ -16072,10 +16682,12 @@ type Mutation {
   updateSecurityScan(input: UpdateSecurityScanInput!): UpdateSecurityScanPayload!
   updateSessionLifetimeSettings(input: UpdateSessionLifetimeSettingsInput!): UpdateSessionLifetimeSettingsPayload!
   updateTechnology(input: UpdateTechnologyInput!): UpdateTechnologyPayload!
+  updateUIUserPreferences(input: UpdateUIUserPreferencesInput!): UpdateUIUserPreferencesPayload!
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
   updateViewerPreferences(input: UpdateViewerPreferencesInput!): UpdateViewerPreferencesPayload!
   updateVulnerability(input: UpdateVulnerabilityInput!): UpdateVulnerabilityPayload!
   updateVulnerabilityFinding(input: UpdateFindingInput!): UpdateVulnerabilityFindingPayload!
+  uploadSmoochSupportChatFile(input: SmoochFileUploadInput!): SmoochFileUploadPayload!
   UpsertAgentTelemetry(input: UpsertAgentTelemetryInput!): UpsertAgentTelemetryPayload!
 }
 
@@ -16300,6 +16912,20 @@ type Outpost implements Node {
   uninstalledAt: DateTime
 }
 
+type OutpostAlibabaConfig {
+  outpostCredentials: AlibabaOutpostCredentials
+  settingsRegion: String!
+  stateBucketName: String
+  workerResourcesGroupID: String!
+}
+
+input OutpostAlibabaConfigInput {
+  outpostCredentials: AlibabaOutpostCredentialsInput
+  workerResourcesGroupID: String!
+  stateBucketName: String!
+  settingsRegion: String!
+}
+
 type OutpostAssets {
   url: String!
 }
@@ -16307,6 +16933,7 @@ type OutpostAssets {
 type OutpostAWSConfig {
   accessKey: String!
   externalID: String!
+  resultsBucketName: String
   roleARN: String!
   secretKey: String!
   settingsRegion: String
@@ -16320,6 +16947,7 @@ input OutpostAWSConfigInput {
   secretKey: String
   stateBucketName: String
   settingsRegion: String
+  resultsBucketName: String
 }
 
 type OutpostAzureConfig {
@@ -16343,6 +16971,8 @@ input OutpostAzureConfigInput {
   environment: String
   orchestratorClientID: String!
   orchestratorClientSecret: String!
+  orchestratorClientPrivateKeyPem: String
+  orchestratorClientCertificatePem: String
   workerClientID: String
   workerClientSecret: String
   keyVaultName: String!
@@ -16358,9 +16988,15 @@ type OutpostCluster implements Node {
   createdAt: DateTime!
   httpProxyConfig: OutpostClusterHttpProxyConfig
   id: ID!
+  internetAccessConfig: OutpostClusterInternetAccessConfig
   outpost: Outpost!
   region: String!
   serviceType: OutpostClusterServiceType!
+}
+
+type OutpostClusterAlibabaConfig {
+  clusterName: String!
+  queueName: String!
 }
 
 type OutpostClusterAWSConfig {
@@ -16368,6 +17004,7 @@ type OutpostClusterAWSConfig {
   httpProxyURL: String @deprecated(reason: "Use httpProxyConfig->httpProxyURL instead")
   httpsProxyURL: String @deprecated(reason: "Use httpProxyConfig->httpsProxyURL instead")
   kubernetesServiceAccountName: String
+  regionalReplicaImageRepository: String
   regionalReplicaStateBucketName: String
   securityGroupIds: [String!]!
   sqsURL: String!
@@ -16384,6 +17021,7 @@ input OutpostClusterAWSConfigInput {
   sqsURL: String!
   kubernetesServiceAccountName: String
   regionalReplicaStateBucketName: String
+  regionalReplicaImageRepository: String
 }
 
 type OutpostClusterAzureConfig {
@@ -16412,7 +17050,7 @@ input OutpostClusterAzureConfigInput {
   nodeResourceGroup: String
 }
 
-union OutpostClusterConfig = OutpostClusterAWSConfig | OutpostClusterAzureConfig | OutpostClusterGCPConfig | OutpostClusterOCIConfig
+union OutpostClusterConfig = OutpostClusterAWSConfig | OutpostClusterAzureConfig | OutpostClusterGCPConfig | OutpostClusterOCIConfig | OutpostClusterAlibabaConfig
 
 input OutpostClusterConfigInput {
   awsConfig: OutpostClusterAWSConfigInput
@@ -16451,8 +17089,14 @@ input OutpostClusterHttpProxyConfigInput {
   vpcCIDR: String
 }
 
-input OutpostClusterInternetAccessCertificatesInput {
+type OutpostClusterInternetAccessConfig {
   skipSslValidation: Boolean
+  trustedCA: String
+}
+
+input OutpostClusterInternetAccessConfigInput {
+  skipSslValidation: Boolean
+  trustedCA: String
 }
 
 type OutpostClusterOCIConfig {
@@ -16465,15 +17109,17 @@ enum OutpostClusterServiceType {
   GCP
   AZURE
   OCI
+  Alibaba
 }
 
-union OutpostConfig = OutpostAWSConfig | OutpostGCPConfig | OutpostAzureConfig | OutpostOCIConfig
+union OutpostConfig = OutpostAWSConfig | OutpostGCPConfig | OutpostAzureConfig | OutpostOCIConfig | OutpostAlibabaConfig
 
 input OutpostConfigInput {
   awsConfig: OutpostAWSConfigInput
   gcpConfig: OutpostGCPConfigInput
   azureConfig: OutpostAzureConfigInput
   ociConfig: OutpostOCIConfigInput
+  alibabaConfig: OutpostAlibabaConfigInput
 }
 
 type OutpostConnection {
@@ -16538,10 +17184,10 @@ input OutpostGCPConfigInput {
 }
 
 type OutpostManagedConfig {
-  bringYourOwnNetworkOutpost: Boolean
   enableNatGateway: Boolean
   kubernetesCloudMonitoringEnabled: Boolean
   kubernetesLoggingEnabled: Boolean
+  manualNetwork: Boolean
   resourceTags: [OutpostCustomTag!]
 }
 
@@ -16585,6 +17231,7 @@ enum OutpostServiceType {
   GCP
   AZURE
   OCI
+  Alibaba
 }
 
 enum OutpostStatus {
@@ -16634,9 +17281,9 @@ type PagerDutyIntegrationParams {
   integrationKey: String!
 }
 
-input PerCloudBYONOutpostClusterConfigInput {
-  awsConfig: BYONOutpostClusterAWSConfigInput
-  azureConfig: BYONOutpostClusterAzureConfigInput
+input PerCloudManualNetworkOutpostClusterConfigInput {
+  awsConfig: ManualNetworkOutpostClusterAWSConfigInput
+  azureConfig: ManualNetworkOutpostClusterAzureConfigInput
 }
 
 input PerCloudSelfManagedOutpostClusterInput {
@@ -16763,6 +17410,7 @@ enum ProductFeature {
   SOVEREIGN_CLOUD
   SCHEDULED_REPORTS
   ADVANCED_SUPPORT
+  ADMISSION_CONTROLLER
 }
 
 type Project implements Node {
@@ -16790,6 +17438,7 @@ type Project implements Node {
   projectOwners: [User!]!
   repositoryCount: Int!
   repositoryLinks: [ProjectRepositoryLink!]!
+  resourceTagLinks: [ProjectResourceTagLink!]!
   riskProfile: ProjectRiskProfile!
   securityChampions: [User!]!
   securityScore: Int! @deprecated(reason: "Deprecated, use complianceAnalytics.score instead")
@@ -16808,7 +17457,7 @@ enum ProjectCategory {
 }
 
 type ProjectCloudAccountLink {
-  cloudAccount: CloudAccount!
+  cloudAccount: CloudAccount
   environment: Environment!
   resourceGroups: [String!]
   resourceTags: [ResourceTag!]
@@ -16824,7 +17473,7 @@ input ProjectCloudAccountLinkInput {
 }
 
 type ProjectCloudOrganizationLink {
-  cloudOrganization: CloudOrganization!
+  cloudOrganization: CloudOrganization
   environment: Environment!
   resourceGroups: [String!]
   resourceTags: [ResourceTag!]
@@ -16920,7 +17569,7 @@ input ProjectIssueAnalyticsSelection {
 
 type ProjectKubernetesClusterLink {
   environment: Environment!
-  kubernetesCluster: KubernetesCluster!
+  kubernetesCluster: KubernetesCluster
   namespaces: [String!]
   shared: Boolean!
 }
@@ -16948,6 +17597,16 @@ type ProjectRepositoryLink {
 
 input ProjectRepositoryLinkInput {
   repository: String!
+}
+
+type ProjectResourceTagLink {
+  environment: Environment!
+  resourceTags: [ResourceTag!]!
+}
+
+input ProjectResourceTagsLinkInput {
+  environment: Environment!
+  resourceTags: [ResourceTagInput!]!
 }
 
 type ProjectRiskProfile {
@@ -17042,8 +17701,6 @@ type Query {
   automationRule(id: ID!): AutomationRule
   automationRules(after: String, filterBy: AutomationRuleFilters, first: Int): AutomationRuleConnection!
   availableRegions(region: String): AvailableRegions!
-  backendScanResults(payload: String!, policyName: String): ContainerImageScanResult!
-  backendScanStatus(payload: String!): BackendScanStatusPayload!
   basicAuthSettings: BasicAuthSettings
   billableWorkloadTrend(endDate: DateTime!, maxResults: Int, project: [String!], startDate: DateTime!): BillableWorkloadTrendData!
   builtinControl(slug: ID!): Control
@@ -17081,8 +17738,6 @@ type Query {
   connectorTypes: [ConnectorType!]!
   containerImage(id: ID!): ContainerImageBase
   containerImages(after: String, filterBy: ContainerImageFilters, first: Int, orderBy: ContainerImageOrder): ContainerImageConnection!
-  containerImageScanPolicies(after: String, filterBy: ContainerImageScanPolicyFilters, first: Int, orderBy: ContainerImageScanPolicyOrder): ContainerImageScanPolicyConnection! @deprecated(reason: "Use cicdScanPolicies instead")
-  containerImageScanPolicy(id: ID!): ContainerImageScanPolicy @deprecated(reason: "Use cicdScanPolicy instead")
   containerRegistries(after: String, filterBy: ContainerRegistryFilters, first: Int, orderBy: ContainerRegistryOrder): ContainerRegistryConnection!
   containerRepositories(after: String, filterBy: ContainerRepositoryFilters, first: Int, orderBy: ContainerRepositoryOrder): ContainerRepositoryConnection!
   control(id: ID!): Control
@@ -17092,15 +17747,19 @@ type Query {
   customIPRanges(after: String, filterBy: CustomIPRangeFilters, first: Int): CustomIPRangeConnection!
   dashboard(id: ID!): Dashboard
   dashboards(after: String, filterBy: DashboardFilters, first: Int): DashboardConnection!
+  dataClassifier(id: ID!): DataClassifier
   dataClassifiers(after: String, filterBy: DataClassifierFilters, first: Int): DataClassifierConnection!
+  dataClassifierTest(classifier: DataClassifierTestMatchInput!, data: String!): DataClassifierTestMatchResult!
   dataScannerSettings: DataScannerSettings!
   digitalTrustDashboardSettings: DigitalTrustDashboardSettings!
   directoryUser(id: ID!): DirectoryUser
   directoryUsers(after: String, first: Int, search: String): DirectoryUserConnection!
   externalExposureScannerSettings: ExternalExposureScannerSettings!
+  getReportAvailableColumns(input: GetReportAvailableColumnsInput!): GetReportAvailableColumnsPayload!
   graphEntity(id: ID!): GraphEntity
   graphSearch(after: String, controlId: ID, first: Int, projectId: String, query: GraphEntityQueryInput, quick: Boolean): GraphSearchResultConnection!
   hostConfigurationRule(id: ID!): HostConfigurationRule
+  hostConfigurationRuleAssessment(id: String): HostConfigurationRuleAssessment!
   hostConfigurationRuleAssessments(after: String, filterBy: HostConfigurationRuleAssessmentFilters, first: Int, orderBy: HostConfigurationRuleAssessmentOrder): HostConfigurationRuleAssessmentConnection!
   hostConfigurationRules(after: String, filterBy: HostConfigurationRuleFilters, first: Int, orderBy: HostConfigurationRuleOrder): HostConfigurationRuleConnection!
   hostConfigurationRuleTargetPlatform(id: ID!): HostConfigurationRuleTargetPlatform
@@ -17185,6 +17844,7 @@ type Query {
   testAutomationAction(id: ID!): AutomationActionTestResult!
   testConnectorConfig(authParams: JSON!, type: ID!): ConnectorConfigTestResult!
   testIntegrationAction(input: TestIntegrationActionInput!): IntegrationActionTestResult!
+  uiUserPreferences: UIUserPreferences!
   user(id: ID!): User
   userRoles(after: String, first: Int): UserRoleConnection!
   users(after: String, filterBy: UserFilters, first: Int): UserConnection!
@@ -17247,10 +17907,12 @@ enum RegulatoryStandard {
 }
 
 type Report implements Node {
+  columnSelection: [String!]
   createdBy: User!
   emailTarget: EmailTarget
   id: ID!
   lastRun: ReportRun
+  lastSuccessfulRun: ReportRun
   name: String!
   nextRunAt: DateTime
   parameters: ReportParameters! @deprecated(reason: "Use params instead")
@@ -17296,7 +17958,7 @@ type ReportParameters {
   subscriptions: [GraphEntity]
 }
 
-union ReportParams = ReportParamsGraphQuery | ReportParamsVulnerabilities | ReportParamsComplianceExecutiveSummary | ReportParamsNetworkExposure | ReportParamsConfigurationFindings | ReportParamsSecurityFramework | ReportParamsIssue | ReportParamsHostConfiguration | ReportParamsCloudResource
+union ReportParams = ReportParamsGraphQuery | ReportParamsVulnerabilities | ReportParamsComplianceExecutiveSummary | ReportParamsComplianceAssessments | ReportParamsNetworkExposure | ReportParamsConfigurationFindings | ReportParamsSecurityFramework | ReportParamsIssue | ReportParamsHostConfiguration | ReportParamsCloudResource
 
 type ReportParamsCloudResource {
   cloudPlatform: [String!]
@@ -17306,6 +17968,13 @@ type ReportParamsCloudResource {
   nativeType: [String!]
   region: [String!]
   subscriptionId: [String!]
+}
+
+type ReportParamsComplianceAssessments {
+  categories: [SecurityFramework]
+  frameworks: [SecurityFramework]
+  result: [PolicyAssessmentResult]
+  subscriptions: [GraphEntity]
 }
 
 type ReportParamsComplianceExecutiveSummary {
@@ -17588,7 +18257,6 @@ type RunIssuesAutomationActionPayload {
 }
 
 input RunIssuesIntegrationInput {
-  issueIds: [String!]
   issueFilters: IssueFilters
   integrationId: ID!
   actionTemplateType: ActionTemplateType!
@@ -18100,6 +18768,7 @@ input ServiceNowActionCreateTicketTemplateParamsInput {
 }
 
 type ServiceNowActionUpdateTicketTemplateParams {
+  attachIssuesReport: Boolean
   fields: JSON
   tableName: String!
 }
@@ -18107,6 +18776,7 @@ type ServiceNowActionUpdateTicketTemplateParams {
 input ServiceNowActionUpdateTicketTemplateParamsInput {
   tableName: String!
   fields: JSON
+  attachIssuesReport: Boolean
 }
 
 type ServiceNowAutomationActionParams {
@@ -18201,23 +18871,22 @@ type SignConnectorParamsResult {
 }
 
 type SlackActionTemplateParams {
-  channel: String
+  channel: String @deprecated(reason: "This parameter is no longer supported by Slack")
   note: String
 }
 
 input SlackActionTemplateParamsInput {
   note: String
-  channel: String
 }
 
 type SlackIntegrationParams {
-  channel: String
+  channel: String @deprecated(reason: "This parameter is no longer supported by Slack")
   url: String!
 }
 
 type SlackMessageAutomationActionParams {
-  channel: String
-  note: String
+  channel: String @deprecated(reason: "This parameter is no longer supported by Slack")
+  note: String @deprecated(reason: "This parameter is no longer supported by Slack")
   url: String!
 }
 
@@ -18226,13 +18895,20 @@ type SmoochAuth {
   token: String!
 }
 
+input SmoochFileUploadInput {
+  conversationId: String!
+  fileName: String!
+  content: String!
+}
+
+type SmoochFileUploadPayload {
+  fileUploadUrl: String!
+}
+
 type StaticDataPayload {
-  diskAnalayzerUrl: StaticDataURL! @deprecated(reason: "replaced by diskAnalyzerUrl")
   diskAnalyzerOvalWindowsUrl: StaticDataURL!
   diskAnalyzerUrl: StaticDataURL!
   iacRegoLibsUrl: StaticDataURL!
-  url: String! @deprecated(reason: "replaced by diskAnalyzerUrl.url")
-  version: String! @deprecated(reason: "replaced by diskAnalyzerUrl.version")
 }
 
 type StaticDataURL {
@@ -18326,6 +19002,7 @@ type SystemActivityEdge {
 input SystemActivityFilters {
   search: String
   automationActionId: [String!]
+  integrationId: [String!]
   ruleId: [String!]
   issueId: [String!]
   resourceId: [String!]
@@ -18360,7 +19037,7 @@ type SystemActivityIntegrationActionContext {
 
 type SystemActivityIntegrationActionSnapshot {
   id: String!
-  params: JSON!
+  params: JSON
   type: String!
 }
 
@@ -18715,6 +19392,10 @@ input TLSConfigInput {
   clientPrivateKey: String
 }
 
+type UIUserPreferences {
+  preferences: JSON!
+}
+
 input UninstallOutpostInput {
   id: ID!
 }
@@ -18808,7 +19489,7 @@ input UpdateCICDScanPolicyDiskVulnerabilitiesPatch {
   packageCountThreshold: Int
   ignoreUnfixed: Boolean
   packageAllowList: [String!]
-  detectionMethods: [CICDPolicyVulnerabilityDetectionMethod!]
+  detectionMethods: [VulnerabilityDetectionMethod!]
 }
 
 input UpdateCICDScanPolicyIACPatch {
@@ -18835,6 +19516,10 @@ input UpdateCICDScanPolicyPatch {
 
 type UpdateCICDScanPolicyPayload {
   scanPolicy: CICDScanPolicy
+}
+
+type UpdateCloudConfigurationFindingPayload {
+  configurationFinding: ConfigurationFinding
 }
 
 input UpdateCloudConfigurationRuleInput {
@@ -18943,24 +19628,6 @@ type UpdateConnectorPayload {
   connector: Connector
 }
 
-input UpdateContainerImageScanPolicyInput {
-  id: ID!
-  patch: UpdateContainerImageScanPolicyPatch!
-}
-
-input UpdateContainerImageScanPolicyPatch {
-  name: String
-  description: String
-  packageAllowlist: [String!]
-  packageCountThreshold: Int
-  severityThreshold: ContainerImageVulnerabilitySeverity
-  ignoreUnfixed: Boolean
-}
-
-type UpdateContainerImageScanPolicyPayload {
-  scanPolicy: ContainerImageScanPolicy
-}
-
 input UpdateControlInput {
   id: ID!
   patch: UpdateControlPatch!
@@ -19023,6 +19690,31 @@ input UpdateCustomIPRangePatch {
 
 type UpdateCustomIPRangePayload {
   customIPRange: CustomIPRange
+}
+
+input UpdateDataClassifierInput {
+  id: ID!
+  patch: UpdateDataClassifierPatch!
+}
+
+input UpdateDataClassifierPatch {
+  name: String
+  description: String
+  enabled: Boolean
+  category: DataClassifierCategory
+  valueRegex: String
+  excludeRegex: String
+  keyRegex: String
+  minLength: Int
+  maxLength: Int
+  minUniqueMatches: Int
+  opaValidator: String
+  exampleCount: Int
+  anonymizerType: DataAnonymizerType
+}
+
+type UpdateDataClassifierPayload {
+  dataClassifier: DataClassifier!
 }
 
 input UpdateDataScannerSettingsInput {
@@ -19133,6 +19825,10 @@ type UpdateGraphEntityPayload {
   graphEntity: GraphEntity
 }
 
+type UpdateHostConfigurationRuleAssessmentPayload {
+  hostConfigurationRuleAssessment: HostConfigurationRuleAssessment
+}
+
 input UpdateHostConfigurationRuleInput {
   id: ID!
   patch: UpdateHostConfigurationRulePatch!
@@ -19144,6 +19840,7 @@ input UpdateHostConfigurationRulePatch {
   securitySubCategories: [String!]
   name: String
   description: String
+  remediationInstructions: String
   directOVAL: String
   targetPlatformIds: [String!]
 }
@@ -19213,6 +19910,19 @@ input UpdateIssueInput {
   id: ID!
   patch: UpdateIssuePatch
   override: UpdateIssuePatch
+}
+
+input UpdateIssueNoteInput {
+  id: ID!
+  patch: UpdateIssueNotePatch!
+}
+
+input UpdateIssueNotePatch {
+  text: String!
+}
+
+type UpdateIssueNotePayload {
+  issueNote: IssueNote!
 }
 
 input UpdateIssuePatch {
@@ -19342,8 +20052,13 @@ type UpdateMalwareExclusionPayload {
   malwareExclusion: MalwareExclusion
 }
 
+input UpdateOutpostAlibabaConfigInput {
+  stateBucketName: String
+}
+
 input UpdateOutpostAWSConfigInput {
   stateBucketName: String
+  resultsBucketName: String
 }
 
 input UpdateOutpostAzureConfigInput {
@@ -19355,6 +20070,7 @@ input UpdateOutpostConfigInput {
   gcpConfig: UpdateOutpostGCPConfigInput
   azureConfig: UpdateOutpostAzureConfigInput
   ociConfig: UpdateOutpostOCIConfigInput
+  alibabaConfig: UpdateOutpostAlibabaConfigInput
 }
 
 input UpdateOutpostCustomConfigInput {
@@ -19394,6 +20110,7 @@ input UpdateOutpostPatch {
   gcpConfig: UpdateOutpostGCPConfigInput
   azureConfig: UpdateOutpostAzureConfigInput
   ociConfig: UpdateOutpostOCIConfigInput
+  alibabaConfig: UpdateOutpostAlibabaConfigInput
   selfManagedConfig: UpdateOutpostSelfManagedConfigInput
   managedConfig: UpdateOutpostManagedConfigInput
   podAnnotations: [UpdateOutpostCustomTagInput!]
@@ -19443,6 +20160,8 @@ input UpdateProjectPatch {
   cloudAccountLinks: [ProjectCloudAccountLinkInput!]
   cloudOrganizationLinks: [ProjectCloudOrganizationLinkInput!]
   kubernetesClusterLinks: [ProjectKubernetesClusterLinkInput!]
+  resourceTagLinks: [ProjectResourceTagsLinkInput!]
+  slug: String
 }
 
 type UpdateProjectPayload {
@@ -19457,12 +20176,14 @@ input UpdateReportChange {
   graphQueryParams: UpdateReportGraphQueryParamsInput
   vulnerabilityParams: UpdateReportVulnerabilityParamsInput
   complianceExecutiveSummaryParams: UpdateReportComplianceExecutiveSummaryParamsInput
+  complianceAssessmentsParams: UpdateReportComplianceAssessmentsParamsInput
   networkExposureParams: UpdateReportNetworkExposureParamsInput
   configurationFindingParams: UpdateReportConfigurationFindingParamsInput
   securityFrameworkParams: UpdateReportSecurityFrameworkParamsInput
   issueParams: UpdateReportIssuesParamsInput
   hostConfigurationParams: UpdateReportHostConfigurationParamsInput
   cloudResourceParams: UpdateReportCloudResourceParamsInput
+  columnSelection: [String!]
 }
 
 input UpdateReportCloudResourceParamsInput {
@@ -19473,6 +20194,13 @@ input UpdateReportCloudResourceParamsInput {
   nativeType: [String!]
   region: [String!]
   cloudPlatform: [String!]
+}
+
+input UpdateReportComplianceAssessmentsParamsInput {
+  subscriptionIds: [String!]
+  securityFrameworkIds: [String!]
+  securityCategories: [String!]
+  result: [PolicyAssessmentResult!]
 }
 
 input UpdateReportComplianceExecutiveSummaryParamsInput {
@@ -19740,13 +20468,10 @@ type UpdateSessionLifetimeSettingsPayload {
 
 input UpdateSlackIntegrationParamsInput {
   url: String
-  channel: String
 }
 
 input UpdateSlackMessageAutomationActionParamsInput {
   url: String
-  note: String
-  channel: String
 }
 
 input UpdateTechnologyInput {
@@ -19761,6 +20486,15 @@ input UpdateTechnologyPatch {
 
 type UpdateTechnologyPayload {
   technology: Technology
+}
+
+input UpdateUIUserPreferencesInput {
+  patch: JSON
+  override: JSON
+}
+
+type UpdateUIUserPreferencesPayload {
+  preferences: UIUserPreferences
 }
 
 input UpdateUserInput {
@@ -19856,7 +20590,8 @@ type User implements Node {
   identityProviderType: UserIdentityProviderType!
   intercomUserHash: String
   ipAddress: String
-  isProjectScoped: Boolean!
+  isAnalyticsEnabled: Boolean!
+  isProjectScoped: Boolean! @deprecated(reason: "use isProjectScoped property from the role instead")
   isSuspended: Boolean!
   lastLoginAt: DateTime
   manualOverrideAssignedProjects: [Project]
@@ -20023,6 +20758,7 @@ enum VulnerabilityDetectionMethod {
   WINDOWS_SERVICE
   INSTALLED_PROGRAM_BY_SERVICE
   FILE_PATH
+  UNKNOWN
 }
 
 type VulnerabilityEdge {
@@ -20059,6 +20795,7 @@ type VulnerabilityFinding {
   id: ID!
   impactScore: Float
   lastDetectedAt: DateTime!
+  layerMetadata: LayerMetadata
   link: String
   locationPath: String
   name: String!
