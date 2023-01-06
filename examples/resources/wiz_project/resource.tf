@@ -1,5 +1,14 @@
-# This resource contains multiple organization links, one with tags and another without
+# A simple example
+resource "wiz_project" "test" {
+  name        = "Test App"
+  description = "My project description"
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+}
 
+# This resource contains multiple organization links, one with tags and another without
 resource "wiz_project" "test" {
   name        = "Test App"
   description = "My project description"
@@ -27,8 +36,7 @@ resource "wiz_project" "test" {
   }
 }
 
-# A simple example
-
+# This resource contains a single cloud account link, with tag
 resource "wiz_project" "test" {
   name        = "Test App"
   description = "My project description"
@@ -36,4 +44,28 @@ resource "wiz_project" "test" {
     business_impact = "MBI"
   }
   business_unit = "Technology"
+  cloud_account_link {
+    cloud_account_id = "3225def3-0e0e-5cb8-955a-3583f696f778"
+    environment      = "PRODUCTION"
+    resource_tags {
+      key   = "created_by"
+      value = "terraform"
+    }
+  }
+}
+
+# This resource contains a single kubernetes cluster link
+resource "wiz_project" "test" {
+  name        = "My Kubernetes Project"
+  description = "My project description"
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+  kubernetes_cluster_link {
+    kubernetes_cluster = "77de7ca1-02f9-5ed2-a94b-5d19c683efaf"
+    environment        = "STAGING"
+    shared             = true
+    namespaces         = ["kube-system"]
+  }
 }
