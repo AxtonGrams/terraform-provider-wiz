@@ -33,10 +33,10 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_url": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "The authentication endpoint. (default: https://auth.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)",
+					Description: "The authentication endpoint. (default: https://auth.app.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_URL",
-						"https://auth.wiz.io/oauth/token",
+						"https://auth.app.wiz.io/oauth/token",
 					),
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.IsURLWithHTTPorHTTPS,

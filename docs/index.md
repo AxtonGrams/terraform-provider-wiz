@@ -57,4 +57,4 @@ provider "wiz" {
 - `proxy_server` (String) Proxy server address.  Syntax: http[s]://[host]:[port]. (default: none, environment variable: PROXY_SERVER)
 - `wiz_auth_audience` (String) Set this to 'beyond-api' if using auth0 and 'wiz-api' if using Cognito. (default: wiz-api, environment variable: WIZ_AUTH_AUDIENCE)
 - `wiz_auth_grant_type` (String) Set this to 'client_credentials'. (default: client_credentials, environment variable: WIZ_AUTH_GRANT_TYPE)
-- `wiz_auth_url` (String) The authentication endpoint. (default: https://auth.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)
+- `wiz_auth_url` (String) The authentication endpoint. (default: https://auth.app.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)
