@@ -2292,3 +2292,288 @@ type HostConfigurationRuleEdge struct {
 	Cursor string                `json:"cursor"`
 	Node   HostConfigurationRule `json:"node"`
 }
+
+// GraphEntityQueryInput struct
+type GraphEntityQueryInput struct {
+	Type                []string                       `json:"type"` //enum GraphEntityType
+	As                  *string                        `json:"as,omitempty"`
+	Relationships       []*GraphRelationshipQueryInput `json:"relationships,omitempty"`
+	Where               interface{}                    `json:"where,omitempty"` //scalar GraphPropertyPredicate
+	Select              *bool                          `json:"select,omitempty"`
+	Aggregate           *bool                          `json:"aggregate,omitempty"`
+	AggregateConstraint []interface{}                  `json:"aggregateConstraint,omitempty"` //scalar GraphPropertyPredicate
+	BlockName           *string                        `json:"blockName,omitempty"`
+	BlockExpanded       *bool                          `json:"blockExpanded,omitempty"`
+}
+
+// GraphRelationshipQueryInput struct
+type GraphRelationshipQueryInput struct {
+	Type     []GraphDirectedRelationshipTypeInput `json:"type"`
+	With     GraphEntityQueryInput                `json:"with"`
+	Negate   *bool                                `json:"negate,omitempty"`
+	Optional *bool                                `json:"optional,omitempty"`
+}
+
+// GraphDirectedRelationshipTypeInput struct
+type GraphDirectedRelationshipTypeInput struct {
+	Type    string `json:"type"` //enum GraphRelationshipType
+	Reverse *bool  `json:"reverse,omitempty"`
+}
+
+// GraphEntity struct
+// We deviate from the GraphQL schema and omit unused fields due to the high number of vertices
+type GraphEntity struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// GraphSearchResult struct
+type GraphSearchResult struct {
+	AggregateCount *int          `json:"aggregateCount"`
+	Entities       []GraphEntity `json:"entities"`
+}
+
+// GraphSearchResultConnection struct
+type GraphSearchResultConnection struct {
+	Nodes           []*GraphSearchResult     `json:"nodes"`
+	Edges           []*GraphSearchResultEdge `json:"edges"`
+	PageInfo        PageInfo                 `json:"pageInfo"`
+	TotalCount      int                      `json:"totalCount"`
+	MaxCountReached bool                     `json:"maxCountReached"`
+}
+
+// GraphSearchResultEdge struct
+type GraphSearchResultEdge struct {
+	AggregateCount *int          `json:"aggregateCount"`
+	Entities       []GraphEntity `json:"entities"`
+}
+
+// GraphRelationshipType enum
+var GraphRelationshipType = []string{
+	"ANY",
+	"ANY_OUTGOING",
+	"ACTING_AS",
+	"ADMINISTRATE",
+	"ALERTED_ON",
+	"ALLOWS",
+	"ALLOWS_ACCESS_TO",
+	"APPLIES_TO",
+	"ASSIGNED_TO",
+	"ATTACHED_TO",
+	"BEHIND",
+	"BOOTS",
+	"BUILT_FROM",
+	"CAUSES",
+	"COLLABORATES",
+	"CONNECTED_TO",
+	"CONTAINS",
+	"CONTAINS_DST_IP_RANGE",
+	"CONTAINS_DST_PORT_RANGE",
+	"CONTAINS_SRC_IP_RANGE",
+	"CONTAINS_SRC_PORT_RANGE",
+	"DENIES",
+	"DEPENDS_ON",
+	"DEPLOYED_TO",
+	"ENCRYPTS",
+	"ENCRYPTS_PARTITION",
+	"ENTITLES",
+	"EXCLUDES",
+	"EXPOSES",
+	"GOVERNS",
+	"HAS",
+	"HAS_BOUNDARY_POLICY",
+	"HAS_DATA_FINDING",
+	"HAS_DATA_INVENTORY",
+	"HAS_DATA_SCHEMA",
+	"HAS_DATA_STORE",
+	"HAS_ORGANIZATION_POLICY",
+	"HAS_PRINCIPAL_POLICY",
+	"HAS_RESOURCE_POLICY",
+	"HAS_SNAPSHOT",
+	"HAS_SOURCE",
+	"HAS_STANDARD_WEB_ACCESS_FROM",
+	"HAS_TECH",
+	"HOSTS",
+	"IGNORES",
+	"IMPLEMENTS",
+	"INCLUDES",
+	"INFECTS",
+	"INSIDE",
+	"INSTANCE_OF",
+	"INVOKES",
+	"LOGS_DATA_FOR",
+	"MANAGES",
+	"MOUNTS",
+	"OWNS",
+	"PART_OF",
+	"PEERED_TO",
+	"PERFORMED",
+	"PERFORMED_IMPERSONATED",
+	"PERMITS",
+	"POINTS_TO",
+	"PROTECTS",
+	"READS_DATA_FROM",
+	"REFERENCED_BY",
+	"REPLICA_OF",
+	"ROUTES_TRAFFIC_FROM",
+	"ROUTES_TRAFFIC_TO",
+	"RUNS",
+	"SCANNED",
+	"SEND_MESSAGES_TO",
+	"SERVES",
+	"STORES_DATA_IN",
+	"TRANSIT_PEERED_TO",
+	"USES",
+	"VALIDATES",
+}
+
+// GraphEntityType enum
+var GraphEntityType = []string{
+	"ANY",
+	"ACCESS_KEY",
+	"ACCESS_ROLE",
+	"ACCESS_ROLE_BINDING",
+	"ACCESS_ROLE_PERMISSION",
+	"API_GATEWAY",
+	"APPLICATION",
+	"AUTHENTICATION_CONFIGURATION",
+	"AUTHENTICATION_POLICY",
+	"BACKEND_BUCKET",
+	"BACKUP_SERVICE",
+	"BRANCH_PACKAGE",
+	"BUCKET",
+	"CALL_CENTER_SERVICE",
+	"CDN",
+	"CERTIFICATE",
+	"CICD_SERVICE",
+	"CLOUD_LOG_CONFIGURATION",
+	"CLOUD_ORGANIZATION",
+	"CLOUD_RESOURCE",
+	"COMPUTE_INSTANCE_GROUP",
+	"CONFIGURATION_FINDING",
+	"CONFIGURATION_RULE",
+	"CONFIGURATION_SCAN",
+	"CONFIG_MAP",
+	"CONTAINER",
+	"CONTAINER_GROUP",
+	"CONTAINER_IMAGE",
+	"CONTAINER_INSTANCE_GROUP",
+	"CONTAINER_REGISTRY",
+	"CONTAINER_REPOSITORY",
+	"CONTAINER_SERVICE",
+	"CONTROLLER_REVISION",
+	"DAEMON_SET",
+	"DATABASE",
+	"DATA_FINDING",
+	"DATA_INVENTORY",
+	"DATA_SCHEMA",
+	"DATA_STORE",
+	"DATA_WORKFLOW",
+	"DATA_WORKLOAD",
+	"DB_SERVER",
+	"DEPLOYMENT",
+	"DNS_RECORD",
+	"DNS_ZONE",
+	"DOMAIN",
+	"EMAIL_SERVICE",
+	"ENCRYPTION_KEY",
+	"ENDPOINT",
+	"EXCESSIVE_ACCESS_FINDING",
+	"FILE_DESCRIPTOR",
+	"FILE_DESCRIPTOR_FINDING",
+	"FILE_SYSTEM_SERVICE",
+	"FIREWALL",
+	"GATEWAY",
+	"GOVERNANCE_POLICY",
+	"GOVERNANCE_POLICY_GROUP",
+	"GROUP",
+	"HOSTED_APPLICATION",
+	"HOSTED_TECHNOLOGY",
+	"HOST_CONFIGURATION_FINDING",
+	"HOST_CONFIGURATION_RULE",
+	"IAC_DECLARATION_INSTANCE",
+	"IAC_RESOURCE_DECLARATION",
+	"IAC_STATE_INSTANCE",
+	"IAM_BINDING",
+	"IDENTITY_PROVIDER",
+	"IP_RANGE",
+	"KUBERNETES_CLUSTER",
+	"KUBERNETES_CRON_JOB",
+	"KUBERNETES_INGRESS",
+	"KUBERNETES_INGRESS_CONTROLLER",
+	"KUBERNETES_JOB",
+	"KUBERNETES_NETWORK_POLICY",
+	"KUBERNETES_NODE",
+	"KUBERNETES_PERSISTENT_VOLUME",
+	"KUBERNETES_PERSISTENT_VOLUME_CLAIM",
+	"KUBERNETES_POD_SECURITY_POLICY",
+	"KUBERNETES_SERVICE",
+	"KUBERNETES_STORAGE_CLASS",
+	"KUBERNETES_VOLUME",
+	"LAST_LOGIN",
+	"LATERAL_MOVEMENT_FINDING",
+	"LOAD_BALANCER",
+	"LOCAL_USER",
+	"MALWARE",
+	"MALWARE_INSTANCE",
+	"MANAGED_CERTIFICATE",
+	"MANAGEMENT_SERVICE",
+	"MAP_REDUCE_CLUSTER",
+	"MESSAGING_SERVICE",
+	"NAMESPACE",
+	"NAT",
+	"NETWORK_ADDRESS",
+	"NETWORK_APPLIANCE",
+	"NETWORK_INTERFACE",
+	"NETWORK_ROUTING_RULE",
+	"NETWORK_SECURITY_RULE",
+	"PACKAGE",
+	"PEERING",
+	"POD",
+	"PORT_RANGE",
+	"PREDEFINED_GROUP",
+	"PRIVATE_ENDPOINT",
+	"PRIVATE_LINK",
+	"PROJECT",
+	"PROXY",
+	"PROXY_RULE",
+	"RAW_ACCESS_POLICY",
+	"REGION",
+	"REGISTERED_DOMAIN",
+	"REPLICA_SET",
+	"REPOSITORY",
+	"REPOSITORY_BRANCH",
+	"REPOSITORY_TAG",
+	"RESOURCE_GROUP",
+	"ROUTE_TABLE",
+	"SEARCH_INDEX",
+	"SECRET",
+	"SECRET_CONTAINER",
+	"SECRET_DATA",
+	"SECRET_INSTANCE",
+	"SECURITY_EVENT_FINDING",
+	"SECURITY_TOOL_FINDING",
+	"SECURITY_TOOL_FINDING_TYPE",
+	"SECURITY_TOOL_SCAN",
+	"SERVERLESS",
+	"SERVERLESS_PACKAGE",
+	"SERVICE_ACCOUNT",
+	"SERVICE_CONFIGURATION",
+	"SERVICE_USAGE_TECHNOLOGY",
+	"SNAPSHOT",
+	"STATEFUL_SET",
+	"STORAGE_ACCOUNT",
+	"SUBNET",
+	"SUBSCRIPTION",
+	"SWITCH",
+	"TECHNOLOGY",
+	"USER_ACCOUNT",
+	"VIRTUAL_DESKTOP",
+	"VIRTUAL_MACHINE",
+	"VIRTUAL_MACHINE_IMAGE",
+	"VIRTUAL_NETWORK",
+	"VOLUME",
+	"VULNERABILITY",
+	"WEAKNESS",
+	"WEB_SERVICE",
+}
