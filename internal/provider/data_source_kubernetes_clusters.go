@@ -101,7 +101,7 @@ func dataSourceWizKubernetesClusters() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Internal Wiz ID of Kubernetes Cluster.",
+							Description: "Name of the Kubernetes Cluster.",
 						},
 						"cloud_account": {
 							Type:        schema.TypeSet,
