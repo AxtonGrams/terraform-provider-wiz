@@ -2,6 +2,7 @@ package internal
 
 // QueryVariables struct
 type QueryVariables struct {
+	Query    interface{} `json:"query,omitempty"`
 	ID       string      `json:"id,omitempty"`
 	FilterBy interface{} `json:"filterBy,omitempty"`
 	After    string      `json:"after,omitempty"`
