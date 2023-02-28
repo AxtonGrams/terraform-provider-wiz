@@ -69,3 +69,12 @@ func Unique(s []string) []string {
 	}
 	return result
 }
+
+// ConvertSliceToGenericArray returns a generic array from a slice of strings
+func ConvertSliceToGenericArray(s []string) []interface{} {
+	var output = make([]interface{}, 0)
+	for _, b := range s {
+		output = append(output, b)
+	}
+	return output
+}

@@ -14,10 +14,12 @@ Configure SAML Providers and associated resources (group mappings).
 
 ```terraform
 resource "wiz_saml_idp" "test" {
-  name                         = "Ping"
+  name                         = "SSO-Test"
+  issuer_url                   = "https://ping.example.com/idp/SSO.saml2"
   login_url                    = "https://ping.example.com/idp/SSO.saml2"
   logout_url                   = "https://ping.example.com/idp/SLO.saml2"
-  use_provider_managed_roles   = false
+  use_provider_managed_roles   = true
+  allow_manual_role_override   = false
   merge_groups_mapping_by_role = false
   certificate                  = <<EOT
 -----BEGIN CERTIFICATE-----
@@ -54,9 +56,28 @@ Z8lCchNPFJqIlyvk9LSEorFq4tT21t/pgVOFgw0yJaTyBZ/IvIimjwNHJBnIeBQ2
 GfRTgIAGAQ8ZFfQ=
 -----END CERTIFICATE-----
 EOT
-  domains = [
-    "example.com",
-  ]
+
+  group_mapping {
+    provider_group_id = "test1.project_admin"
+    role              = "PROJECT_ADMIN"
+    projects = [
+      "ee25cc95-82b0-4543-8934-5bc655b86786",
+    ]
+  }
+
+  group_mapping {
+    provider_group_id = "test2.project_reader"
+    role              = "PROJECT_READER"
+    projects = [
+      "e7f6542c-81f6-43cf-af48-bdd77f09650d",
+    ]
+  }
+
+  group_mapping {
+    provider_group_id = "global.admin"
+    role              = "GLOBAL_ADMIN"
+  }
+
 }
 ```
 
@@ -66,18 +87,19 @@ EOT
 ### Required
 
 - `certificate` (String) PEM certificate from IdP
-- `domains` (List of String) A list of domains the IdP handles.
 - `login_url` (String) IdP Login URL
 - `name` (String) IdP name to display in Wiz.
 
 ### Optional
 
-- `allow_manual_role_override` (Boolean) Allow manual override for role assignment? Must be set `true` if `use_provided_roles` is false.
+- `allow_manual_role_override` (Boolean) When set to true, allow overriding the mapped SSO role for specific users. Must be set `true` if `use_provided_roles` is false.
     - Defaults to `true`.
+- `domains` (List of String, Deprecated) A list of domains the IdP handles.
 - `group_mapping` (Block Set) Group mappings (see [below for nested schema](#nestedblock--group_mapping))
+- `issuer_url` (String) If undefined, this will default to the login_url value. Set to the same value as login_url if unsure what value to use.
 - `logout_url` (String) IdP Logout URL
 - `merge_groups_mapping_by_role` (Boolean) Manage group mapping by role?
-- `use_provider_managed_roles` (Boolean) Use provider managed roles?
+- `use_provider_managed_roles` (Boolean) When set to true, roles will be provided by the SSO provider. Manage the roles via Wiz portal otherwise.
     - Defaults to `false`.
 
 ### Read-Only

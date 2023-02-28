@@ -13,15 +13,24 @@ Projects let you group your cloud resources according to their users and/or purp
 ## Example Usage
 
 ```terraform
-# This resource contains multiple organization links, one with tags and another without
-
+# A simple example
 resource "wiz_project" "test" {
   name        = "Test App"
   description = "My project description"
   risk_profile {
     business_impact = "MBI"
   }
-  business_unit = data.insight_organization.aws.description
+  business_unit = "Technology"
+}
+
+# This resource contains multiple organization links, one with tags and another without
+resource "wiz_project" "test" {
+  name        = "Test App"
+  description = "My project description"
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
   cloud_organization_link {
     cloud_organization = "7edbb879-9960-513f-b56d-876e9db2a962"
     environment        = "PRODUCTION"
@@ -42,8 +51,7 @@ resource "wiz_project" "test" {
   }
 }
 
-# A simple example
-
+# This resource contains a single cloud account link, with tag
 resource "wiz_project" "test" {
   name        = "Test App"
   description = "My project description"
@@ -51,6 +59,30 @@ resource "wiz_project" "test" {
     business_impact = "MBI"
   }
   business_unit = "Technology"
+  cloud_account_link {
+    cloud_account_id = "3225def3-0e0e-5cb8-955a-3583f696f778"
+    environment      = "PRODUCTION"
+    resource_tags {
+      key   = "created_by"
+      value = "terraform"
+    }
+  }
+}
+
+# This resource contains a single kubernetes cluster link
+resource "wiz_project" "test" {
+  name        = "My Kubernetes Project"
+  description = "My project description"
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+  kubernetes_cluster_link {
+    kubernetes_cluster = "77de7ca1-02f9-5ed2-a94b-5d19c683efaf"
+    environment        = "STAGING"
+    shared             = true
+    namespaces         = ["kube-system"]
+  }
 }
 ```
 
@@ -66,14 +98,51 @@ resource "wiz_project" "test" {
 - `archived` (Boolean) Whether the project is archived/inactive
     - Defaults to `false`.
 - `business_unit` (String) The business unit to which the project belongs.
-- `cloud_organization_link` (Block Set) Associate the project with the resources and subscriptions to organize all the resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_organization_link))
+- `cloud_account_link` (Block Set) Associate the project directly with a cloud account by wiz identifier UID to organize all the subscription resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_account_link))
+- `cloud_organization_link` (Block Set) Associate the project with an organizational link to organize all the subscription resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_organization_link))
 - `description` (String) The project description.
+- `identifiers` (List of String) Identifiers for the project.
+- `kubernetes_cluster_link` (Block Set) Associate the project with kubernetes clusters. (see [below for nested schema](#nestedblock--kubernetes_cluster_link))
+- `project_owners` (List of String) A list of project owner IDs.
 - `risk_profile` (Block List, Max: 1) Contains risk profile related properties for the project (see [below for nested schema](#nestedblock--risk_profile))
+- `security_champions` (List of String) A list of security champions IDs.
 
 ### Read-Only
 
-- `id` (String) Unique identifier for the project
+- `id` (String) Unique identifier for the project.
 - `slug` (String) Short identifier for the project. The value must be unique, even against archived projects, so a uuid is generated and used as the slug value.
+
+<a id="nestedblock--cloud_account_link"></a>
+### Nested Schema for `cloud_account_link`
+
+Required:
+
+- `cloud_account_id` (String) The Wiz internal identifier for the Cloud Account Subscription.
+
+Optional:
+
+- `environment` (String) The environment.
+    - Allowed values: 
+        - PRODUCTION
+        - STAGING
+        - DEVELOPMENT
+        - TESTING
+        - OTHER
+
+    - Defaults to `PRODUCTION`.
+- `resource_groups` (List of String) Please provide a list of resource group identifiers for filtering by resource groups. `shared` must be true to define resource_groups.
+- `resource_tags` (Block Set) Provide a key and value pair for filtering resources. `shared` must be true to define resource_tags. (see [below for nested schema](#nestedblock--cloud_account_link--resource_tags))
+- `shared` (Boolean) Subscriptions that host a few projects can be marked as ‘shared subscriptions’ and resources can be filtered by tags.
+
+<a id="nestedblock--cloud_account_link--resource_tags"></a>
+### Nested Schema for `cloud_account_link.resource_tags`
+
+Required:
+
+- `key` (String)
+- `value` (String)
+
+
 
 <a id="nestedblock--cloud_organization_link"></a>
 ### Nested Schema for `cloud_organization_link`
@@ -93,6 +162,7 @@ Optional:
         - OTHER
 
     - Defaults to `PRODUCTION`.
+- `resource_groups` (List of String) Please provide a list of strings for filtering by resource groups. `shared` must be true to define resource_groups.
 - `resource_tags` (Block Set) Provide a key and value pair for filtering resources. `shared` must be true to define resource_tags. (see [below for nested schema](#nestedblock--cloud_organization_link--resource_tags))
 - `shared` (Boolean) Subscriptions that host a few projects can be marked as ‘shared subscriptions’ and resources can be filtered by tags.
     - Defaults to `true`.
@@ -105,6 +175,29 @@ Required:
 - `key` (String)
 - `value` (String)
 
+
+
+<a id="nestedblock--kubernetes_cluster_link"></a>
+### Nested Schema for `kubernetes_cluster_link`
+
+Required:
+
+- `kubernetes_cluster` (String) The Wiz internal identifier for the kubernetes cluster.
+
+Optional:
+
+- `environment` (String) The environment.
+    - Allowed values: 
+        - PRODUCTION
+        - STAGING
+        - DEVELOPMENT
+        - TESTING
+        - OTHER
+
+    - Defaults to `PRODUCTION`.
+- `namespaces` (List of String) The kubernetes namespaces to link. `shared` must be set to `true` if namespaces are set.
+- `shared` (Boolean) Mark the kubernetes cluster as shared, in which case, specific namespaces can be linked. This needs to be set to `true` if `namespaces` are set.
+    - Defaults to `true`.
 
 
 <a id="nestedblock--risk_profile"></a>

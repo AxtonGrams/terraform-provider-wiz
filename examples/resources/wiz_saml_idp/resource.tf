@@ -1,8 +1,10 @@
 resource "wiz_saml_idp" "test" {
-  name                         = "Ping"
+  name                         = "SSO-Test"
+  issuer_url                   = "https://ping.example.com/idp/SSO.saml2"
   login_url                    = "https://ping.example.com/idp/SSO.saml2"
   logout_url                   = "https://ping.example.com/idp/SLO.saml2"
-  use_provider_managed_roles   = false
+  use_provider_managed_roles   = true
+  allow_manual_role_override   = false
   merge_groups_mapping_by_role = false
   certificate                  = <<EOT
 -----BEGIN CERTIFICATE-----
@@ -39,7 +41,26 @@ Z8lCchNPFJqIlyvk9LSEorFq4tT21t/pgVOFgw0yJaTyBZ/IvIimjwNHJBnIeBQ2
 GfRTgIAGAQ8ZFfQ=
 -----END CERTIFICATE-----
 EOT
-  domains = [
-    "example.com",
-  ]
+
+  group_mapping {
+    provider_group_id = "test1.project_admin"
+    role              = "PROJECT_ADMIN"
+    projects = [
+      "ee25cc95-82b0-4543-8934-5bc655b86786",
+    ]
+  }
+
+  group_mapping {
+    provider_group_id = "test2.project_reader"
+    role              = "PROJECT_READER"
+    projects = [
+      "e7f6542c-81f6-43cf-af48-bdd77f09650d",
+    ]
+  }
+
+  group_mapping {
+    provider_group_id = "global.admin"
+    role              = "GLOBAL_ADMIN"
+  }
+
 }
