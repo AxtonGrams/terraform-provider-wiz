@@ -33,10 +33,10 @@ func New(version string) func() *schema.Provider {
 				"wiz_auth_url": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					Description: "The authentication endpoint. (default: https://auth.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)",
+					Description: "The authentication endpoint. (default: https://auth.app.wiz.io/oauth/token, environment variable: WIZ_AUTH_URL)",
 					DefaultFunc: schema.EnvDefaultFunc(
 						"WIZ_AUTH_URL",
-						"https://auth.wiz.io/oauth/token",
+						"https://auth.app.wiz.io/oauth/token",
 					),
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.IsURLWithHTTPorHTTPS,
@@ -249,12 +249,13 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				},
 			},
 			DataSourcesMap: map[string]*schema.Resource{
-				"wiz_cloud_accounts":      dataSourceWizCloudAccounts(),
-				"wiz_cloud_config_rules":  dataSourceWizCloudConfigurationRules(),
-				"wiz_host_config_rules":   dataSourceWizHostConfigurationRules(),
-				"wiz_kubernetes_clusters": dataSourceWizKubernetesClusters(),
-				"wiz_organizations":       dataSourceWizOrganizations(),
-				"wiz_users":               dataSourceWizUsers(),
+				"wiz_cloud_accounts":               dataSourceWizCloudAccounts(),
+				"wiz_cloud_config_rules":           dataSourceWizCloudConfigurationRules(),
+				"wiz_host_config_rules":            dataSourceWizHostConfigurationRules(),
+				"wiz_kubernetes_clusters":          dataSourceWizKubernetesClusters(),
+				"wiz_organizations":                dataSourceWizOrganizations(),
+				"wiz_subscription_resource_groups": dataSourceWizSubscriptionResourceGroups(),
+				"wiz_users":                        dataSourceWizUsers(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
 				"wiz_automation_action":              resourceWizAutomationAction(),
