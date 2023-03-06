@@ -14,6 +14,7 @@ import (
   - bool elements must be bool* if omitempty is specified. see https://stackoverflow.com/questions/37756236/json-golang-boolean-omitempty
   - GraphQL union types require that the schema be extended so the type is known
   - GraphQL enums are represented by slices; validation is performed by the resource
+  - Sometimes deviations are required from the Wiz schema definition; please note the deviation in the struct comments
 */
 
 // PageInfo struct
