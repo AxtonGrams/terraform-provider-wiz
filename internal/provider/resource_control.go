@@ -269,6 +269,12 @@ func resourceWizControlRead(ctx context.Context, d *schema.ResourceData, m inter
 		return append(diags, diag.FromErr(err)...)
 	}
 
+	b, _ := json.Marshal(data.Control.Query)
+	err = d.Set("query", string(b))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
 	return diags
 }
 
