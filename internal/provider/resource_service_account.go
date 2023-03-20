@@ -41,12 +41,30 @@ func resourceWizServiceAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"scopes": {
-				Type:     schema.TypeList,
-				Required: true,
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "THIRD_PARTY",
 				ForceNew: true,
 				Description: fmt.Sprintf(
-					"Scopes.\n    - Allowed values: %s",
+					"Service account type, for Helm use `BROKER` type.`\n    - Allowed values: %s",
+					utils.SliceOfStringToMDUList(
+						vendor.ServiceAccountType,
+					),
+				),
+				ValidateDiagFunc: validation.ToDiagFunc(
+					validation.StringInSlice(
+						vendor.ServiceAccountType,
+						false,
+					),
+				),
+			},
+			"scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Description: fmt.Sprintf(
+					"Scopes, required with THIRD_PARTY (GraphQL API type).\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
 						internal.ServiceAccountScopes,
 					),
@@ -62,9 +80,10 @@ func resourceWizServiceAccount() *schema.Resource {
 				},
 			},
 			"assigned_projects": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Project ID assignments, optional with THIRD_PARTY (GraphQL API type)",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
@@ -112,6 +131,7 @@ func resourceWizServiceAccountCreate(ctx context.Context, d *schema.ResourceData
 	            clientId
 	            clientSecret
 	            scopes
+	            type
 	            createdAt
 	            assignedProjects {
 	                id
@@ -124,8 +144,12 @@ func resourceWizServiceAccountCreate(ctx context.Context, d *schema.ResourceData
 	// populate the graphql variables
 	vars := &vendor.CreateServiceAccountInput{}
 	vars.Name = d.Get("name").(string)
-	vars.Scopes = utils.ConvertListToString(d.Get("scopes").([]interface{}))
-	vars.AssignedProjectIDs = utils.ConvertListToString(d.Get("assigned_projects").([]interface{}))
+	t := d.Get("type").(string)
+	vars.Type = &t
+	if t == "THIRD_PARTY" {
+		vars.Scopes = utils.ConvertListToString(d.Get("scopes").([]interface{}))
+		vars.AssignedProjectIDs = utils.ConvertListToString(d.Get("assigned_projects").([]interface{}))
+	}
 
 	// process the request
 	data := &CreateServiceAccount{}
@@ -170,6 +194,7 @@ func resourceWizServiceAccountRead(ctx context.Context, d *schema.ResourceData, 
 	        clientId
 	        clientSecret
 	        scopes
+	        type
 	        createdAt
 	        assignedProjects {
 	            id
@@ -195,6 +220,10 @@ func resourceWizServiceAccountRead(ctx context.Context, d *schema.ResourceData, 
 		return append(diags, diag.FromErr(err)...)
 	}
 	err = d.Set("scopes", data.ServiceAccount.Scopes)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("type", data.ServiceAccount.Type)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
