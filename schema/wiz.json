@@ -40,7 +40,7 @@ input ActionTemplateFilters {
   source: [ActionTemplateSource!]
 }
 
-union ActionTemplateParams = AwsSnsActionTemplateParams | EmailActionTemplateParams | WebhookActionTemplateParams | SlackActionTemplateParams | SlackBotActionTemplateParams | AzureServiceBusActionTemplateParams | GcpPubSubActionTemplateParams | GoogleChatActionTemplateParams | PagerDutyActionCreateIncidentTemplateParams | JiraActionCreateTicketTemplateParams | JiraActionAddCommentTemplateParams | JiraActionTransitionTicketTemplateParams | ServiceNowActionCreateTicketTemplateParams | ServiceNowActionUpdateTicketTemplateParams | OpsgenieCreateAlertTemplateParams | OpsgenieCloseAlertTemplateParams
+union ActionTemplateParams = AwsSnsActionTemplateParams | EmailActionTemplateParams | WebhookActionTemplateParams | SlackActionTemplateParams | SlackBotActionTemplateParams | AzureServiceBusActionTemplateParams | GcpPubSubActionTemplateParams | GoogleChatActionTemplateParams | PagerDutyActionCreateIncidentTemplateParams | JiraActionCreateTicketTemplateParams | JiraActionAddCommentTemplateParams | JiraActionTransitionTicketTemplateParams | ServiceNowActionCreateTicketTemplateParams | ServiceNowActionUpdateTicketTemplateParams | OpsgenieCreateAlertTemplateParams | OpsgenieCloseAlertTemplateParams | ClickUpCreateTaskActionTemplateParams
 
 input ActionTemplateParamsInput {
   awsSNS: AwsSNSActionTemplateParamsInput
@@ -59,6 +59,7 @@ input ActionTemplateParamsInput {
   serviceNowUpdateTicket: ServiceNowActionUpdateTicketTemplateParamsInput
   opsgenieCreateAlert: OpsgenieCreateAlertTemplateParamsInput
   opsgenieCloseAlert: OpsgenieCloseAlertTemplateParamsInput
+  clickUpCreateTask: ClickUpCreateTaskActionTemplateParamsInput
 }
 
 enum ActionTemplateSource {
@@ -100,6 +101,7 @@ enum ActionTemplateType {
   FRESHSERVICE
   TINES
   HUNTERS
+  CLICK_UP_CREATE_TASK
 }
 
 input AddSecurityScanInput {
@@ -386,21 +388,10 @@ enum AutomationActionStatus {
   FAILURE @deprecated
 }
 
-type AutomationActionTestResult {
-  reason: String
-  success: Boolean!
-}
-
 type AutomationActionTLSConfig {
   allowInsecureTLS: Boolean
   clientCertificateAndPrivateKey: String
   serverCA: String
-}
-
-input AutomationActionTLSConfigInput {
-  allowInsecureTLS: Boolean
-  serverCA: String
-  clientCertificateAndPrivateKey: String
 }
 
 enum AutomationActionType {
@@ -483,6 +474,7 @@ type AutomationRuleConnection {
 
 input AutomationRuleControlFilters {
   control: [String!]
+  notControl: [String!]
   project: [String!]
   severity: [String!]
   frameworkCategory: [String!]
@@ -504,6 +496,7 @@ input AutomationRuleFilters {
 
 input AutomationRuleIssueEntityFilters {
   subscriptionId: [String!]
+  notSubscriptionId: [String!]
   resourceGroupId: [String!]
   nativeType: [String!]
   cloudPlatform: [String!]
@@ -517,7 +510,9 @@ input AutomationRuleIssueEntityFilters {
 
 input AutomationRuleIssueFilters {
   project: [String!]
+  notProject: [String!]
   sourceControl: [String!]
+  notSourceControl: [String!]
   severity: [String!]
   status: [String!]
   relatedEntity: AutomationRuleIssueEntityFilters
@@ -547,12 +542,6 @@ enum AutomationRuleTriggerType {
 
 type AvailableRegions {
   regions: [String!]
-}
-
-input AwsMessageAutomationActionAccessMethodInput {
-  type: AwsMessageAutomationActionAccessMethodType!
-  connectorForAccess: ID
-  customerRoleARN: String
 }
 
 enum AwsMessageAutomationActionAccessMethodType {
@@ -602,12 +591,6 @@ input AzureServiceBusActionTemplateParamsInput {
   body: String!
 }
 
-input AzureServiceBusAutomationActionAccessMethodInput {
-  type: AzureServiceBusAutomationActionAccessMethodType!
-  connectorForAccess: ID
-  connectionStringWithSAS: String
-}
-
 enum AzureServiceBusAutomationActionAccessMethodType {
   CONNECTOR_CREDENTIALS
   CONNECTION_STRING_WITH_SAS
@@ -651,6 +634,8 @@ type BillableWorkloadSample implements Node {
   ecsCount: Int! @deprecated(reason: "License page using serverless containers instead of ecs containers")
   iaasDatabaseScanGB: Int!
   id: ID!
+  nonOSDiskScansCount: Int!
+  nonOSDiskWorkloadCount: Int!
   paasDatabaseScanGB: Int!
   registryContainerImageScanCount: Int!
   serverlessContainerCount: Int!
@@ -664,6 +649,8 @@ type BillableWorkloadTrendData {
   accumulatedBucketScanCount: Int!
   accumulatedDataWorkloadCount: Int!
   accumulatedIaasDatabaseScannedGB: Int!
+  accumulatedNonOSDiskScansCount: Int!
+  accumulatedNonOSDiskWorkloadCount: Int!
   accumulatedPaasDatabaseScannedGB: Int!
   averageComputeWorkloadCount: Int!
   averageContainerHostCount: Int!
@@ -672,7 +659,7 @@ type BillableWorkloadTrendData {
   averageServerlessContainerCount: Int!
   averageServerlessCount: Int!
   averageVirtualMachineCount: Int!
-  averageWorkloadCount: Int!
+  averageWorkloadCount: Int! @deprecated(reason: "License page using totalWorkloadCount instead of averageWorkloadCount")
   dataPoints: [BillableWorkloadSample!]!
   totalWorkloadCount: Int!
 }
@@ -1052,6 +1039,20 @@ input ClearUIUserPreferencesInput {
 
 type ClearUIUserPreferencesPayload {
   preferences: UIUserPreferences
+}
+
+type ClickUpCreateTaskActionTemplateParams {
+  body: String!
+  listId: String!
+}
+
+input ClickUpCreateTaskActionTemplateParamsInput {
+  listId: String!
+  body: String!
+}
+
+type ClickUpIntegrationParams {
+  key: String!
 }
 
 type CLIConfigurationRule {
@@ -1441,6 +1442,7 @@ enum CloudConfigurationRuleTestEvaluationResult {
 
 type CloudEvent {
   actor: CloudEventActor!
+  actorGraphEntity: GraphEntity
   category: String!
   cloudPlatform: String!
   cloudProviderUrl: String!
@@ -1458,9 +1460,11 @@ type CloudEvent {
   path: [String!]
   rawAuditLogRecord: JSON!
   resources: [CloudEventResource!]!
+  resourcesGraphEntities: [GraphEntity]!
   severity: CloudEventRuleSeverity
   source: String!
   subjectResource: CloudEventResource!
+  subjectResourceGraphEntity: GraphEntity
   timestamp: DateTime!
   trigger: CloudEventTrigger
 }
@@ -1592,7 +1596,21 @@ input CloudEventExternalTypeFilters {
   nameContains: String
 }
 
-union CloudEventExtraDetails = CloudEventRuntimeDetails | CloudEventAdmissionReviewDetails
+union CloudEventExtraDetails = CloudEventRuntimeDetails | CloudEventAdmissionReviewDetails | CloudEventFimDetails
+
+type CloudEventFileReputationHashMatch {
+  malwareClassification: CloudEventMalwareClassification
+  md5: String!
+  name: String
+  sampleFirstSeen: DateTime
+  sampleLastSeen: DateTime
+  scannerCount: Int
+  scannerMatch: Int
+  scannerPercent: Int
+  sha1: String!
+  sha256: String!
+  trustFactor: Int
+}
 
 input CloudEventFilters {
   or: [CloudEventFilters!]
@@ -1626,6 +1644,10 @@ input CloudEventFiltersMatchedRule {
   version: [Int!]
 }
 
+type CloudEventFimDetails {
+  previousHash: [String!]
+}
+
 input CloudEventGroupBy {
   fields: [String!]!
   countConstraint: CloudEventGroupByCountConstraint
@@ -1639,8 +1661,9 @@ input CloudEventGroupByCountConstraint {
 }
 
 type CloudEventGroupByResult {
+  cloudEvents: [CloudEvent!]!
   count: Int!
-  resourceCloudAccount: CloudAccount
+  resourceCloudAccount: CloudAccount @deprecated(reason: "use cloudEvents field instead")
   values: [AnyValue!]
 }
 
@@ -1688,6 +1711,15 @@ input CloudEventKindFilter {
 input CloudEventKubernetesFlavorFilter {
   equals: [KubernetesFlavor!]
   notEquals: [KubernetesFlavor!]
+}
+
+type CloudEventMalwareClassification {
+  family: String
+  isGeneric: Boolean
+  platform: String
+  subPlatform: String
+  type: String
+  vulnerability: Vulnerability
 }
 
 type CloudEventMatchedRule {
@@ -1913,6 +1945,7 @@ type CloudEventSearchResultEdge {
 }
 
 type CloudEventSensorRulesMatch {
+  fileReputationHashMatch: [CloudEventFileReputationHashMatch!]
   sensorEngineRules: [SensorEngineMatchedRule]
 }
 
@@ -2081,7 +2114,8 @@ type ConfigurationFinding implements Node {
   evidence: ConfigurationFindingEvidence!
   firstSeenAt: DateTime!
   id: ID!
-  note: FindingStatusNote
+  ignoreRules: [IgnoreRule]
+  note: ConfigurationFindingNote
   remediation: String
   resolutionReason: FindingResolutionReason
   resource: ConfigurationFindingResource
@@ -2150,6 +2184,15 @@ input ConfigurationFindingFilters {
   type: [ConfigurationFindingType!]
   hasRemediationInstructions: Boolean
   status: [FindingCommonStatus!]
+}
+
+type ConfigurationFindingNote implements Node {
+  createdAt: DateTime!
+  id: ID!
+  serviceAccount: ServiceAccount
+  text: String!
+  updatedAt: DateTime!
+  user: User
 }
 
 input ConfigurationFindingOrder {
@@ -2289,6 +2332,9 @@ input ConnectorAuthConfigAzureInput {
   tenantId: String!
   clientId: String!
   clientSecret: String!
+  isManagedIdentity: Boolean!
+  groupId: String
+  subscriptionId: String
   monitorEventHubConnectionString: String
 }
 
@@ -2493,9 +2539,12 @@ type ConnectorConfigAzure {
   diskanalyzerSecretName: String
   environment: String
   excludedSubscriptions: [String!]
+  groupId: String
   includedSubscriptions: [String!]
+  isManagedIdentity: Boolean!
   monitorEventHubConnectionString: String!
   snapshotsResourceGroupId: String
+  subscriptionId: String
   tenantId: String!
 }
 
@@ -3039,6 +3088,11 @@ enum ContainerImageOrderField {
   SEVERITY
 }
 
+enum ContainerImageScanSource {
+  WORKLOAD
+  REGISTRY
+}
+
 input ContainerImageVulnerabilityFilter {
   severity: [ContainerImageVulnerabilitySeverityFilter!]
 }
@@ -3130,6 +3184,8 @@ type Control implements Node {
   lastRunError: String
   lastSuccessfulRunAt: DateTime
   name: String!
+  originalControl: Control
+  originalControlOverridden: Boolean!
   query: GraphEntityQueryValue
   resolutionRecommendation: String
   resolutionRecommendationPlainText: String
@@ -3187,6 +3243,7 @@ input ControlFilters {
   riskEqualsAny: [String!]
   riskEqualsAll: [String!]
   excludeFrameworkCategory: [String!]
+  originalControlOverridden: Boolean
 }
 
 input ControlIssueAnalyticsSelection {
@@ -3224,28 +3281,6 @@ type CreateActionTemplatePayload {
   actionTemplate: ActionTemplate!
 }
 
-input CreateAutomationActionInput {
-  name: String!
-  type: AutomationActionType
-  projectId: String
-  isAccessibleToAllProjects: Boolean
-  emailParams: CreateEmailAutomationActionParamsInput
-  webhookParams: CreateWebhookAutomationActionParamsInput
-  slackParams: CreateSlackMessageAutomationActionParamsInput
-  googleChatParams: CreateGoogleChatMessageAutomationActionParamsInput
-  jiraParams: CreateJiraAutomationActionParamInput
-  jiraTransitionParams: CreateJiraTransitionAutomationActionParamInput
-  servicenowParams: CreateServiceNowAutomationActionParamInput
-  servicenowUpdateTicketParams: CreateServiceNowUpdateTicketAutomationActionParamInput
-  awsMessageParams: CreateAwsMessageAutomationActionParamsInput
-  azureServiceBusParams: CreateAzureServiceBusAutomationActionParamsInput
-  googlePubSubParams: CreateGooglePubSubAutomationActionParamsInput
-}
-
-type CreateAutomationActionPayload {
-  automationAction: AutomationAction
-}
-
 input CreateAutomationRuleInput {
   name: String!
   description: String
@@ -3261,21 +3296,9 @@ type CreateAutomationRulePayload {
   automationRule: AutomationRule
 }
 
-input CreateAwsMessageAutomationActionParamsInput {
-  snsTopicARN: String!
-  body: String!
-  accessMethod: AwsMessageAutomationActionAccessMethodInput!
-}
-
 input CreateAwsSNSIntegrationParamsInput {
   topicARN: String!
   accessMethod: AwsSNSIntegrationAccessMethodInput!
-}
-
-input CreateAzureServiceBusAutomationActionParamsInput {
-  queueUrl: String!
-  body: String!
-  accessMethod: AzureServiceBusAutomationActionAccessMethodInput!
 }
 
 input CreateAzureServiceBusIntegrationParamsInput {
@@ -3316,6 +3339,10 @@ input CreateCICDScanPolicyInput {
 
 type CreateCICDScanPolicyPayload {
   scanPolicy: CICDScanPolicy
+}
+
+input CreateClickUpIntegrationParamsInput {
+  key: String!
 }
 
 input CreateCloudConfigurationRuleInput {
@@ -3425,29 +3452,23 @@ type CreateDataClassifierPayload {
   dataClassifier: DataClassifier!
 }
 
-input CreateEmailAutomationActionParamsInput {
-  note: String
-  to: [String!]!
-  cc: [String!]
-  attachEvidenceCSV: Boolean
+input CreateFileIntegrityMonitoringExclusionInput {
+  name: String!
+  resourceIDs: [String!]
+  resourceNames: FileIntegrityMonitoringStringFilterInput
+  tags: FileIntegrityMonitoringTagsFilterInput
+  filePaths: FileIntegrityMonitoringStringFilterInput
+  fileNames: FileIntegrityMonitoringStringFilterInput
+}
+
+type CreateFileIntegrityMonitoringExclusionPayload {
+  fileIntegrityMonitoringExclusion: FileIntegrityMonitoringExclusion
 }
 
 input CreateGcpPubSubIntegrationParamsInput {
   projectId: String!
   topicId: String!
   accessMethod: GooglePubSubIntegrationAccessMethodInput!
-}
-
-input CreateGoogleChatMessageAutomationActionParamsInput {
-  url: String!
-  note: String
-}
-
-input CreateGooglePubSubAutomationActionParamsInput {
-  projectId: String!
-  topicId: String!
-  body: String!
-  accessMethod: GooglePubSubAutomationActionAccessMethodInput!
 }
 
 input CreateHostConfigurationRuleInput {
@@ -3507,6 +3528,7 @@ input CreateIntegrationParamsInput {
   jira: CreateJiraIntegrationParamsInput
   serviceNow: CreateServiceNowIntegrationParamsInput
   opsgenie: CreateOpsgenieIntegrationParamsInput
+  clickUp: CreateClickUpIntegrationParamsInput
 }
 
 type CreateIntegrationPayload {
@@ -3520,16 +3542,6 @@ input CreateIssueNoteInput {
 
 type CreateIssueNotePayload {
   issueNote: IssueNote!
-}
-
-input CreateJiraAutomationActionParamInput {
-  serverUrl: String!
-  isOnPrem: Boolean!
-  tlsConfig: AutomationActionTLSConfigInput
-  user: String
-  token: String
-  personalAccessToken: String
-  ticketFields: CreateJiraTicketFieldsInput!
 }
 
 input CreateJiraIntegrationParamsInput {
@@ -3553,20 +3565,6 @@ input CreateJiraTicketFieldsInput {
   alternativeDescriptionField: String
   customFields: JSON
   attachEvidenceCSV: Boolean
-}
-
-input CreateJiraTransitionAutomationActionParamInput {
-  serverUrl: String!
-  isOnPrem: Boolean!
-  tlsConfig: AutomationActionTLSConfigInput
-  user: String
-  token: String
-  personalAccessToken: String
-  project: String!
-  transitionId: String!
-  fields: JSON
-  comment: String
-  commentOnTransition: Boolean
 }
 
 input CreateMalwareExclusionInput {
@@ -3771,7 +3769,7 @@ input CreateSAMLIdentityProviderInput {
   domains: [String!]
   groupMapping: [SAMLGroupMappingCreateInput!]
   mergeGroupsMappingByRole: Boolean
-  customAttributeMapping: CustomAttributeMappingInput
+  attributeMapping: SAMLAttributeMappingInput
 }
 
 type CreateSAMLIdentityProviderPayload {
@@ -3848,15 +3846,6 @@ type CreateServiceAccountPayload {
   serviceAccount: ServiceAccount
 }
 
-input CreateServiceNowAutomationActionParamInput {
-  baseUrl: String!
-  user: String!
-  password: String!
-  ticketFields: CreateServiceNowFieldsInput!
-  clientId: String
-  clientSecret: String
-}
-
 input CreateServiceNowFieldsInput {
   tableName: String!
   customFields: JSON
@@ -3870,25 +3859,11 @@ input CreateServiceNowIntegrationParamsInput {
   authorization: ServiceNowIntegrationAuthorizationInput!
 }
 
-input CreateServiceNowUpdateTicketAutomationActionParamInput {
-  baseUrl: String!
-  user: String!
-  password: String!
-  tableName: String!
-  fields: JSON
-  clientId: String
-  clientSecret: String
-}
-
 input CreateSlackBotIntegrationParamsInput {
   token: String!
 }
 
 input CreateSlackIntegrationParamsInput {
-  url: String!
-}
-
-input CreateSlackMessageAutomationActionParamsInput {
   url: String!
 }
 
@@ -3914,18 +3889,6 @@ type CreateUserPayload {
   user: User
 }
 
-input CreateWebhookAutomationActionParamsInput {
-  url: String!
-  body: String!
-  clientCertificate: String
-  authUsername: String
-  authPassword: String
-  authToken: String
-  isOnPrem: Boolean
-  tlsConfig: AutomationActionTLSConfigInput
-  headers: [WebhookHeaderInput!]
-}
-
 input CreateWebhookIntegrationParamsInput {
   url: String!
   isOnPrem: Boolean
@@ -3937,22 +3900,6 @@ input CreateWebhookIntegrationParamsInput {
 enum CSVDelimiter {
   US
   EU
-}
-
-type CustomAttributeMapping {
-  email: String!
-  groups: String!
-  name: String!
-  projectIds: String!
-  role: String!
-}
-
-input CustomAttributeMappingInput {
-  name: String
-  email: String
-  groups: String
-  role: String
-  projectIds: String
 }
 
 type CustomIPRange implements Node {
@@ -4205,14 +4152,6 @@ type DeleteActionTemplatePayload {
   _stub: String!
 }
 
-input DeleteAutomationActionInput {
-  id: ID!
-}
-
-type DeleteAutomationActionPayload {
-  _stub: String!
-}
-
 input DeleteAutomationRuleInput {
   id: ID!
 }
@@ -4290,6 +4229,14 @@ input DeleteDataClassifierInput {
 }
 
 type DeleteDataClassifierPayload {
+  _stub: String!
+}
+
+input DeleteFileIntegrityMonitoringExclusionInput {
+  id: ID!
+}
+
+type DeleteFileIntegrityMonitoringExclusionPayload {
   _stub: String!
 }
 
@@ -4749,8 +4696,77 @@ type ExtraInfo {
   tags: [CICDScanTag!]
 }
 
+type FileIntegrityMonitoringExclusion {
+  createdBy: User!
+  fileNames: FileIntegrityMonitoringStringFilter
+  filePaths: FileIntegrityMonitoringStringFilter
+  id: ID!
+  name: String!
+  resourceNames: FileIntegrityMonitoringStringFilter
+  resources: [GraphEntity!]
+  tags: FileIntegrityMonitoringTagsFilter
+}
+
+type FileIntegrityMonitoringExclusionConnection {
+  edges: [FileIntegrityMonitoringExclusionEdge!]
+  nodes: [FileIntegrityMonitoringExclusion!]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FileIntegrityMonitoringExclusionEdge {
+  cursor: String!
+  node: FileIntegrityMonitoringExclusion!
+}
+
 type FileIntegrityMonitoringSettings {
   enabled: Boolean!
+}
+
+type FileIntegrityMonitoringStringFilter {
+  contains: [String!]
+  doesNotContain: [String!]
+  doesNotEndWith: [String!]
+  doesNotStartWith: [String!]
+  endsWith: [String!]
+  equals: [String!]
+  notEquals: [String!]
+  startsWith: [String!]
+}
+
+input FileIntegrityMonitoringStringFilterInput {
+  equals: [String!]
+  notEquals: [String!]
+  startsWith: [String!]
+  doesNotStartWith: [String!]
+  endsWith: [String!]
+  doesNotEndWith: [String!]
+  contains: [String!]
+  doesNotContain: [String!]
+}
+
+type FileIntegrityMonitoringTagKeyValue {
+  key: String
+  value: String
+}
+
+input FileIntegrityMonitoringTagKeyValueInput {
+  key: String
+  value: String
+}
+
+type FileIntegrityMonitoringTagsFilter {
+  containsAll: [FileIntegrityMonitoringTagKeyValue!]
+  containsAny: [FileIntegrityMonitoringTagKeyValue!]
+  doesNotContainAll: [FileIntegrityMonitoringTagKeyValue!]
+  doesNotContainAny: [FileIntegrityMonitoringTagKeyValue!]
+}
+
+input FileIntegrityMonitoringTagsFilterInput {
+  containsAll: [FileIntegrityMonitoringTagKeyValueInput!]
+  containsAny: [FileIntegrityMonitoringTagKeyValueInput!]
+  doesNotContainAll: [FileIntegrityMonitoringTagKeyValueInput!]
+  doesNotContainAny: [FileIntegrityMonitoringTagKeyValueInput!]
 }
 
 type FileUpload implements Node {
@@ -4814,11 +4830,6 @@ enum FindingStatus {
   RESOLVED
   PASSED
   IGNORED
-}
-
-type FindingStatusNote {
-  id: ID!
-  text: String!
 }
 
 type GcpPubSubActionTemplateParams {
@@ -7772,6 +7783,7 @@ enum GEDetectionMethod {
   FILE_PATH
   WINDOWS_SERVICE
   INSTALLED_PROGRAM_BY_SERVICE
+  HOSTED_DATABASE_SCAN
 }
 
 type GEDNSRecord {
@@ -8591,6 +8603,7 @@ enum GEFirewallType {
   OCI_NETWORK_SECURITY_GROUP
   GCP_CLOUD_ARMOR_WAF
   ALIBABA_SECURITY_GROUP
+  GCP_CLOUD_ARMOR_EDGE_WAF
 }
 
 type GEFlexPersistentVolumeSource {
@@ -9026,6 +9039,7 @@ type GEHostedTechnology {
   detectedByConfigFilePaths: [String!]
   detectedByDefaultPackageNames: [String!]
   detectedByFilePaths: [String!]
+  detectedByHostedDatabaseScan: [String!]
   detectedByInstalledProgramNames: [String!]
   detectedByLibraryNames: [String!]
   detectedByOpenPortNumbers: [Int!]
@@ -14397,11 +14411,13 @@ type GESecurityToolScan {
   privateIPRangesWithAccess: [String!]
   publicAccessTypes: [GEAccessType!]
   publicIPRangesWithAccess: [String!]
+  registryLastScan: DateTime
   screenshotError: String
   status: GEScanStatus
   statusDetails: String
   vertexId: ID!
   workloadAnalysisInfo: GESecurityToolScanWorkloadAnalysisInfo
+  workloadLastScan: DateTime
 }
 
 type GESecurityToolScanDataSourceInfo {
@@ -15941,12 +15957,6 @@ type GoogleChatMessageAutomationActionParams {
   url: String!
 }
 
-input GooglePubSubAutomationActionAccessMethodInput {
-  type: GooglePubSubAutomationActionAccessMethodType!
-  connectorForAccess: ID
-  serviceAccountKey: JSON
-}
-
 enum GooglePubSubAutomationActionAccessMethodType {
   CONNECTOR_CREDENTIALS
   SERVICE_ACCOUNT_KEY
@@ -16143,6 +16153,7 @@ enum GraphEntityType {
   POD
   PORT_RANGE
   PREDEFINED_GROUP
+  PRINCIPAL
   PRIVATE_ENDPOINT
   PRIVATE_LINK
   PROJECT
@@ -16405,7 +16416,8 @@ type HostConfigurationRuleAnalytics {
 type HostConfigurationRuleAssessment implements Node {
   hasGraphObject: Boolean!
   id: ID!
-  note: FindingStatusNote
+  ignoreRules: [IgnoreRule]
+  note: HostConfigurationRuleAssessmentNote
   resolutionReason: FindingResolutionReason
   resource: HostConfigurationRuleAssessmentResource!
   result: HostConfigurationRuleAssessmentResult!
@@ -16440,6 +16452,15 @@ input HostConfigurationRuleAssessmentFilters {
   frameworkCategory: [String!]
   severity: [Severity!]
   status: [FindingCommonStatus!]
+}
+
+type HostConfigurationRuleAssessmentNote implements Node {
+  createdAt: DateTime!
+  id: ID!
+  serviceAccount: ServiceAccount
+  text: String!
+  updatedAt: DateTime!
+  user: User
 }
 
 input HostConfigurationRuleAssessmentOrder {
@@ -16563,6 +16584,7 @@ type IaCFileConversionResult {
 
 type IACScanMatch {
   expected: String!
+  failedPolicies: [CICDScanPolicyMatch!]!
   fileName: String!
   found: String!
   lineNumber: Int!
@@ -16801,7 +16823,7 @@ input IntegrationFilters {
   projectId: String
 }
 
-union IntegrationParams = AwsSNSIntegrationParams | AzureServiceBusIntegrationParams | GcpPubSubIntegrationParams | JiraIntegrationParams | PagerDutyIntegrationParams | ServiceNowIntegrationParams | WebhookIntegrationParams | SlackIntegrationParams | SlackBotIntegrationParams | OpsgenieIntegrationParams
+union IntegrationParams = AwsSNSIntegrationParams | AzureServiceBusIntegrationParams | GcpPubSubIntegrationParams | JiraIntegrationParams | PagerDutyIntegrationParams | ServiceNowIntegrationParams | WebhookIntegrationParams | SlackIntegrationParams | SlackBotIntegrationParams | OpsgenieIntegrationParams | ClickUpIntegrationParams
 
 input IntegrationTLSConfigInput {
   allowInsecureTLS: Boolean
@@ -16837,6 +16859,7 @@ enum IntegrationType {
   OPSGENIE
   TINES
   HUNTERS
+  CLICK_UP
 }
 
 scalar IntegrationTypeValue
@@ -17541,7 +17564,6 @@ type Mutation {
   clearUIUserPreferences(input: ClearUIUserPreferencesInput!): ClearUIUserPreferencesPayload!
   completeAuthMigration: CompleteAuthMigrationStatusPayload!
   createActionTemplate(input: CreateActionTemplateInput!): CreateActionTemplatePayload
-  createAutomationAction(input: CreateAutomationActionInput!): CreateAutomationActionPayload!
   createAutomationRule(input: CreateAutomationRuleInput!): CreateAutomationRulePayload!
   createCICDScanPolicy(input: CreateCICDScanPolicyInput!): CreateCICDScanPolicyPayload!
   createCloudConfigurationRule(input: CreateCloudConfigurationRuleInput!): CreateCloudConfigurationRulePayload!
@@ -17551,6 +17573,7 @@ type Mutation {
   createControl(input: CreateControlInput!): CreateControlPayload!
   createCustomIPRange(input: CreateCustomIPRangeInput!): CreateCustomIPRangePayload!
   createDataClassifier(input: CreateDataClassifierInput!): CreateDataClassifierPayload!
+  createFileIntegrityMonitoringExclusion(input: CreateFileIntegrityMonitoringExclusionInput!): CreateFileIntegrityMonitoringExclusionPayload!
   createHostConfigurationRule(input: CreateHostConfigurationRuleInput!): CreateHostConfigurationRulePayload!
   createIgnoreRule(input: CreateIgnoreRuleInput!): CreateIgnoreRulePayload!
   createIntegration(input: CreateIntegrationInput!): CreateIntegrationPayload!
@@ -17570,7 +17593,6 @@ type Mutation {
   createSupportTicket(input: CreateSupportTicketInput!): CreateSupportTicketPayload!
   createUser(input: CreateUserInput!): CreateUserPayload!
   deleteActionTemplate(input: DeleteActionTemplateInput!): DeleteActionTemplatePayload
-  deleteAutomationAction(input: DeleteAutomationActionInput!): DeleteAutomationActionPayload!
   deleteAutomationRule(input: DeleteAutomationRuleInput!): DeleteAutomationRulePayload!
   deleteCICDScan(input: DeleteCICDScanInput!): DeleteCICDScanPayload!
   deleteCICDScanPolicy(input: DeleteCICDScanPolicyInput!): DeleteCICDScanPolicyPayload!
@@ -17581,6 +17603,7 @@ type Mutation {
   deleteControl(input: DeleteControlInput!): DeleteControlPayload!
   deleteCustomIPRange(input: DeleteCustomIPRangeInput!): DeleteCustomIPRangePayload!
   deleteDataClassifier(input: DeleteDataClassifierInput!): DeleteDataClassifierPayload!
+  deleteFileIntegrityMonitoringExclusion(input: DeleteFileIntegrityMonitoringExclusionInput!): DeleteFileIntegrityMonitoringExclusionPayload!
   deleteHostConfigurationRule(input: DeleteHostConfigurationRuleInput!): DeleteHostConfigurationRulePayload!
   deleteIgnoreRule(input: DeleteIgnoreRuleInput!): DeleteIgnoreRulePayload!
   deleteIntegration(input: DeleteIntegrationInput!): DeleteIntegrationPayload!
@@ -17623,7 +17646,6 @@ type Mutation {
   runIssuesIntegrationAction(input: RunIssuesIntegrationInput!): RunIssuesIntegrationPayload!
   sendUserEmailInvite(input: SendUserEmailInviteInput!): SendUserEmailInvitePayload!
   uninstallOutpost(input: UninstallOutpostInput!): UninstallOutpostPayload!
-  updateAutomationAction(input: UpdateAutomationActionInput!): UpdateAutomationActionPayload!
   updateAutomationRule(input: UpdateAutomationRuleInput!): UpdateAutomationRulePayload!
   updateBasicAuthSettings(input: UpdateBasicAuthSettingsInput!): UpdateBasicAuthSettingsPayload!
   updateCICDScanPolicy(input: UpdateCICDScanPolicyInput): UpdateCICDScanPolicyPayload!
@@ -17640,6 +17662,7 @@ type Mutation {
   updateDataScannerSettings(input: UpdateDataScannerSettingsInput!): UpdateDataScannerSettingsPayload!
   updateDigitalTrustDashboardSettings(input: UpdateDigitalTrustDashboardSettingsInput!): UpdateDigitalTrustDashboardSettingsPayload!
   updateExternalExposureScannerSettings(input: UpdateExternalExposureScannerSettingsInput!): UpdateExternalExposureScannerSettingsPayload!
+  updateFileIntegrityMonitoringExclusion(input: UpdateFileIntegrityMonitoringExclusionInput!): UpdateFileIntegrityMonitoringExclusionPayload!
   updateFileIntegrityMonitoringSettings(input: UpdateFileIntegrityMonitoringSettingsInput!): UpdateFileIntegrityMonitoringSettingsPayload!
   updateGraphEntity(input: UpdateGraphEntityInput!): UpdateGraphEntityPayload!
   updateHostConfigurationRule(input: UpdateHostConfigurationRuleInput!): UpdateHostConfigurationRulePayload!
@@ -18809,6 +18832,8 @@ type Query {
   directoryUser(id: ID!): DirectoryUser
   directoryUsers(after: String, first: Int, search: String): DirectoryUserConnection!
   externalExposureScannerSettings: ExternalExposureScannerSettings!
+  fileIntegrityMonitoringExclusion(id: ID!): FileIntegrityMonitoringExclusion
+  fileIntegrityMonitoringExclusions(after: String, first: Int): FileIntegrityMonitoringExclusionConnection!
   fileIntegrityMonitoringSettings: FileIntegrityMonitoringSettings!
   getReportAvailableColumns(input: GetReportAvailableColumnsInput!): GetReportAvailableColumnsPayload!
   graphEntity(id: ID!): GraphEntity
@@ -18872,6 +18897,7 @@ type Query {
   resourceTags(filterBy: ResourceTagFilters): [ResourceTag!]!
   samlIdentityProvider(id: ID!): SAMLIdentityProvider
   samlIdentityProviderConfig(name: String!, samlIdentityProviderId: String): SAMLIdentityProviderConfig
+  samlIdentityProviderDefaultAttributeMapping: SAMLAttributeMapping!
   samlIdentityProviders(after: String, filterBy: SAMLIdentityProviderFilters, first: Int): SAMLIdentityProviderConnection!
   savedCloudEventFilter(id: ID!): SavedCloudEventFilter
   savedCloudEventFilters(after: String, filterBy: SavedCloudEventFilterFilters, first: Int): SavedCloudEventFilterConnection!
@@ -18907,7 +18933,6 @@ type Query {
   technologies(after: String, filterBy: TechnologyFilters, first: Int, orderBy: TechnologyOrder): TechnologyConnection!
   technology(id: ID!): Technology!
   tenantIdentityClient(cloudProvider: CloudProvider!): TenantIdentityClient
-  testAutomationAction(id: ID!): AutomationActionTestResult!
   testConnectorConfig(authParams: JSON!, type: ID!): ConnectorConfigTestResult!
   testIntegrationAction(input: TestIntegrationActionInput!): IntegrationActionTestResult!
   uiUserPreferences: UIUserPreferences!
@@ -19362,6 +19387,22 @@ type RunIssuesIntegrationResult {
   serviceTicket: ServiceTicket
 }
 
+type SAMLAttributeMapping {
+  email: String!
+  groups: String!
+  name: String!
+  projectIds: String!
+  role: String!
+}
+
+input SAMLAttributeMappingInput {
+  name: String
+  email: String
+  groups: String
+  role: String
+  projectIds: String
+}
+
 type SAMLGroupMapping {
   projects: [Project!]
   providerGroupId: ID!
@@ -19382,8 +19423,8 @@ input SAMLGroupMappingUpdateInput {
 
 type SAMLIdentityProvider {
   allowManualRoleOverride: Boolean!
+  attributeMapping: SAMLAttributeMapping
   certificate: String!
-  customAttributeMapping: CustomAttributeMapping
   domains: [String!]
   groupMapping: [SAMLGroupMapping!]
   id: ID!
@@ -19727,6 +19768,10 @@ input SecurityFrameworkPatch {
   description: String
   enabled: Boolean
   categories: [SecurityCategoryInput!]
+}
+
+input SecurityFrameworkPatchOptions {
+  unassignPoliciesOnAllEmptySubCategories: Boolean
 }
 
 enum SecurityFrameworkPolicyType {
@@ -20703,6 +20748,7 @@ type Tenant implements Node {
   quotaUsage: [TenantLicensesQuotaUsage!]!
   status: TenantStatus! @deprecated(reason: "use primaryLicense instead")
   subscriptionPlanStatus: SubscriptionPlanStatus! @deprecated(reason: "use status instead")
+  tenantWizRegistryCredentials: TenantWizRegistryCredentials
 }
 
 type TenantIdentityClient {
@@ -20781,6 +20827,11 @@ enum TenantStatus {
   TRIAL
 }
 
+type TenantWizRegistryCredentials {
+  password: String!
+  username: String!
+}
+
 input TestIntegrationActionInput {
   id: ID!
   actionTemplateType: ActionTemplateType!
@@ -20819,30 +20870,6 @@ type UninstallOutpostPayload {
   outpost: Outpost
 }
 
-input UpdateAutomationActionChange {
-  name: String
-  emailParams: UpdateEmailAutomationActionParamsInput
-  webhookParams: UpdateWebhookAutomationActionParamsInput
-  slackParams: UpdateSlackMessageAutomationActionParamsInput
-  googleChatParams: UpdateGoogleChatMessageAutomationActionParamsInput
-  jiraParams: UpdateJiraAutomationActionParamInput
-  jiraTransitionParams: UpdateJiraTransitionAutomationActionParamInput
-  servicenowParams: UpdateServiceNowAutomationActionParamInput
-  servicenowUpdateTicketParams: UpdateServiceNowUpdateTicketAutomationActionParamInput
-  awsMessageParams: UpdateAwsMessageAutomationActionParamsInput
-  azureServiceBusParams: UpdateAzureServiceBusAutomationActionParamsInput
-  googlePubSubParams: UpdateGooglePubSubAutomationActionParamsInput
-}
-
-input UpdateAutomationActionInput {
-  id: ID!
-  override: UpdateAutomationActionChange!
-}
-
-type UpdateAutomationActionPayload {
-  automationAction: AutomationAction
-}
-
 input UpdateAutomationRuleInput {
   id: ID!
   patch: UpdateAutomationRulePatch!
@@ -20862,21 +20889,9 @@ type UpdateAutomationRulePayload {
   automationRule: AutomationRule
 }
 
-input UpdateAwsMessageAutomationActionParamsInput {
-  snsTopicARN: String
-  body: String
-  accessMethod: AwsMessageAutomationActionAccessMethodInput
-}
-
 input UpdateAwsSNSIntegrationParamsInput {
   topicARN: String
   accessMethod: AwsSNSIntegrationAccessMethodInput
-}
-
-input UpdateAzureServiceBusAutomationActionParamsInput {
-  queueUrl: String
-  body: String
-  accessMethod: AzureServiceBusAutomationActionAccessMethodInput
 }
 
 input UpdateAzureServiceBusIntegrationParamsInput {
@@ -20929,6 +20944,10 @@ input UpdateCICDScanPolicyPatch {
 
 type UpdateCICDScanPolicyPayload {
   scanPolicy: CICDScanPolicy
+}
+
+input UpdateClickUpIntegrationParamsInput {
+  key: String!
 }
 
 type UpdateCloudConfigurationFindingPayload {
@@ -21160,13 +21179,6 @@ type UpdateDigitalTrustDashboardSettingsPayload {
   digitalTrustDashboardSettings: DigitalTrustDashboardSettings!
 }
 
-input UpdateEmailAutomationActionParamsInput {
-  note: String
-  to: [String!]
-  cc: [String!]
-  attachEvidenceCSV: Boolean
-}
-
 input UpdateExternalExposureScannerSettingsInput {
   patch: UpdateExternalExposureScannerSettingsPatch!
 }
@@ -21180,6 +21192,24 @@ input UpdateExternalExposureScannerSettingsPatch {
 
 type UpdateExternalExposureScannerSettingsPayload {
   externalExposureScannerSettings: ExternalExposureScannerSettings!
+}
+
+input UpdateFileIntegrityMonitoringExclusionInput {
+  id: ID!
+  override: UpdateFileIntegrityMonitoringExclusionOverride!
+}
+
+input UpdateFileIntegrityMonitoringExclusionOverride {
+  name: String!
+  resourceIDs: [String!]
+  resourceNames: FileIntegrityMonitoringStringFilterInput
+  tags: FileIntegrityMonitoringTagsFilterInput
+  filePaths: FileIntegrityMonitoringStringFilterInput
+  fileNames: FileIntegrityMonitoringStringFilterInput
+}
+
+type UpdateFileIntegrityMonitoringExclusionPayload {
+  fileIntegrityMonitoringExclusion: FileIntegrityMonitoringExclusion
 }
 
 input UpdateFileIntegrityMonitoringSettingsInput {
@@ -21212,18 +21242,6 @@ input UpdateGcpPubSubIntegrationParamsInput {
   projectId: String
   topicId: String
   accessMethod: GooglePubSubIntegrationAccessMethodInput
-}
-
-input UpdateGoogleChatMessageAutomationActionParamsInput {
-  url: String
-  note: String
-}
-
-input UpdateGooglePubSubAutomationActionParamsInput {
-  projectId: String
-  topicId: String
-  body: String
-  accessMethod: GooglePubSubAutomationActionAccessMethodInput
 }
 
 input UpdateGraphEntityInput {
@@ -21348,6 +21366,7 @@ input UpdateIntegrationPatchParams {
   jira: UpdateJiraIntegrationParamsInput
   serviceNow: UpdateServiceNowIntegrationParamsInput
   opsgenie: UpdateOpsgenieIntegrationParamsInput
+  clickUp: UpdateClickUpIntegrationParamsInput
 }
 
 type UpdateIntegrationPayload {
@@ -21432,51 +21451,12 @@ type UpdateIssuesPayload {
   successCount: Int!
 }
 
-input UpdateJiraAutomationActionParamInput {
-  serverUrl: String
-  isOnPrem: Boolean
-  tlsConfig: AutomationActionTLSConfigInput
-  user: String
-  token: String
-  personalAccessToken: String
-  ticketFields: UpdateJiraTicketFieldsInput
-}
-
 input UpdateJiraIntegrationParamsInput {
   serverUrl: String
   serverType: JiraServerType
   isOnPrem: Boolean
   tlsConfig: IntegrationTLSConfigInput
   authorization: JiraIntegrationAuthorizationInput
-}
-
-input UpdateJiraTicketFieldsInput {
-  summary: String
-  description: String
-  issueType: String
-  assignee: String
-  components: [String!]
-  fixVersion: [String!]
-  labels: [String!]
-  priority: String
-  project: String
-  alternativeDescriptionField: String
-  customFields: JSON
-  attachEvidenceCSV: Boolean
-}
-
-input UpdateJiraTransitionAutomationActionParamInput {
-  serverUrl: String
-  isOnPrem: Boolean
-  tlsConfig: AutomationActionTLSConfigInput
-  user: String
-  token: String
-  personalAccessToken: String
-  project: String
-  transitionId: String
-  fields: JSON
-  comment: String
-  commentOnTransition: Boolean
 }
 
 input UpdateLoginSettingsInput {
@@ -21795,7 +21775,7 @@ input UpdateSAMLIdentityProviderPatch {
   domains: [String!]
   groupMapping: [SAMLGroupMappingUpdateInput!]
   mergeGroupsMappingByRole: Boolean
-  customAttributeMapping: CustomAttributeMappingInput
+  attributeMapping: SAMLAttributeMappingInput
 }
 
 type UpdateSAMLIdentityProviderPayload {
@@ -21925,9 +21905,11 @@ type UpdateScannerSettingsPayload {
 input UpdateSecurityFrameworkInput {
   id: ID!
   patch: SecurityFrameworkPatch!
+  patchOptions: SecurityFrameworkPatchOptions
 }
 
 type UpdateSecurityFrameworkPayload {
+  errors: [SecuritySubCategoryAssignmentError!]
   framework: SecurityFramework
 }
 
@@ -21945,36 +21927,9 @@ type UpdateSecurityScanPayload {
   securityScan: SecurityScan
 }
 
-input UpdateServiceNowAutomationActionParamInput {
-  baseUrl: String
-  user: String
-  password: String
-  ticketFields: UpdateServiceNowFieldsInput
-  clientId: String
-  clientSecret: String
-}
-
-input UpdateServiceNowFieldsInput {
-  tableName: String
-  customFields: JSON
-  summary: String
-  description: String
-  attachEvidenceCSV: Boolean
-}
-
 input UpdateServiceNowIntegrationParamsInput {
   url: String
   authorization: ServiceNowIntegrationAuthorizationInput
-}
-
-input UpdateServiceNowUpdateTicketAutomationActionParamInput {
-  baseUrl: String
-  user: String
-  password: String
-  tableName: String
-  fields: JSON
-  clientId: String
-  clientSecret: String
 }
 
 input UpdateSessionLifetimeSettingsInput {
@@ -21990,10 +21945,6 @@ input UpdateSlackBotIntegrationParamsInput {
 }
 
 input UpdateSlackIntegrationParamsInput {
-  url: String
-}
-
-input UpdateSlackMessageAutomationActionParamsInput {
   url: String
 }
 
@@ -22079,18 +22030,6 @@ input UpdateVulnerabilityPatch {
 
 type UpdateVulnerabilityPayload {
   vulnerability: Vulnerability
-}
-
-input UpdateWebhookAutomationActionParamsInput {
-  url: String
-  body: String
-  clientCertificate: String
-  authUsername: String
-  authPassword: String
-  authToken: String
-  isOnPrem: Boolean
-  tlsConfig: AutomationActionTLSConfigInput
-  headers: [WebhookHeaderInput!]
 }
 
 input UpdateWebhookIntegrationParamsInput {
@@ -22349,12 +22288,14 @@ type VulnerabilityFinding {
   hasCisaKevExploit: Boolean
   hasExploit: Boolean
   id: ID!
+  ignoreRules: [IgnoreRule]
   impactScore: Float
   lastDetectedAt: DateTime!
+  layerMetadata: LayerMetadata
   link: String
   locationPath: String
   name: String!
-  note: FindingStatusNote
+  note: VulnerabilityFindingNote
   portalUrl: String!
   projects: [Project]
   remediation: String
@@ -22413,9 +22354,21 @@ input VulnerabilityFindingFilters {
   assetHasAdminPrivileges: Boolean
   assetStatus: [CloudResourceStatus!]
   score: CommonNumberFilter
+  isContainerImageScannedFromWorkload: Boolean
+  isContainerImageScannedFromRegistry: Boolean
   containerRegistry: [String!]
   containerRepository: [String!]
   layerId: [String!]
+  isBaseLayer: Boolean
+}
+
+type VulnerabilityFindingNote implements Node {
+  createdAt: DateTime!
+  id: ID!
+  serviceAccount: ServiceAccount
+  text: String!
+  updatedAt: DateTime!
+  user: User
 }
 
 input VulnerabilityFindingOrder {
@@ -22567,12 +22520,13 @@ type VulnerableAssetContainerImage implements VulnerableAssetBase {
   isAccessibleFromOtherSubscriptions: Boolean
   isAccessibleFromOtherVnets: Boolean
   isAccessibleFromVPN: Boolean
-  layerMetadata: LayerMetadata
+  layerMetadata: LayerMetadata @deprecated(reason: "Use layerMetadata as part of VulnerabilityFinding")
   name: String
   providerUniqueId: String!
   region: String
   registry: GEContainerRegistry
   repository: GEContainerRepository
+  scanSource: [ContainerImageScanSource!]
   status: CloudResourceStatus
   subscriptionExternalId: String
   subscriptionId: String
