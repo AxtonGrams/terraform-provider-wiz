@@ -13,11 +13,18 @@ Services accounts are used to integrate with Wiz.
 ## Example Usage
 
 ```terraform
+# Create a project reader service account
 resource "wiz_service_account" "project_reader" {
   name = "project_reader"
   scopes = [
     "read:projects",
   ]
+}
+
+# Create a helm (broker) service account
+resource "wiz_service_account" "helm" {
+  name = "helm"
+  type = "BROKER"
 }
 ```
 
@@ -27,7 +34,13 @@ resource "wiz_service_account" "project_reader" {
 ### Required
 
 - `name` (String)
-- `scopes` (List of String) Scopes.
+
+### Optional
+
+- `assigned_projects` (List of String) Project ID assignments, optional with THIRD_PARTY (GraphQL API type)
+- `recreate_if_rotated` (Boolean) Recreate the resource if rotated outside Terraform? This can be used to ensure the state contains valid authentication information. This option should be disabled if external tools are used to manage the credentials for this service account.
+    - Defaults to `false`.
+- `scopes` (List of String) Scopes, required with THIRD_PARTY (GraphQL API type).
     - Allowed values: 
         - admin:all
         - admin:audit
@@ -155,12 +168,14 @@ resource "wiz_service_account" "project_reader" {
         - write:security_frameworks
         - write:security_scans
         - write:service_accounts
+- `type` (String) Service account type, for Helm use `BROKER` type.`
+    - Allowed values: 
+        - THIRD_PARTY
+        - SENSOR
+        - KUBERNETES_ADMISSION_CONTROLLER
+        - BROKER
 
-### Optional
-
-- `assigned_projects` (List of String)
-- `recreate_if_rotated` (Boolean) Recreate the resource if rotated outside Terraform? This can be used to ensure the state contains valid authentication information. This option should be disabled if external tools are used to manage the credentials for this service account.
-    - Defaults to `false`.
+    - Defaults to `THIRD_PARTY`.
 
 ### Read-Only
 
