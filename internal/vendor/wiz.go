@@ -1121,7 +1121,16 @@ type ServiceAccount struct {
 	ID               string     `json:"id"`
 	Name             string     `json:"name"`
 	Scopes           []string   `json:"scopes"`
+	Type             string     `json:"type"` //enum ServiceAccountType
 	LastRotatedAt    string     `json:"lastRotatedAt"`
+}
+
+// ServiceAccountType enum
+var ServiceAccountType = []string{
+	"THIRD_PARTY",
+	"SENSOR",
+	"KUBERNETES_ADMISSION_CONTROLLER",
+	"BROKER",
 }
 
 // CreateServiceAccountInput struct -- updates
@@ -1129,6 +1138,7 @@ type CreateServiceAccountInput struct {
 	Name               string   `json:"name"`
 	Scopes             []string `json:"scopes"`
 	AssignedProjectIDs []string `json:"assignedProjectIds,omitempty"`
+	Type               *string  `json:"type,omitempty"`
 }
 
 // CreateServiceAccountPayload struct -- updates
