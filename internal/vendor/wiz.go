@@ -14,6 +14,7 @@ import (
   - bool elements must be bool* if omitempty is specified. see https://stackoverflow.com/questions/37756236/json-golang-boolean-omitempty
   - GraphQL union types require that the schema be extended so the type is known
   - GraphQL enums are represented by slices; validation is performed by the resource
+  - Sometimes deviations are required from the Wiz schema definition; please note the deviation in the struct comments
 */
 
 // PageInfo struct
@@ -1120,7 +1121,16 @@ type ServiceAccount struct {
 	ID               string     `json:"id"`
 	Name             string     `json:"name"`
 	Scopes           []string   `json:"scopes"`
+	Type             string     `json:"type"` //enum ServiceAccountType
 	LastRotatedAt    string     `json:"lastRotatedAt"`
+}
+
+// ServiceAccountType enum
+var ServiceAccountType = []string{
+	"THIRD_PARTY",
+	"SENSOR",
+	"KUBERNETES_ADMISSION_CONTROLLER",
+	"BROKER",
 }
 
 // CreateServiceAccountInput struct -- updates
@@ -1128,6 +1138,7 @@ type CreateServiceAccountInput struct {
 	Name               string   `json:"name"`
 	Scopes             []string `json:"scopes"`
 	AssignedProjectIDs []string `json:"assignedProjectIds,omitempty"`
+	Type               *string  `json:"type,omitempty"`
 }
 
 // CreateServiceAccountPayload struct -- updates
