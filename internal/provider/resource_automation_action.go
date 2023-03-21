@@ -18,7 +18,8 @@ import (
 
 func resourceWizAutomationAction() *schema.Resource {
 	return &schema.Resource{
-		Description: "Automation actions define actions to perform for findings.",
+		Description:        "Automation actions define actions to perform for findings.",
+		DeprecationMessage: "wiz_automation_action has been deprecated and will be removed in a future version. The resource has been replaced by wiz_integration. Migrate your resources from wiz_automation_action to wiz_integration.",
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
