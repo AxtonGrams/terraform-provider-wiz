@@ -523,11 +523,14 @@ var AutomationActionType = []string{
 	"CYWARE",
 	"EMAIL",
 	"EVENT_BRIDGE",
+	"FRESHSERVICE",
 	"GOOGLE_CHAT_MESSAGE",
 	"GOOGLE_PUB_SUB",
 	"JIRA_TICKET",
 	"JIRA_TICKET_TRANSITION",
 	"MICROSOFT_TEAMS",
+	"OPSGENIE_CLOSE_ALERT",
+	"OPSGENIE_CREATE_ALERT",
 	"PAGER_DUTY_CREATE_INCIDENT",
 	"PAGER_DUTY_RESOLVE_INCIDENT",
 	"SECURITY_HUB",
@@ -1036,6 +1039,7 @@ type UpdateAutomationActionPayload struct {
 var AutomationRuleTriggerSource = []string{
 	"ISSUES",
 	"CLOUD_EVENTS",
+	"CONTORL",
 }
 
 // AutomationRuleTriggerType enum
@@ -1048,30 +1052,30 @@ var AutomationRuleTriggerType = []string{
 
 // AutomationRule struct -- updates
 type AutomationRule struct {
-	Action               AutomationAction `json:"action"`
-	CreatedAt            string           `json:"createdAt"`
-	Description          string           `json:"description,omitempty"`
-	Enabled              bool             `json:"enabled"`
-	Filters              json.RawMessage  `json:"filters,omitempty"`
-	ID                   string           `json:"id"`
-	Name                 string           `json:"name"`
-	OverrideActionParams json.RawMessage  `json:"overrideActionParams,omitempty"`
-	Project              Project          `json:"project,omitempty"`
-	TriggerSource        string           `json:"triggerSource"` // enum AutomationRuleTriggerSource
-	TriggerType          []string         `json:"triggerType"`   // enum AutomationRuleTriggerType
+	Action               AutomationAction        `json:"action"`
+	Actions              []*AutomationRuleAction `json:"actions"`
+	CreatedAt            string                  `json:"createdAt"`
+	Description          string                  `json:"description,omitempty"`
+	Enabled              bool                    `json:"enabled"`
+	Filters              json.RawMessage         `json:"filters,omitempty"`
+	ID                   string                  `json:"id"`
+	Name                 string                  `json:"name"`
+	OverrideActionParams json.RawMessage         `json:"overrideActionParams,omitempty"`
+	Project              Project                 `json:"project,omitempty"`
+	TriggerSource        string                  `json:"triggerSource"` // enum AutomationRuleTriggerSource
+	TriggerType          []string                `json:"triggerType"`   // enum AutomationRuleTriggerType
 }
 
 // CreateAutomationRuleInput struct -- updates
 type CreateAutomationRuleInput struct {
-	Name                 string          `json:"name"`
-	Description          string          `json:"description,omitempty"`
-	TriggerSource        string          `json:"triggerSource"` // enum AutomationRuleTriggerSource
-	TriggerType          []string        `json:"triggerType"`   // enum AutomationRuleTriggerType
-	Filters              json.RawMessage `json:"filters,omitempty"`
-	ActionID             string          `json:"actionId"`
-	OverrideActionParams json.RawMessage `json:"overrideActionParams,omitempty"`
-	Enabled              *bool           `json:"enabled,omitempty"`
-	ProjectID            string          `json:"projectId,omitempty"`
+	Name          string                      `json:"name"`
+	Description   string                      `json:"description,omitempty"`
+	TriggerSource string                      `json:"triggerSource"` // enum AutomationRuleTriggerSource
+	TriggerType   []string                    `json:"triggerType"`   // enum AutomationRuleTriggerType
+	Filters       json.RawMessage             `json:"filters,omitempty"`
+	Enabled       *bool                       `json:"enabled,omitempty"`
+	ProjectID     string                      `json:"projectId,omitempty"`
+	Actions       []AutomationRuleActionInput `json:"actions"`
 }
 
 // CreateAutomationRulePayload struct -- updates
@@ -2587,4 +2591,636 @@ var GraphEntityType = []string{
 	"VULNERABILITY",
 	"WEAKNESS",
 	"WEB_SERVICE",
+}
+
+// AutomationRuleAction struct
+type AutomationRuleAction struct {
+	ID                   string      `json:"id"`
+	ActionTemplateParams interface{} `json:"actionTemplateParams,omitempty"` // union ActionTemplateParams
+	ActionTemplateType   string      `json:"actionTemplateType"`             // enum ActionTemplateType
+	Integration          Integration `json:"integration"`
+}
+
+// ActionTemplateType enum
+var ActionTemplateType = []string{
+	"AWS_EVENT_BRIDGE",
+	"AWS_SECURITY_HUB",
+	"AWS_SNS",
+	"AZURE_DEVOPS",
+	"AZURE_LOGIC_APPS",
+	"AZURE_SENTINEL",
+	"AZURE_SERVICE_BUS",
+	"CISCO_WEBEX",
+	"CLICK_UP_CREATE_TASK",
+	"CORTEX_XSOAR",
+	"CYWARE",
+	"EMAIL",
+	"FRESHSERVICE",
+	"GCP_PUB_SUB",
+	"GOOGLE_CHAT",
+	"HUNTERS",
+	"JIRA_ADD_COMMENT",
+	"JIRA_CREATE_TICKET",
+	"JIRA_TRANSITION_TICKET",
+	"MICROSOFT_TEAMS",
+	"OPSGENIE_CLOSE_ALERT",
+	"OPSGENIE_CREATE_ALERT",
+	"PAGER_DUTY_CREATE_INCIDENT",
+	"PAGER_DUTY_RESOLVE_INCIDENT",
+	"SERVICE_NOW_CREATE_TICKET",
+	"SERVICE_NOW_UPDATE_TICKET",
+	"SLACK",
+	"SLACK_BOT",
+	"SPLUNK",
+	"SUMO_LOGIC",
+	"TINES",
+	"TORQ",
+	"WEBHOOK",
+}
+
+// Integration struct
+// usedByRules: [AutomationRule!]! was omitted from the struct
+type Integration struct {
+	CreatedAt                 string      `json:"createdAt"`
+	ID                        string      `json:"id"`
+	IsAccessibleToAllProjects *bool       `json:"isAccessibleToAllProjects,omitempty"`
+	Name                      string      `json:"name"`
+	Params                    interface{} `json:"params"` // union IntegrationParams
+	Project                   *Project    `json:"project,omitempty"`
+	Type                      string      `json:"type"` // enum IntegrationType
+	UpdatedAt                 string      `json:"updatedAt"`
+}
+
+// IntegrationType enum
+var IntegrationType = []string{
+	"AWS_SECURITY_HUB",
+	"AWS_SNS",
+	"AZURE_DEVOPS",
+	"AZURE_LOGIC_APPS",
+	"AZURE_SENTINEL",
+	"AZURE_SERVICE_BUS",
+	"CISCO_WEBEX",
+	"CORTEX_XSOAR",
+	"CYWARE",
+	"EMAIL",
+	"AWS_EVENT_BRIDGE",
+	"GOOGLE_CHAT",
+	"GCP_PUB_SUB",
+	"JIRA",
+	"MICROSOFT_TEAMS",
+	"PAGER_DUTY",
+	"SERVICE_NOW",
+	"SLACK",
+	"SLACK_BOT",
+	"SPLUNK",
+	"SUMO_LOGIC",
+	"TORQ",
+	"WEBHOOK",
+	"FRESHSERVICE",
+	"OPSGENIE",
+	"TINES",
+	"HUNTERS",
+	"CLICK_UP",
+}
+
+// AutomationRuleActionInput struct
+type AutomationRuleActionInput struct {
+	ID                   string                    `json:"id"`
+	IntegrationID        string                    `json:"integrationId"`
+	ActionTemplateParams ActionTemplateParamsInput `json:"actionTemplateParams,omitempty"`
+	ActionTemplateType   ActionTemplateType        `json:"actionTemplateType"`
+}
+
+// ActionTemplateParamsInput struct
+type ActionTemplateParamsInput struct {
+	AwsSNS                  AwsSNSActionTemplateParamsInput                  `json:"awsSNS,omitempty"`
+	Email                   EmailActionTemplateParamsInput                   `json:"email,omitempty"`
+	Webhook                 WebhookActionTemplateParamsInput                 `json:"webhook,omitempty"`
+	Slack                   SlackActionTemplateParamsInput                   `json:"slack,omitempty"`
+	SlackBot                SlackBotActionTemplateParamsInput                `json:"slackBot,omitempty"`
+	AzureServiceBus         AzureServiceBusActionTemplateParamsInput         `json:"azureServiceBus,omitempty"`
+	GoogleChat              GoogleChatActionTemplateParamsInput              `json:"googleChat,omitempty"`
+	GcpPubSub               GcpPubSubActionTemplateParamsInput               `json:"gcpPubSub,omitempty"`
+	PagerDutyCreateIncident PagerDutyActionCreateIncidentTemplateParamsInput `json:"pagerDutyCreateIncident,omitempty"`
+	JiraCreateTicket        JiraActionCreateTicketTemplateParamsInput        `json:"jiraCreateTicket,omitempty"`
+	JiraAddComment          JiraActionAddCommentTemplateParamsInput          `json:"jiraAddComment,omitempty"`
+	JiraTransitionTicket    JiraActionTransitionTicketTemplateParamsInput    `json:"jiraTransitionTicket,omitempty"`
+	ServiceNowCreateTicket  ServiceNowActionCreateTicketTemplateParamsInput  `json:"serviceNowCreateTicket,omitempty"`
+	ServiceNowUpdateTicket  ServiceNowActionUpdateTicketTemplateParamsInput  `json:"serviceNowUpdateTicket,omitempty"`
+	OpsgenieCreateAlert     OpsgenieCreateAlertTemplateParamsInput           `json:"opsgenieCreateAlert,omitempty"`
+	OpsgenieCloseAlert      OpsgenieCloseAlertTemplateParamsInput            `json:"opsgenieCloseAlert,omitempty"`
+	ClickUpCreateTask       ClickUpCreateTaskActionTemplateParamsInput       `json:"clickUpCreateTask,omitempty"`
+}
+
+// AwsSNSActionTemplateParamsInput struct
+type AwsSNSActionTemplateParamsInput struct {
+	Body string `json:"body"`
+}
+
+// EmailActionTemplateParamsInput struct
+type EmailActionTemplateParamsInput struct {
+	Note              string   `json:"note,omitempty"`
+	To                []string `json:"to"`
+	CC                []string `json:"cc,omitempty"`
+	AttachEvidenceCSV *bool    `json:"attachEvidenceCSV,omitempty"`
+}
+
+// WebhookActionTemplateParamsInput struct
+type WebhookActionTemplateParamsInput struct {
+	Body    string               `json:"body"`
+	Headers []WebhookHeaderInput `json:"headers,omitempty"`
+}
+
+// SlackActionTemplateParamsInput struct
+type SlackActionTemplateParamsInput struct {
+	Note string `json:"note,omitempty"`
+}
+
+// SlackBotActionTemplateParamsInput struct
+type SlackBotActionTemplateParamsInput struct {
+	Note    string `json:"note,omitempty"`
+	Channel string `json:"channel"`
+}
+
+// AzureServiceBusActionTemplateParamsInput struct
+type AzureServiceBusActionTemplateParamsInput struct {
+	Body string `json:"body"`
+}
+
+// GoogleChatActionTemplateParamsInput struct
+type GoogleChatActionTemplateParamsInput struct {
+	Note string `json:"note,omitempty"`
+}
+
+// GcpPubSubActionTemplateParamsInput struct
+type GcpPubSubActionTemplateParamsInput struct {
+	Body string `json:"body"`
+}
+
+// PagerDutyActionCreateIncidentTemplateParamsInput struct
+type PagerDutyActionCreateIncidentTemplateParamsInput struct {
+	Payload string `json:"payload"`
+}
+
+// JiraActionCreateTicketTemplateParamsInput struct
+type JiraActionCreateTicketTemplateParamsInput struct {
+	Fields CreateJiraTicketFieldsInput `json:"fields,omitempty"`
+}
+
+// JiraActionAddCommentTemplateParamsInput struct
+type JiraActionAddCommentTemplateParamsInput struct {
+	ProjectKey      string `json:"projectKey,omitempty"`
+	Comment         string `json:"comment"`
+	AddIssuesReport bool   `json:"addIssuesReport"`
+}
+
+// JiraActionTransitionTicketTemplateParamsInput struct
+type JiraActionTransitionTicketTemplateParamsInput struct {
+	Project             string          `json:"project"`
+	TransitionID        string          `json:"transitionId"`
+	AdvancedFields      json.RawMessage `json:"advancedFields,omitempty"`
+	Comment             string          `json:"comment,omitempty"`
+	CommentOnTransition *bool           `json:"commentOnTransition,omitempty"`
+	AttachEvidenceCSV   *bool           `json:"attachEvidenceCSV,omitempty"`
+}
+
+// ServiceNowActionCreateTicketTemplateParamsInput struct
+type ServiceNowActionCreateTicketTemplateParamsInput struct {
+	Fields CreateServiceNowFieldsInput `json:"fields"`
+}
+
+// ServiceNowActionUpdateTicketTemplateParamsInput struct
+type ServiceNowActionUpdateTicketTemplateParamsInput struct {
+	TableName          string          `json:"tableName"`
+	Fields             json.RawMessage `json:"fields,omitempty"`
+	AttachIssuesReport *bool           `json:"attachIssuesReport,omitempty"`
+}
+
+// OpsgenieCreateAlertTemplateParamsInput struct
+type OpsgenieCreateAlertTemplateParamsInput struct {
+	Body string `json:"body"`
+}
+
+// OpsgenieCloseAlertTemplateParamsInput struct
+type OpsgenieCloseAlertTemplateParamsInput struct {
+	Body string `json:"body"`
+}
+
+// ClickUpCreateTaskActionTemplateParamsInput struct
+type ClickUpCreateTaskActionTemplateParamsInput struct {
+	ListID string `json:"listId"`
+	Body   string `json:"body"`
+}
+
+// WebhookHeaderInput struct
+type WebhookHeaderInput struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// AWSSNSIntegrationParams struct
+type AWSSNSIntegrationParams struct {
+	AccessConnector Connector `json:"accessConnector,omitempty"`
+	AccessMethod    string    `json:"accessMethod"` // enum AwsSNSIntegrationAccessMethodType
+	CustomerRoleARN string    `json:"customerRoleARN"`
+	TopicARN        string    `json:"topicARN"`
+}
+
+// AzureServiceBusIntegrationParams struct
+type AzureServiceBusIntegrationParams struct {
+	AccessConnector         Connector                                  `json:"accessConnector,omitempty"`
+	AccessMethod            AzureServiceBusIntegrationAccessMethodType `json:"accessMethod"`
+	ConnectionStringWithSAS string                                     `json:"connectionStringWithSAS,omitempty"`
+	QueueURL                string                                     `json:"queueUrl"`
+}
+
+// GcpPubSubIntegrationParams struct
+type GcpPubSubIntegrationParams struct {
+	AccessConnector   Connector                            `json:"accessConnector,omitempty"`
+	AccessMethod      GcpPubSubIntegrationAccessMethodType `json:"accessMethod"`
+	ProjectID         string                               `json:"projectId"`
+	ServiceAccountKey json.RawMessage                      `json:"serviceAccountKey.omitempty"`
+	TopicID           string                               `json:"topicId"`
+}
+
+// JiraIntegrationParams struct
+type JiraIntegrationParams struct {
+	Authorization interface{}               `json:"authorization"` // union JiraIntegrationAuthorization
+	OnPremConfig  OnPremIntegrationConfig   `json:"onPremConfig,omitempty"`
+	ServerType    string                    `json:"serverType"` // enum JiraServerType
+	TLSConfig     AutomationActionTLSConfig `json:"tlsConfig"`
+	URL           string                    `json:"url"`
+}
+
+// PagerDutyIntegrationParams struct
+type PagerDutyIntegrationParams struct {
+	IntegrationKey string `json:"integrationKey"`
+}
+
+// ServiceNowIntegrationParams struct
+type ServiceNowIntegrationParams struct {
+	Authorization interface{} `json:"authorization"`
+	URL           string      `json:"url"`
+}
+
+// WebhookIntegrationParams struct
+type WebhookIntegrationParams struct {
+	Authorization interface{}               `json:"authorization,omitempty"` // union WebhookIntegrationAuthorization
+	Headers       []WebhookHeader           `json:"headers,omitempty"`
+	OnPremConfig  OnPremIntegrationConfig   `json:"onPremConfig,omitempty"`
+	TLSConfig     AutomationActionTLSConfig `json:"tlsConfig,omitempty"`
+	URL           string                    `json:"url"`
+}
+
+// SlackIntegrationParams struct
+type SlackIntegrationParams struct {
+	Channel string `json:"channel,omitempty"`
+	URL     string `json:"url"`
+}
+
+// SlackBotIntegrationParams struct
+type SlackBotIntegrationParams struct {
+	Token string `json:"token"`
+}
+
+// OpsgenieIntegrationParams struct
+type OpsgenieIntegrationParams struct {
+	Key string `json:"key"`
+}
+
+// ClickUpIntegrationParams struct
+type ClickUpIntegrationParams struct {
+	Key string `json:"key"`
+}
+
+// OnPremIntegrationConfig struct
+type OnPremIntegrationConfig struct {
+	IsOnPrem     bool   `json:"isOnPrem"`
+	TunnelDomain string `json:"tunnelDomain,omitempty"`
+	TunnelToken  string `json:"tunnelToken,omitempty"`
+}
+
+// AutomationActionTLSConfig struct {
+type AutomationActionTLSConfig struct {
+	AllowInsecureTLS               *bool  `json:"allowInsecureTLS,omitempty"`
+	ClientCertificateAndPrivateKey string `json:"clientCertificateAndPrivateKey,omitempty"`
+	ServerCA                       string `json:"serverCA,omitempty"`
+}
+
+// WebhookHeader struct
+type WebhookHeader struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// JiraIntegrationBasicAuthorization struct
+type JiraIntegrationBasicAuthorization struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+
+// JiraIntegrationTokenBearerAuthorization struct
+type JiraIntegrationTokenBearerAuthorization struct {
+	Token string `json:"token"`
+}
+
+// ServiceNowIntegrationBasicAuthorization struct
+type ServiceNowIntegrationBasicAuthorization struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+
+// ServiceNowIntegrationOAuthAuthorization struct
+type ServiceNowIntegrationOAuthAuthorization struct {
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+	Password     string `json:"password"`
+	Username     string `json:"username"`
+}
+
+// WebhookIntegrationBasicAuthorization struct
+type WebhookIntegrationBasicAuthorization struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+
+// WebhookIntegrationBearerAuthorization struct
+type WebhookIntegrationBearerAuthorization struct {
+	Token string `json:"token"`
+}
+
+// CreateIntegrationInput struct
+type CreateIntegrationInput struct {
+	Name                      string                       `json:"name"`
+	Type                      string                       `json:"type"` // enum IntegrationType
+	ProjectID                 string                       `json:"projectId,omitempty"`
+	Params                    CreateIntegrationParamsInput `json:"params"`
+	IsAccessibleToAllProjects *bool                        `json:"isAccessibleToAllProjects,omitempty"`
+}
+
+// CreateIntegrationParamsInput struct
+type CreateIntegrationParamsInput struct {
+	AwsSNS          CreateAwsSNSIntegrationParamsInput          `json:"awsSNS,omitempty"`
+	Webhook         CreateWebhookIntegrationParamsInput         `json:"webhook,omitempty"`
+	Slack           CreateSlackIntegrationParamsInput           `json:"slack,omitempty"`
+	SlackBot        CreateSlackBotIntegrationParamsInput        `json:"slackBot,omitempty"`
+	AzureServiceBus CreateAzureServiceBusIntegrationParamsInput `json:"azureServiceBus,omitempty"`
+	GcpPubSub       CreateGcpPubSubIntegrationParamsInput       `json:"gcpPubSub,omitempty"`
+	PagerDuty       CreatePagerDutyIntegrationParamsInput       `json:"pagerDuty,omitempty"`
+	Jira            CreateJiraIntegrationParamsInput            `json:"jira,omitempty"`
+	ServiceNow      CreateServiceNowIntegrationParamsInput      `json:"serviceNow,omitempty"`
+	Opsgenie        CreateOpsgenieIntegrationParamsInput        `json:"opsgenie,omitempty"`
+	ClickUp         CreateClickUpIntegrationParamsInput         `json:"clickUp,omitempty"`
+}
+
+// CreateAwsSNSIntegrationParamsInput struct
+type CreateAwsSNSIntegrationParamsInput struct {
+	TopicARN     string                             `json:"topicARN"`
+	AccessMethod AwsSNSIntegrationAccessMethodInput `json:"accessMethod"`
+}
+
+// CreateWebhookIntegrationParamsInput struct
+type CreateWebhookIntegrationParamsInput struct {
+	URL           string                               `json:"url"`
+	IsOnPrem      *bool                                `json:"isOnPrem,omitempty"`
+	Authorization WebhookIntegrationAuthorizationInput `json:"authorization,omitempty"`
+	Headers       []WebhookHeaderInput                 `json:"headers,omitempty"`
+	TLSConfig     IntegrationTLSConfigInput            `json:"tlsConfig,omitempty"`
+}
+
+// CreateSlackIntegrationParamsInput struct
+type CreateSlackIntegrationParamsInput struct {
+	URL string `json:"url"`
+}
+
+// CreateSlackBotIntegrationParamsInput struct
+type CreateSlackBotIntegrationParamsInput struct {
+	Token string `json:"token"`
+}
+
+// CreateAzureServiceBusIntegrationParamsInput struct
+type CreateAzureServiceBusIntegrationParamsInput struct {
+	QueueUrl     string                                      `json:"queueUrl"`
+	AccessMethod AzureServiceBusIntegrationAccessMethodInput `json:"accessMethod"`
+}
+
+// CreateGcpPubSubIntegrationParamsInput struct
+type CreateGcpPubSubIntegrationParamsInput struct {
+	ProjectID    string                                   `json:"projectId"`
+	TopicID      string                                   `json:"topicId"`
+	AccessMethod GooglePubSubIntegrationAccessMethodInput `json:"accessMethod"`
+}
+
+// CreatePagerDutyIntegrationParamsInput struct
+type CreatePagerDutyIntegrationParamsInput struct {
+	IntegrationKey string `json:"integrationKey"`
+}
+
+// CreateJiraIntegrationParamsInput struct
+type CreateJiraIntegrationParamsInput struct {
+	ServerURL     string                            `json:"serverUrl"`
+	ServerType    string                            `json:"serverType"`
+	IsOnPrem      bool                              `json:"isOnPrem"`
+	TLSConfig     IntegrationTLSConfigInput         `json:"tlsConfig,omitempty"`
+	Authorization JiraIntegrationAuthorizationInput `json:"authorization"`
+}
+
+// CreateServiceNowIntegrationParamsInput struct
+type CreateServiceNowIntegrationParamsInput struct {
+	URL           string                                  `json:"url"`
+	Authorization ServiceNowIntegrationAuthorizationInput `json:"authorization"`
+}
+
+// CreateOpsgenieIntegrationParamsInput struct
+type CreateOpsgenieIntegrationParamsInput struct {
+	Key string `json:"key"`
+}
+
+// CreateClickUpIntegrationParamsInput struct
+type CreateClickUpIntegrationParamsInput struct {
+	Key string `json:"key"`
+}
+
+// AwsSNSIntegrationAccessMethodInput struct
+type AwsSNSIntegrationAccessMethodInput struct {
+	Type              string `json:"type"` // enum AwsSNSIntegrationAccessMethodType
+	AccessConnectorId string `json:"accessConnectorId,omitempty"`
+	CustomerRoleARN   string `json:"customerRoleARN,omitempty"`
+}
+
+// WebhookIntegrationAuthorizationInput struct
+type WebhookIntegrationAuthorizationInput struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Token    string `json:"token"`
+}
+
+// IntegrationTLSConfigInput struct
+type IntegrationTLSConfigInput struct {
+	AllowInsecureTLS               *bool  `json:"allowInsecureTLS,omitempty"`
+	ServerCA                       string `json:"serverCA,omitempty"`
+	ClientCertificateAndPrivateKey string `json:"clientCertificateAndPrivateKey,omitempty"`
+}
+
+// AzureServiceBusIntegrationAccessMethodInput struct
+type AzureServiceBusIntegrationAccessMethodInput struct {
+	Type                    string `json:"type"` // enum AzureServiceBusIntegrationAccessMethodType
+	AccessConnectorId       string `json:"accessConnectorId,omitempty"`
+	ConnectionStringWithSas string `json:"connectionStringWithSas,omitempty"`
+}
+
+// GooglePubSubIntegrationAccessMethodInput struct
+type GooglePubSubIntegrationAccessMethodInput struct {
+	Type              string          `json:"type"` // enum GcpPubSubIntegrationAccessMethodType
+	AccessConnectorId string          `json:"accessConnectorId,omitempty"`
+	ServiceAccountKey json.RawMessage `json:"serviceAccountKey,omitempty"`
+}
+
+// JiraServerType enum
+var JiraServerType = []string{
+	"CLOUD",
+	"SELF_HOSTED",
+}
+
+// JiraIntegrationAuthorizationInput struct
+type JiraIntegrationAuthorizationInput struct {
+	Username            string `json:"username,omitempty"`
+	Password            string `json:"password,omitempty"`
+	PersonalAccessToken string `json:"personalAccessToken,omitempty"`
+}
+
+// ServiceNowIntegrationAuthorizationInput struct
+type ServiceNowIntegrationAuthorizationInput struct {
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	ClientID     string `json:"clientId,omitempty"`
+	ClientSecret string `json:"clientSecret,omitempty"`
+}
+
+// AwsSNSIntegrationAccessMethodType enum
+var AwsSNSIntegrationAccessMethodType = []string{
+	"ASSUME_CONNECTOR_ROLE",
+	"ASSUME_SPECIFIED_ROLE",
+}
+
+// AzureServiceBusIntegrationAccessMethodType enum
+var AzureServiceBusIntegrationAccessMethodType = []string{
+	"CONNECTOR_CREDENTIALS",
+	"CONNECTION_STRING_WITH_SAS",
+}
+
+// GcpPubSubIntegrationAccessMethodType enum
+var GcpPubSubIntegrationAccessMethodType = []string{
+	"CONNECTOR_CREDENTIALS",
+	"SERVICE_ACCOUNT_KEY",
+}
+
+// CreateIntegrationPayload struct
+type CreateIntegrationPayload struct {
+	Integration Integration `json:"integration"`
+}
+
+// DeleteIntegrationInput struct
+type DeleteIntegrationInput struct {
+	ID string `json:"id"`
+}
+
+// DeleteIntegrationPayload struct
+type DeleteIntegrationPayload struct {
+	Stub string `json:"_stub"`
+}
+
+// UpdateIntegrationInput struct
+type UpdateIntegrationInput struct {
+	ID    string                 `json:"id"`
+	Patch UpdateIntegrationPatch `json:"patch"`
+}
+
+// UpdateIntegrationPatch struct
+type UpdateIntegrationPatch struct {
+	Name   string                       `json:"name,omitempty"`
+	Params UpdateIntegrationPatchParams `json:"params,omitempty"`
+}
+
+// UpdateIntegrationPatchParams struct
+type UpdateIntegrationPatchParams struct {
+	AwsSNS          UpdateAwsSNSIntegrationParamsInput          `json:"awsSNS,omitempty"`
+	Webhook         UpdateWebhookIntegrationParamsInput         `json:"webhook,omitempty"`
+	Slack           UpdateSlackIntegrationParamsInput           `json:"slack,omitempty"`
+	SlackBot        UpdateSlackBotIntegrationParamsInput        `json:"slackBot,omitempty"`
+	AzureServiceBus UpdateAzureServiceBusIntegrationParamsInput `json:"azureServiceBus,omitempty"`
+	GcpPubSub       UpdateGcpPubSubIntegrationParamsInput       `json:"gcpPubSub,omitempty"`
+	PagerDuty       UpdatePagerDutyIntegrationParamsInput       `json:"pagerDuty,omitempty"`
+	Jira            UpdateJiraIntegrationParamsInput            `json:"jira,omitempty"`
+	ServiceNow      UpdateServiceNowIntegrationParamsInput      `json:"serviceNow,omitempty"`
+	Opsgenie        UpdateOpsgenieIntegrationParamsInput        `json:"opsgenie,omitempty"`
+	ClickUp         UpdateClickUpIntegrationParamsInput         `json:"clickUp,omitempty"`
+}
+
+// UpdateAwsSNSIntegrationParamsInput struct
+type UpdateAwsSNSIntegrationParamsInput struct {
+	TopicARN     string                             `json:"topicARN,omitempty"`
+	AccessMethod AwsSNSIntegrationAccessMethodInput `json:"accessMethod,omitempty"`
+}
+
+// UpdateWebhookIntegrationParamsInput struct
+type UpdateWebhookIntegrationParamsInput struct {
+	URL           string                               `json:"url,omitempty"`
+	IsOnPrem      *bool                                `json:"isOnPrem,omitempty"`
+	Authorization WebhookIntegrationAuthorizationInput `json:"authorization,omitempty"`
+	Headers       []WebhookHeaderInput                 `json:"headers,omitempty"`
+	TLSConfig     IntegrationTLSConfigInput            `json:"tlsConfig,omitempty"`
+}
+
+// UpdateSlackIntegrationParamsInput struct
+type UpdateSlackIntegrationParamsInput struct {
+	URL string `json:"url,omitempty"`
+}
+
+// UpdateSlackBotIntegrationParamsInput struct
+type UpdateSlackBotIntegrationParamsInput struct {
+	Token string `json:"token"`
+}
+
+// UpdateAzureServiceBusIntegrationParamsInput struct
+type UpdateAzureServiceBusIntegrationParamsInput struct {
+	QueueUrl     string                                      `json:"queueUrl,omitempty"`
+	accessMethod AzureServiceBusIntegrationAccessMethodInput `json:"accessMethod,omitempty"`
+}
+
+// UpdateGcpPubSubIntegrationParamsInput struct
+type UpdateGcpPubSubIntegrationParamsInput struct {
+	ProjectID    string                                   `json:"projectId,omitempty"`
+	TopicID      string                                   `json:"topicId,omitempty"`
+	AccessMethod GooglePubSubIntegrationAccessMethodInput `json:"accessMethod,omitempty"`
+}
+
+// UpdatePagerDutyIntegrationParamsInput struct
+type UpdatePagerDutyIntegrationParamsInput struct {
+	IntegrationKey string `json:"integrationKey"`
+}
+
+// UpdateJiraIntegrationParamsInput struct
+type UpdateJiraIntegrationParamsInput struct {
+	ServerURL     string                            `json:"serverUrl,omitempty"`
+	ServerType    sring                             `json:"serverType,omitempty"` // enum JiraServerType
+	IsOnPrem      *bool                             `json:"isOnPrem,omitempty"`
+	TLSConfig     IntegrationTLSConfigInput         `json:"tlsConfig,omitempty"`
+	Authorization JiraIntegrationAuthorizationInput `json:"authorization,omitempty"`
+}
+
+// UpdateServiceNowIntegrationParamsInput struct
+type UpdateServiceNowIntegrationParamsInput struct {
+	URL           string                                  `json:"url,omitempty"`
+	Authorization ServiceNowIntegrationAuthorizationInput `json:"authorization,omitempty"`
+}
+
+// UpdateOpsgenieIntegrationParamsInput struct
+type UpdateOpsgenieIntegrationParamsInput struct {
+	Key string `json:"key"`
+}
+
+// UpdateClickUpIntegrationParamsInput struct
+type UpdateClickUpIntegrationParamsInput struct {
+	Key string `json:"key"`
 }
