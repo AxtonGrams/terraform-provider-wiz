@@ -86,12 +86,19 @@ func resourceWizAutomationRule() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "AutomationActions to execute once an automation rule event is triggered and passes the filters",
+				Deprecated:  "action_id has been deprecated and replaced by action_id. Please update the IaC to reflect these changes.  This will be removed in a future release.",
+			},
+			"action_ids": {
+				Type:        schema.TypeList,
+				Required:    true,
+				Description: "Automation Action IDs to execute once an automation rule event is triggered and passes the filters",
 			},
 			"override_action_params": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "{}",
 				Description: "Optional parameters that can override the default automationaction parameters that have been defined when the automationaction was created.  Value should be wrapped in jsonencode() to avoid diff detection.",
+				Deprecated:  "override_action_params has been deprecated and will be removed in a future release.",
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringIsJSON,
 				),
@@ -118,6 +125,28 @@ func resourceWizAutomationRule() *schema.Resource {
 	}
 }
 
+func getActions(ctx context.Context, d *schema.ResourceData) []*vendor.AutomationRuleActionInput {
+	tflog.Info(ctx, "getActions called...")
+
+	actions := d.Get("actions").(*schema.Set).List()
+	var myActions []*vendor.AutomationRuleActionInput
+	for _, a := range actions {
+		tflog.Debug(ctx, fmt.Sprintf("a: %t %s", a, utils.PrettyPrint(a)))
+		localActions := &vendor.AutomationRuleActionInput{}
+		for b, c := range a.(map[string]interface{}) {
+			tflog.Trace(ctx, fmt.Sprintf("b: %T %s", b, b))
+			tflog.Trace(ctx, fmt.Sprintf("c: %T %s", c, c))
+			switch b {
+			case "id":
+				localActions.ID = c.(string)
+			}
+		}
+		myActions = append(myActions, localActions)
+	}
+	tflog.Debug(ctx, fmt.Sprintf("myActions: %s", utils.PrettyPrint(myActions)))
+	return myActions
+}
+
 // CreateAutomationRule struct
 type CreateAutomationRule struct {
 	CreateAutomationRule vendor.CreateAutomationRulePayload `json:"createAutomationRule"`
@@ -135,7 +164,6 @@ func resourceWizAutomationRuleCreate(ctx context.Context, d *schema.ResourceData
 	    ) {
 	        automationRule {
 	            id
-	            createdAt
 	        }
 	    }
 	}`
@@ -144,11 +172,10 @@ func resourceWizAutomationRuleCreate(ctx context.Context, d *schema.ResourceData
 	vars := &vendor.CreateAutomationRuleInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
-	vars.ActionID = d.Get("action_id").(string)
+	vars.Actions = getActions(ctx, d)
 	vars.TriggerSource = d.Get("trigger_source").(string)
 	vars.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
 	vars.ProjectID = d.Get("project_id").(string)
-	vars.OverrideActionParams = json.RawMessage(d.Get("override_action_params").(string))
 	vars.Filters = json.RawMessage(d.Get("filters").(string))
 	vars.TriggerType = utils.ConvertListToString(d.Get("trigger_type").([]interface{}))
 

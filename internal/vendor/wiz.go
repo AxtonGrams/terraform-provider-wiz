@@ -1068,14 +1068,14 @@ type AutomationRule struct {
 
 // CreateAutomationRuleInput struct -- updates
 type CreateAutomationRuleInput struct {
-	Name          string                      `json:"name"`
-	Description   string                      `json:"description,omitempty"`
-	TriggerSource string                      `json:"triggerSource"` // enum AutomationRuleTriggerSource
-	TriggerType   []string                    `json:"triggerType"`   // enum AutomationRuleTriggerType
-	Filters       json.RawMessage             `json:"filters,omitempty"`
-	Enabled       *bool                       `json:"enabled,omitempty"`
-	ProjectID     string                      `json:"projectId,omitempty"`
-	Actions       []AutomationRuleActionInput `json:"actions"`
+	Name          string                       `json:"name"`
+	Description   string                       `json:"description,omitempty"`
+	TriggerSource string                       `json:"triggerSource"` // enum AutomationRuleTriggerSource
+	TriggerType   []string                     `json:"triggerType"`   // enum AutomationRuleTriggerType
+	Filters       json.RawMessage              `json:"filters,omitempty"`
+	Enabled       *bool                        `json:"enabled,omitempty"`
+	ProjectID     string                       `json:"projectId,omitempty"`
+	Actions       []*AutomationRuleActionInput `json:"actions"`
 }
 
 // CreateAutomationRulePayload struct -- updates
@@ -2641,14 +2641,15 @@ var ActionTemplateType = []string{
 // Integration struct
 // usedByRules: [AutomationRule!]! was omitted from the struct
 type Integration struct {
-	CreatedAt                 string      `json:"createdAt"`
-	ID                        string      `json:"id"`
-	IsAccessibleToAllProjects *bool       `json:"isAccessibleToAllProjects,omitempty"`
-	Name                      string      `json:"name"`
-	Params                    interface{} `json:"params"` // union IntegrationParams
-	Project                   *Project    `json:"project,omitempty"`
-	Type                      string      `json:"type"` // enum IntegrationType
-	UpdatedAt                 string      `json:"updatedAt"`
+	CreatedAt                 string           `json:"createdAt"`
+	ID                        string           `json:"id"`
+	IsAccessibleToAllProjects *bool            `json:"isAccessibleToAllProjects,omitempty"`
+	Name                      string           `json:"name"`
+	Params                    interface{}      `json:"params"` // union IntegrationParams
+	Project                   *Project         `json:"project,omitempty"`
+	Type                      string           `json:"type"` // enum IntegrationType
+	UpdatedAt                 string           `json:"updatedAt"`
+	UsedByRules               []AutomationRule `json:"usedByRules"`
 }
 
 // IntegrationType enum
@@ -2688,7 +2689,7 @@ type AutomationRuleActionInput struct {
 	ID                   string                    `json:"id"`
 	IntegrationID        string                    `json:"integrationId"`
 	ActionTemplateParams ActionTemplateParamsInput `json:"actionTemplateParams,omitempty"`
-	ActionTemplateType   ActionTemplateType        `json:"actionTemplateType"`
+	ActionTemplateType   string                    `json:"actionTemplateType"` // enum ActionTemplateType
 }
 
 // ActionTemplateParamsInput struct
@@ -2828,19 +2829,19 @@ type AWSSNSIntegrationParams struct {
 
 // AzureServiceBusIntegrationParams struct
 type AzureServiceBusIntegrationParams struct {
-	AccessConnector         Connector                                  `json:"accessConnector,omitempty"`
-	AccessMethod            AzureServiceBusIntegrationAccessMethodType `json:"accessMethod"`
-	ConnectionStringWithSAS string                                     `json:"connectionStringWithSAS,omitempty"`
-	QueueURL                string                                     `json:"queueUrl"`
+	AccessConnector         Connector `json:"accessConnector,omitempty"`
+	AccessMethod            string    `json:"accessMethod"` // enum AzureServiceBusIntegrationAccessMethodType
+	ConnectionStringWithSAS string    `json:"connectionStringWithSAS,omitempty"`
+	QueueURL                string    `json:"queueUrl"`
 }
 
 // GcpPubSubIntegrationParams struct
 type GcpPubSubIntegrationParams struct {
-	AccessConnector   Connector                            `json:"accessConnector,omitempty"`
-	AccessMethod      GcpPubSubIntegrationAccessMethodType `json:"accessMethod"`
-	ProjectID         string                               `json:"projectId"`
-	ServiceAccountKey json.RawMessage                      `json:"serviceAccountKey.omitempty"`
-	TopicID           string                               `json:"topicId"`
+	AccessConnector   Connector       `json:"accessConnector,omitempty"`
+	AccessMethod      string          `json:"accessMethod"` // enum GcpPubSubIntegrationAccessMethodType
+	ProjectID         string          `json:"projectId"`
+	ServiceAccountKey json.RawMessage `json:"serviceAccountKey.omitempty"`
+	TopicID           string          `json:"topicId"`
 }
 
 // JiraIntegrationParams struct
@@ -2898,13 +2899,6 @@ type OnPremIntegrationConfig struct {
 	IsOnPrem     bool   `json:"isOnPrem"`
 	TunnelDomain string `json:"tunnelDomain,omitempty"`
 	TunnelToken  string `json:"tunnelToken,omitempty"`
-}
-
-// AutomationActionTLSConfig struct {
-type AutomationActionTLSConfig struct {
-	AllowInsecureTLS               *bool  `json:"allowInsecureTLS,omitempty"`
-	ClientCertificateAndPrivateKey string `json:"clientCertificateAndPrivateKey,omitempty"`
-	ServerCA                       string `json:"serverCA,omitempty"`
 }
 
 // WebhookHeader struct
@@ -3203,7 +3197,7 @@ type UpdatePagerDutyIntegrationParamsInput struct {
 // UpdateJiraIntegrationParamsInput struct
 type UpdateJiraIntegrationParamsInput struct {
 	ServerURL     string                            `json:"serverUrl,omitempty"`
-	ServerType    sring                             `json:"serverType,omitempty"` // enum JiraServerType
+	ServerType    string                            `json:"serverType,omitempty"` // enum JiraServerType
 	IsOnPrem      *bool                             `json:"isOnPrem,omitempty"`
 	TLSConfig     IntegrationTLSConfigInput         `json:"tlsConfig,omitempty"`
 	Authorization JiraIntegrationAuthorizationInput `json:"authorization,omitempty"`
