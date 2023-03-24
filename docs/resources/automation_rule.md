@@ -38,13 +38,15 @@ resource "wiz_automation_rule" "rule1" {
 
 ### Required
 
-- `action_id` (String) AutomationActions to execute once an automation rule event is triggered and passes the filters
+- `action_id` (String, Deprecated) AutomationActions to execute once an automation rule event is triggered and passes the filters
+- `action_ids` (List of String) Automation Action IDs to execute once an automation rule event is triggered and passes the filters
 - `filters` (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
 - `name` (String)
 - `trigger_source` (String) Trigger source.
     - Allowed values: 
         - ISSUES
         - CLOUD_EVENTS
+        - CONTORL
 - `trigger_type` (List of String) Trigger type.
     - Allowed values: 
         - CREATED
@@ -58,7 +60,7 @@ resource "wiz_automation_rule" "rule1" {
     - Defaults to ``.
 - `enabled` (Boolean) Enabled?
     - Defaults to `true`.
-- `override_action_params` (String) Optional parameters that can override the default automationaction parameters that have been defined when the automationaction was created.  Value should be wrapped in jsonencode() to avoid diff detection.
+- `override_action_params` (String, Deprecated) Optional parameters that can override the default automationaction parameters that have been defined when the automationaction was created.  Value should be wrapped in jsonencode() to avoid diff detection.
     - Defaults to `{}`.
 - `project_id` (String)
 
