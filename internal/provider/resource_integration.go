@@ -22,7 +22,7 @@ func resourceWizIntegration() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Description: "Wiz internal identifier.",
+				Description: "Identifier for this object.",
 				Computed:    true,
 			},
 			"name": {
@@ -30,11 +30,16 @@ func resourceWizIntegration() *schema.Resource {
 				Description: "The name of the integration.",
 				Required:    true,
 			},
+			"created_at": {
+				Type:        schema.TypeString,
+				Description: "Identifies the date and time when the object was created.",
+				Computed:    true,
+			},
 			"type": {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: fmt.Sprintf(
-					"Type of integration action.\n    - Allowed values: %s",
+					"Type of integration action. The following are implemented: AWS_SNS, JIRA, PAGER_DUTY, SERVICE_NOW, WEBHOOK.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
 						vendor.IntegrationType,
 					),
@@ -52,9 +57,10 @@ func resourceWizIntegration() *schema.Resource {
 				Description: "The project this action is scoped to.",
 			},
 			"is_accessible_to_all_projects": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "When true, any scoped and non scoped project users will be able to use this action, false by default.",
 			},
 			"aws_sns_params": {
 				Type:        schema.TypeSet,
@@ -69,8 +75,9 @@ func resourceWizIntegration() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"topic_arn": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The SNS Topic Arn.",
 						},
 						"access_method": {
 							Type:     schema.TypeSet,
@@ -81,6 +88,18 @@ func resourceWizIntegration() *schema.Resource {
 									"type": {
 										Required: true,
 										Type:     schema.TypeString,
+										Description: fmt.Sprintf(
+											"The access method this integration should use. \n    - Allowed values: %s",
+											utils.SliceOfStringToMDUList(
+												vendor.AwsSNSIntegrationAccessMethodType,
+											),
+										),
+										ValidateDiagFunc: validation.ToDiagFunc(
+											validation.StringInSlice(
+												vendor.IntegrationType,
+												false,
+											),
+										),
 									},
 									"access_connector_id": {
 										Required: true,
@@ -109,12 +128,73 @@ func resourceWizIntegration() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The URL of the webhook.",
 						},
 						"is_on_prem": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+						"authorization": {
+							Type:     schema.TypeSet,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"username": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"password": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"token": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"headers": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"tls_config": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"allow_insecurity_tls": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Setting this to true will ignore any TLS validation errors on the server side certificate Warning: should only be used to validate that the action works regardless of TLS validation, if for example your server is presenting self signed or expired TLS certificate.",
+									},
+									"server_ca": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "A PEM of the certificate authority that your server presents (if you use self signed, or custom CA).",
+									},
+									"client_certificate_and_private_key": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "A PEM of the client certificate as well as the certificate private key.",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -131,7 +211,7 @@ func resourceWizIntegration() *schema.Resource {
 				},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"note": {
+						"integration_key": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -150,9 +230,34 @@ func resourceWizIntegration() *schema.Resource {
 				},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"note": {
+						"url": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+						"authorization": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"username": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Email of a ServiceNow user with permissions to create tickets.",
+									},
+									"password": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"client_id": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"client_secret": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},

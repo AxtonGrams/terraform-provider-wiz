@@ -18,7 +18,7 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 ### Required
 
 - `name` (String) The name of the integration.
-- `type` (String) Type of integration action.
+- `type` (String) Type of integration action. The following are implemented: AWS_SNS, JIRA, PAGER_DUTY, SERVICE_NOW, WEBHOOK.
     - Allowed values: 
         - AWS_SECURITY_HUB
         - AWS_SNS
@@ -53,7 +53,8 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 
 - `aws_sns_params` (Block Set, Max: 1) If type is EMAIL, define these paramemters.
     - Conflicts with `[webhook_params pagerduty_params servicenow_params]`. (see [below for nested schema](#nestedblock--aws_sns_params))
-- `is_accessible_to_all_projects` (Boolean) - Defaults to `true`.
+- `is_accessible_to_all_projects` (Boolean) When true, any scoped and non scoped project users will be able to use this action, false by default.
+    - Defaults to `false`.
 - `pagerduty_params` (Block Set, Max: 1) If type is EMAIL, define these paramemters.
     - Conflicts with `[aws_sns_params webhook_params servicenow_params]`. (see [below for nested schema](#nestedblock--pagerduty_params))
 - `project_id` (String) The project this action is scoped to.
@@ -64,7 +65,8 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 
 ### Read-Only
 
-- `id` (String) Wiz internal identifier.
+- `created_at` (String) Identifies the date and time when the object was created.
+- `id` (String) Identifier for this object.
 
 <a id="nestedblock--aws_sns_params"></a>
 ### Nested Schema for `aws_sns_params`
@@ -72,7 +74,7 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 Optional:
 
 - `access_method` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--aws_sns_params--access_method))
-- `topic_arn` (String)
+- `topic_arn` (String) The SNS Topic Arn.
 
 <a id="nestedblock--aws_sns_params--access_method"></a>
 ### Nested Schema for `aws_sns_params.access_method`
@@ -81,7 +83,10 @@ Required:
 
 - `access_connector_id` (String)
 - `customer_role_arn` (String)
-- `type` (String)
+- `type` (String) The access method this integration should use. 
+    - Allowed values: 
+        - ASSUME_CONNECTOR_ROLE
+        - ASSUME_SPECIFIED_ROLE
 
 
 
@@ -90,7 +95,7 @@ Required:
 
 Optional:
 
-- `note` (String)
+- `integration_key` (String)
 
 
 <a id="nestedblock--servicenow_params"></a>
@@ -98,7 +103,22 @@ Optional:
 
 Optional:
 
-- `note` (String)
+- `authorization` (Block Set) (see [below for nested schema](#nestedblock--servicenow_params--authorization))
+- `url` (String)
+
+<a id="nestedblock--servicenow_params--authorization"></a>
+### Nested Schema for `servicenow_params.authorization`
+
+Required:
+
+- `password` (String)
+- `username` (String) Email of a ServiceNow user with permissions to create tickets.
+
+Optional:
+
+- `client_id` (String)
+- `client_secret` (String)
+
 
 
 <a id="nestedblock--webhook_params"></a>
@@ -106,10 +126,41 @@ Optional:
 
 Required:
 
-- `url` (String)
+- `url` (String) The URL of the webhook.
 
 Optional:
 
+- `authorization` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--webhook_params--authorization))
+- `headers` (Block Set) (see [below for nested schema](#nestedblock--webhook_params--headers))
 - `is_on_prem` (Boolean)
+- `tls_config` (Block Set) (see [below for nested schema](#nestedblock--webhook_params--tls_config))
+
+<a id="nestedblock--webhook_params--authorization"></a>
+### Nested Schema for `webhook_params.authorization`
+
+Optional:
+
+- `password` (String)
+- `token` (String)
+- `username` (String)
+
+
+<a id="nestedblock--webhook_params--headers"></a>
+### Nested Schema for `webhook_params.headers`
+
+Optional:
+
+- `key` (String)
+- `value` (String)
+
+
+<a id="nestedblock--webhook_params--tls_config"></a>
+### Nested Schema for `webhook_params.tls_config`
+
+Optional:
+
+- `allow_insecurity_tls` (Boolean) Setting this to true will ignore any TLS validation errors on the server side certificate Warning: should only be used to validate that the action works regardless of TLS validation, if for example your server is presenting self signed or expired TLS certificate.
+- `client_certificate_and_private_key` (String) A PEM of the client certificate as well as the certificate private key.
+- `server_ca` (String) A PEM of the certificate authority that your server presents (if you use self signed, or custom CA).
 
 
