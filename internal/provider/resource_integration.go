@@ -39,7 +39,7 @@ func resourceWizIntegration() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: fmt.Sprintf(
-					"Type of integration action. The following are implemented: AWS_SNS, JIRA, PAGER_DUTY, SERVICE_NOW, WEBHOOK.\n    - Allowed values: %s",
+					"Type of integration action. The following are implemented by the provider: AWS_SNS, JIRA, PAGER_DUTY, SERVICE_NOW, WEBHOOK.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
 						vendor.IntegrationType,
 					),
@@ -102,12 +102,14 @@ func resourceWizIntegration() *schema.Resource {
 										),
 									},
 									"access_connector_id": {
-										Required: true,
-										Type:     schema.TypeString,
+										Optional:    true,
+										Type:        schema.TypeString,
+										Description: "Required if and only if accessMethod is ASSUME_CONNECTOR_ROLE, this should be a valid existing AWS connector ID from which the role ARN will be taken.",
 									},
 									"customer_role_arn": {
-										Required: true,
-										Type:     schema.TypeString,
+										Optional:    true,
+										Type:        schema.TypeString,
+										Description: "Required if and only if accessMethod is ASSUME_SPECIFIED_ROLE, this is the role that should be assumed, the ExternalID of the role must be your Wiz Tenant ID (a GUID).",
 									},
 								},
 							},
@@ -175,6 +177,7 @@ func resourceWizIntegration() *schema.Resource {
 						},
 						"tls_config": {
 							Type:     schema.TypeSet,
+							MaxItems: 1,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -213,7 +216,7 @@ func resourceWizIntegration() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"integration_key": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -232,7 +235,7 @@ func resourceWizIntegration() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"url": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 						"authorization": {
 							Type:     schema.TypeSet,

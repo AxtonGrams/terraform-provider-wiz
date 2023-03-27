@@ -18,7 +18,7 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 ### Required
 
 - `name` (String) The name of the integration.
-- `type` (String) Type of integration action. The following are implemented: AWS_SNS, JIRA, PAGER_DUTY, SERVICE_NOW, WEBHOOK.
+- `type` (String) Type of integration action. The following are implemented by the provider: AWS_SNS, JIRA, PAGER_DUTY, SERVICE_NOW, WEBHOOK.
     - Allowed values: 
         - AWS_SECURITY_HUB
         - AWS_SNS
@@ -81,19 +81,22 @@ Optional:
 
 Required:
 
-- `access_connector_id` (String)
-- `customer_role_arn` (String)
 - `type` (String) The access method this integration should use. 
     - Allowed values: 
         - ASSUME_CONNECTOR_ROLE
         - ASSUME_SPECIFIED_ROLE
+
+Optional:
+
+- `access_connector_id` (String) Required if and only if accessMethod is ASSUME_CONNECTOR_ROLE, this should be a valid existing AWS connector ID from which the role ARN will be taken.
+- `customer_role_arn` (String) Required if and only if accessMethod is ASSUME_SPECIFIED_ROLE, this is the role that should be assumed, the ExternalID of the role must be your Wiz Tenant ID (a GUID).
 
 
 
 <a id="nestedblock--pagerduty_params"></a>
 ### Nested Schema for `pagerduty_params`
 
-Optional:
+Required:
 
 - `integration_key` (String)
 
@@ -101,10 +104,13 @@ Optional:
 <a id="nestedblock--servicenow_params"></a>
 ### Nested Schema for `servicenow_params`
 
+Required:
+
+- `url` (String)
+
 Optional:
 
 - `authorization` (Block Set) (see [below for nested schema](#nestedblock--servicenow_params--authorization))
-- `url` (String)
 
 <a id="nestedblock--servicenow_params--authorization"></a>
 ### Nested Schema for `servicenow_params.authorization`
@@ -133,7 +139,7 @@ Optional:
 - `authorization` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--webhook_params--authorization))
 - `headers` (Block Set) (see [below for nested schema](#nestedblock--webhook_params--headers))
 - `is_on_prem` (Boolean)
-- `tls_config` (Block Set) (see [below for nested schema](#nestedblock--webhook_params--tls_config))
+- `tls_config` (Block Set, Max: 1) (see [below for nested schema](#nestedblock--webhook_params--tls_config))
 
 <a id="nestedblock--webhook_params--authorization"></a>
 ### Nested Schema for `webhook_params.authorization`
