@@ -2639,7 +2639,6 @@ var ActionTemplateType = []string{
 }
 
 // Integration struct
-// usedByRules: [AutomationRule!]! was omitted from the struct
 type Integration struct {
 	CreatedAt                 string           `json:"createdAt"`
 	ID                        string           `json:"id"`
