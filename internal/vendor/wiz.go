@@ -2642,10 +2642,10 @@ var ActionTemplateType = []string{
 type Integration struct {
 	CreatedAt                 string           `json:"createdAt"`
 	ID                        string           `json:"id"`
-	IsAccessibleToAllProjects *bool            `json:"isAccessibleToAllProjects,omitempty"`
+	IsAccessibleToAllProjects bool             `json:"isAccessibleToAllProjects"`
 	Name                      string           `json:"name"`
 	Params                    interface{}      `json:"params"` // union IntegrationParams
-	Project                   *Project         `json:"project,omitempty"`
+	Project                   Project          `json:"project,omitempty"`
 	Type                      string           `json:"type"` // enum IntegrationType
 	UpdatedAt                 string           `json:"updatedAt"`
 	UsedByRules               []AutomationRule `json:"usedByRules"`
@@ -2818,8 +2818,8 @@ type WebhookHeaderInput struct {
 	Value string `json:"value"`
 }
 
-// AWSSNSIntegrationParams struct
-type AWSSNSIntegrationParams struct {
+// AwsSNSIntegrationParams struct
+type AwsSNSIntegrationParams struct {
 	AccessConnector Connector `json:"accessConnector,omitempty"`
 	AccessMethod    string    `json:"accessMethod"` // enum AwsSNSIntegrationAccessMethodType
 	CustomerRoleARN string    `json:"customerRoleARN"`
@@ -2953,17 +2953,17 @@ type CreateIntegrationInput struct {
 
 // CreateIntegrationParamsInput struct
 type CreateIntegrationParamsInput struct {
-	AwsSNS          CreateAwsSNSIntegrationParamsInput          `json:"awsSNS,omitempty"`
-	Webhook         CreateWebhookIntegrationParamsInput         `json:"webhook,omitempty"`
-	Slack           CreateSlackIntegrationParamsInput           `json:"slack,omitempty"`
-	SlackBot        CreateSlackBotIntegrationParamsInput        `json:"slackBot,omitempty"`
-	AzureServiceBus CreateAzureServiceBusIntegrationParamsInput `json:"azureServiceBus,omitempty"`
-	GcpPubSub       CreateGcpPubSubIntegrationParamsInput       `json:"gcpPubSub,omitempty"`
-	PagerDuty       CreatePagerDutyIntegrationParamsInput       `json:"pagerDuty,omitempty"`
-	Jira            CreateJiraIntegrationParamsInput            `json:"jira,omitempty"`
-	ServiceNow      CreateServiceNowIntegrationParamsInput      `json:"serviceNow,omitempty"`
-	Opsgenie        CreateOpsgenieIntegrationParamsInput        `json:"opsgenie,omitempty"`
-	ClickUp         CreateClickUpIntegrationParamsInput         `json:"clickUp,omitempty"`
+	AwsSNS          *CreateAwsSNSIntegrationParamsInput          `json:"awsSNS,omitempty"`
+	Webhook         *CreateWebhookIntegrationParamsInput         `json:"webhook,omitempty"`
+	Slack           *CreateSlackIntegrationParamsInput           `json:"slack,omitempty"`
+	SlackBot        *CreateSlackBotIntegrationParamsInput        `json:"slackBot,omitempty"`
+	AzureServiceBus *CreateAzureServiceBusIntegrationParamsInput `json:"azureServiceBus,omitempty"`
+	GcpPubSub       *CreateGcpPubSubIntegrationParamsInput       `json:"gcpPubSub,omitempty"`
+	PagerDuty       *CreatePagerDutyIntegrationParamsInput       `json:"pagerDuty,omitempty"`
+	Jira            *CreateJiraIntegrationParamsInput            `json:"jira,omitempty"`
+	ServiceNow      *CreateServiceNowIntegrationParamsInput      `json:"serviceNow,omitempty"`
+	Opsgenie        *CreateOpsgenieIntegrationParamsInput        `json:"opsgenie,omitempty"`
+	ClickUp         *CreateClickUpIntegrationParamsInput         `json:"clickUp,omitempty"`
 }
 
 // CreateAwsSNSIntegrationParamsInput struct
@@ -3037,7 +3037,7 @@ type CreateClickUpIntegrationParamsInput struct {
 // AwsSNSIntegrationAccessMethodInput struct
 type AwsSNSIntegrationAccessMethodInput struct {
 	Type              string `json:"type"` // enum AwsSNSIntegrationAccessMethodType
-	AccessConnectorId string `json:"accessConnectorId,omitempty"`
+	AccessConnectorID string `json:"accessConnectorId,omitempty"`
 	CustomerRoleARN   string `json:"customerRoleARN,omitempty"`
 }
 
@@ -3137,17 +3137,17 @@ type UpdateIntegrationPatch struct {
 
 // UpdateIntegrationPatchParams struct
 type UpdateIntegrationPatchParams struct {
-	AwsSNS          UpdateAwsSNSIntegrationParamsInput          `json:"awsSNS,omitempty"`
-	Webhook         UpdateWebhookIntegrationParamsInput         `json:"webhook,omitempty"`
-	Slack           UpdateSlackIntegrationParamsInput           `json:"slack,omitempty"`
-	SlackBot        UpdateSlackBotIntegrationParamsInput        `json:"slackBot,omitempty"`
-	AzureServiceBus UpdateAzureServiceBusIntegrationParamsInput `json:"azureServiceBus,omitempty"`
-	GcpPubSub       UpdateGcpPubSubIntegrationParamsInput       `json:"gcpPubSub,omitempty"`
-	PagerDuty       UpdatePagerDutyIntegrationParamsInput       `json:"pagerDuty,omitempty"`
-	Jira            UpdateJiraIntegrationParamsInput            `json:"jira,omitempty"`
-	ServiceNow      UpdateServiceNowIntegrationParamsInput      `json:"serviceNow,omitempty"`
-	Opsgenie        UpdateOpsgenieIntegrationParamsInput        `json:"opsgenie,omitempty"`
-	ClickUp         UpdateClickUpIntegrationParamsInput         `json:"clickUp,omitempty"`
+	AwsSNS          *UpdateAwsSNSIntegrationParamsInput          `json:"awsSNS,omitempty"`
+	Webhook         *UpdateWebhookIntegrationParamsInput         `json:"webhook,omitempty"`
+	Slack           *UpdateSlackIntegrationParamsInput           `json:"slack,omitempty"`
+	SlackBot        *UpdateSlackBotIntegrationParamsInput        `json:"slackBot,omitempty"`
+	AzureServiceBus *UpdateAzureServiceBusIntegrationParamsInput `json:"azureServiceBus,omitempty"`
+	GcpPubSub       *UpdateGcpPubSubIntegrationParamsInput       `json:"gcpPubSub,omitempty"`
+	PagerDuty       *UpdatePagerDutyIntegrationParamsInput       `json:"pagerDuty,omitempty"`
+	Jira            *UpdateJiraIntegrationParamsInput            `json:"jira,omitempty"`
+	ServiceNow      *UpdateServiceNowIntegrationParamsInput      `json:"serviceNow,omitempty"`
+	Opsgenie        *UpdateOpsgenieIntegrationParamsInput        `json:"opsgenie,omitempty"`
+	ClickUp         *UpdateClickUpIntegrationParamsInput         `json:"clickUp,omitempty"`
 }
 
 // UpdateAwsSNSIntegrationParamsInput struct
@@ -3216,4 +3216,9 @@ type UpdateOpsgenieIntegrationParamsInput struct {
 // UpdateClickUpIntegrationParamsInput struct
 type UpdateClickUpIntegrationParamsInput struct {
 	Key string `json:"key"`
+}
+
+// UpdateIntegrationPayload struct
+type UpdateIntegrationPayload struct {
+	Integration Integration `json:"integration"`
 }

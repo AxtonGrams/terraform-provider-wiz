@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
@@ -38,85 +38,73 @@ func resourceWizIntegrationAwsSNS() *schema.Resource {
 			"project_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "The project this action is scoped to.",
 			},
-			"is_accessible_to_all_projects": {
-				Type:        schema.TypeBool,
+			"scope": {
+				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     false,
-				Description: "When true, any scoped and non scoped project users will be able to use this action, false by default.",
+				ForceNew:    true,
+				Default:     "All Resources, Restrict this Integration to global roles only",
+				Description: fmt.Sprintf(
+					"Scoping to a selected Project makes this Integration accessible only to users with global roles or Project-scoped access to the selected Project. Other users will not be able to see it, use it, or view its results. Integrations restricted to global roles cannot be seen or used by users with Project-scoped roles. \n    - Allowed values: %s",
+					utils.SliceOfStringToMDUList(
+						internal.IntegrationScope,
+					),
+				),
+				ValidateDiagFunc: validation.ToDiagFunc(
+					validation.StringInSlice(
+						internal.IntegrationScope,
+						false,
+					),
+				),
 			},
-			"aws_sns_params": {
-				Type:        schema.TypeSet,
-				MaxItems:    1,
+			"aws_sns_topic_arn": {
+				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "If type is EMAIL, define these paramemters.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"topic_arn": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The SNS Topic Arn.",
-						},
-						"access_method": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"type": {
-										Required: true,
-										Type:     schema.TypeString,
-										Description: fmt.Sprintf(
-											"The access method this integration should use. \n    - Allowed values: %s",
-											utils.SliceOfStringToMDUList(
-												vendor.AwsSNSIntegrationAccessMethodType,
-											),
-										),
-										ValidateDiagFunc: validation.ToDiagFunc(
-											validation.StringInSlice(
-												vendor.IntegrationType,
-												false,
-											),
-										),
-									},
-									"access_connector_id": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "Required if and only if accessMethod is ASSUME_CONNECTOR_ROLE, this should be a valid existing AWS connector ID from which the role ARN will be taken.",
-									},
-									"customer_role_arn": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "Required if and only if accessMethod is ASSUME_SPECIFIED_ROLE, this is the role that should be assumed, the ExternalID of the role must be your Wiz Tenant ID (a GUID).",
-									},
-								},
-							},
-						},
-					},
+				Description: "The SNS Topic Arn.",
+			},
+			"aws_sns_access_method": {
+				Required: true,
+				Type:     schema.TypeString,
+				Description: fmt.Sprintf(
+					"The access method this integration should use. \n    - Allowed values: %s",
+					utils.SliceOfStringToMDUList(
+						vendor.AwsSNSIntegrationAccessMethodType,
+					),
+				),
+				ValidateDiagFunc: validation.ToDiagFunc(
+					validation.StringInSlice(
+						vendor.AwsSNSIntegrationAccessMethodType,
+						false,
+					),
+				),
+			},
+			"aws_sns_connector_id": {
+				Optional:    true,
+				Type:        schema.TypeString,
+				Description: "Required if and only if accessMethod is ASSUME_CONNECTOR_ROLE, this should be a valid existing AWS connector ID from which the role ARN will be taken.",
+				ConflictsWith: []string{
+					"aws_sns_customer_role_arn",
+				},
+			},
+			"aws_sns_customer_role_arn": {
+				Optional:    true,
+				Type:        schema.TypeString,
+				Description: "Required if and only if accessMethod is ASSUME_SPECIFIED_ROLE, this is the role that should be assumed, the ExternalID of the role must be your Wiz Tenant ID (a GUID).",
+				ConflictsWith: []string{
+					"aws_sns_connector_id",
 				},
 			},
 		},
 		CreateContext: resourceWizIntegrationAwsSNSCreate,
 		ReadContext:   resourceWizIntegrationAwsSNSRead,
 		UpdateContext: resourceWizIntegrationAwsSNSUpdate,
-		DeleteContext: resourceWizIntegrationAwsSNSDelete,
+		DeleteContext: resourceWizIntegrationDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
-}
-
-func getAwsSNSIntegrationVar(ctx context.Context, d *schema.ResourceData) vendor.CreateAwsSNSIntegrationParamsInput {
-	params := d.Get("aws_sns_params").(*schema.Set).List()
-	var myParams vendor.CreateAwsSNSIntegrationParamsInput
-	for _, y := range params {
-		for a, b := range y.(map[string]interface{}) {
-			tflog.Debug(ctx, fmt.Sprintf("a: %T %s", a, utils.PrettyPrint(a)))
-			tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
-		}
-	}
-	return myParams
 }
 
 func resourceWizIntegrationAwsSNSCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -138,7 +126,11 @@ func resourceWizIntegrationAwsSNSCreate(ctx context.Context, d *schema.ResourceD
 	vars.Type = "AWS_SNS"
 	vars.ProjectID = d.Get("project_id").(string)
 	vars.IsAccessibleToAllProjects = utils.ConvertBoolToPointer(d.Get("is_accessible_to_all_projects").(bool))
-	vars.Params.AwsSNS = getAwsSNSIntegrationVar(ctx, d)
+	vars.Params.AwsSNS = &vendor.CreateAwsSNSIntegrationParamsInput{}
+	vars.Params.AwsSNS.TopicARN = d.Get("aws_sns_topic_arn").(string)
+	vars.Params.AwsSNS.AccessMethod.Type = d.Get("aws_sns_access_method").(string)
+	vars.Params.AwsSNS.AccessMethod.AccessConnectorID = d.Get("aws_sns_connector_id").(string)
+	vars.Params.AwsSNS.AccessMethod.CustomerRoleARN = d.Get("aws_sns_customer_role_arn").(string)
 
 	// process the request
 	data := &CreateIntegration{}
@@ -157,11 +149,141 @@ func resourceWizIntegrationAwsSNSCreate(ctx context.Context, d *schema.ResourceD
 func resourceWizIntegrationAwsSNSRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizIntegrationAwsSNSRead called...")
 
+	// check the id
+	if d.Id() == "" {
+		return nil
+	}
+
+	// define the graphql query
+	query := `query integration (
+	  $id: ID!
+	) {
+	  integration(
+	    id: $id
+	  ) {
+	    id
+	    name
+	    createdAt
+	    updatedAt
+	    project {
+	      id
+	    }
+	    type
+	    isAccessibleToAllProjects
+	    usedByRules {
+	      id
+	    }
+	    paramsType: params {
+	      type: __typename
+	    }
+	    params {
+	      ... on AwsSNSIntegrationParams {
+	        topicARN
+	        accessMethod
+	        customerRoleARN
+	        accessConnector {
+	          id
+	        }
+	      }
+	    }
+	  }
+	}`
+
+	// populate the graphql variables
+	vars := &internal.QueryVariables{}
+	vars.ID = d.Id()
+
+	// process the request
+	data := &ReadIntegrationPayload{}
+	params := &vendor.AwsSNSIntegrationParams{}
+	data.Integration.Params = params
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "integration_aws_sns", "read")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		tflog.Info(ctx, "Error from API call, checking if resource was deleted outside Terraform.")
+		if data.Integration.ID == "" {
+			tflog.Debug(ctx, fmt.Sprintf("Response: (%T) %s", data, utils.PrettyPrint(data)))
+			tflog.Info(ctx, "Resource not found, marking as new.")
+			d.SetId("")
+			d.MarkNewResource()
+			return nil
+		}
+		return diags
+	}
+
+	// set the resource parameters
+	err := d.Set("name", data.Integration.Name)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("created_at", data.Integration.CreatedAt)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("project_id", data.Integration.Project.ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("is_accessible_to_all_projects", data.Integration.IsAccessibleToAllProjects)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("aws_sns_topic_arn", params.TopicARN)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("aws_sns_access_method", params.AccessMethod)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("aws_sns_connector_id", params.AccessConnector.ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("aws_sns_customer_role_arn", params.CustomerRoleARN)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
 	return diags
 }
 
 func resourceWizIntegrationAwsSNSUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizIntegrationAwsSNSUpdate called...")
+
+	// check the id
+	if d.Id() == "" {
+		return nil
+	}
+
+	// define the graphql query
+	query := `mutation UpdateIntegration(
+	  $input: UpdateIntegrationInput!
+	) {
+	  updateIntegration(input: $input) {
+	    integration {
+	      id
+	    }
+	  }
+	}`
+
+	// populate the graphql variables
+	vars := &vendor.UpdateIntegrationInput{}
+	vars.ID = d.Id()
+	vars.Patch.Name = d.Get("name").(string)
+	vars.Patch.Params.AwsSNS = &vendor.UpdateAwsSNSIntegrationParamsInput{}
+	vars.Patch.Params.AwsSNS.TopicARN = d.Get("aws_sns_topic_arn").(string)
+	vars.Patch.Params.AwsSNS.AccessMethod.Type = d.Get("aws_sns_access_method").(string)
+	vars.Patch.Params.AwsSNS.AccessMethod.AccessConnectorID = d.Get("aws_sns_connector_id").(string)
+	vars.Patch.Params.AwsSNS.AccessMethod.CustomerRoleARN = d.Get("aws_sns_customer_role_arn").(string)
+
+	// process the request
+	data := &UpdateIntegration{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "integration_aws_sns", "update")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
+	}
 
 	return diags
 }
