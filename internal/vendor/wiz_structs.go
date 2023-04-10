@@ -630,6 +630,7 @@ type UpdateAutomationRulePayload struct {
 	AutomationRule AutomationRule `json:"automationRule"`
 }
 
+// DeleteAutomationRuleInput struct
 type DeleteAutomationRuleInput struct {
 	ID string `json:"id"`
 }
@@ -1983,7 +1984,7 @@ type CreateSlackBotIntegrationParamsInput struct {
 
 // CreateAzureServiceBusIntegrationParamsInput struct
 type CreateAzureServiceBusIntegrationParamsInput struct {
-	QueueUrl     string                                      `json:"queueUrl"`
+	QueueURL     string                                      `json:"queueUrl"`
 	AccessMethod AzureServiceBusIntegrationAccessMethodInput `json:"accessMethod"`
 }
 
@@ -2048,14 +2049,14 @@ type IntegrationTLSConfigInput struct {
 // AzureServiceBusIntegrationAccessMethodInput struct
 type AzureServiceBusIntegrationAccessMethodInput struct {
 	Type                    string `json:"type"` // enum AzureServiceBusIntegrationAccessMethodType
-	AccessConnectorId       string `json:"accessConnectorId,omitempty"`
+	AccessConnectorID       string `json:"accessConnectorId,omitempty"`
 	ConnectionStringWithSas string `json:"connectionStringWithSas,omitempty"`
 }
 
 // GooglePubSubIntegrationAccessMethodInput struct
 type GooglePubSubIntegrationAccessMethodInput struct {
 	Type              string          `json:"type"` // enum GcpPubSubIntegrationAccessMethodType
-	AccessConnectorId string          `json:"accessConnectorId,omitempty"`
+	AccessConnectorID string          `json:"accessConnectorId,omitempty"`
 	ServiceAccountKey json.RawMessage `json:"serviceAccountKey,omitempty"`
 }
 
@@ -2143,7 +2144,7 @@ type UpdateSlackBotIntegrationParamsInput struct {
 
 // UpdateAzureServiceBusIntegrationParamsInput struct
 type UpdateAzureServiceBusIntegrationParamsInput struct {
-	QueueUrl     string                                      `json:"queueUrl,omitempty"`
+	QueueURL     string                                      `json:"queueUrl,omitempty"`
 	accessMethod AzureServiceBusIntegrationAccessMethodInput `json:"accessMethod,omitempty"`
 }
 
@@ -2259,7 +2260,7 @@ type JiraActionTransitionTicketTemplateParams struct {
 	Comment             string          `json:"comment,omitempty"`
 	CommentOnTransition *bool           `json:"commentOnTransition,omitempty"`
 	Project             string          `json:"project"`
-	TransitionId        string          `json:"transitionId"`
+	TransitionID        string          `json:"transitionId"`
 }
 
 // ServiceNowActionCreateTicketTemplateParams struct
@@ -2287,7 +2288,7 @@ type OpsgenieCloseAlertTemplateParams struct {
 // ClickUpCreateTaskActionTemplateParams struct
 type ClickUpCreateTaskActionTemplateParams struct {
 	Body   string `json:"body"`
-	ListId string `json:"listId"`
+	ListID string `json:"listId"`
 }
 
 //
