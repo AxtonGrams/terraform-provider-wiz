@@ -5,7 +5,7 @@ This provider is not yet feature complete and requires development, testing, and
 
 ## Requirements
 
-* [Terraform](https://www.terraform.io/downloads.html) >= 0.13
+* [Terraform](https://www.terraform.io/downloads.html) >= 1.0
 * [Go](https://golang.org/doc/install) >= 1.18
 
 ## Building the Provider
