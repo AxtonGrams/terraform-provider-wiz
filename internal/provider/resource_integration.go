@@ -2,17 +2,11 @@ package provider
 
 import (
 	"context"
-	//"encoding/json"
-	//"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	//"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
 )
 
@@ -36,6 +30,7 @@ type DeleteIntegration struct {
 	DeleteIntegration vendor.DeleteIntegrationPayload `json:"deleteIntegration"`
 }
 
+// resourceWizIntegrationDelete deletes a Wiz integration resource
 func resourceWizIntegrationDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizIntegrationAwsSNSDelete called...")
 
@@ -68,4 +63,18 @@ func resourceWizIntegrationDelete(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	return diags
+}
+
+// convertIntegrationScopeToBool converts the literal string representation of the 'scope' to the boolean expected by Wiz
+func convertIntegrationScopeToBool(integrationScope string) *bool {
+	var value bool
+
+	switch integrationScope {
+	case "Select Project":
+		value = false
+	case "All Resources":
+		value = true
+	}
+
+	return &value
 }

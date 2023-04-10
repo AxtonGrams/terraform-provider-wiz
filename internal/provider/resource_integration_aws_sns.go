@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	//"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -42,10 +41,10 @@ func resourceWizIntegrationAwsSNS() *schema.Resource {
 				Description: "The project this action is scoped to.",
 			},
 			"scope": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Default:     "All Resources, Restrict this Integration to global roles only",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "All Resources, Restrict this Integration to global roles only",
 				Description: fmt.Sprintf(
 					"Scoping to a selected Project makes this Integration accessible only to users with global roles or Project-scoped access to the selected Project. Other users will not be able to see it, use it, or view its results. Integrations restricted to global roles cannot be seen or used by users with Project-scoped roles. \n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
@@ -125,7 +124,7 @@ func resourceWizIntegrationAwsSNSCreate(ctx context.Context, d *schema.ResourceD
 	vars.Name = d.Get("name").(string)
 	vars.Type = "AWS_SNS"
 	vars.ProjectID = d.Get("project_id").(string)
-	vars.IsAccessibleToAllProjects = utils.ConvertBoolToPointer(d.Get("is_accessible_to_all_projects").(bool))
+	vars.IsAccessibleToAllProjects = convertIntegrationScopeToBool(d.Get("scope").(string))
 	vars.Params.AwsSNS = &vendor.CreateAwsSNSIntegrationParamsInput{}
 	vars.Params.AwsSNS.TopicARN = d.Get("aws_sns_topic_arn").(string)
 	vars.Params.AwsSNS.AccessMethod.Type = d.Get("aws_sns_access_method").(string)
@@ -221,10 +220,6 @@ func resourceWizIntegrationAwsSNSRead(ctx context.Context, d *schema.ResourceDat
 		return append(diags, diag.FromErr(err)...)
 	}
 	err = d.Set("project_id", data.Integration.Project.ID)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("is_accessible_to_all_projects", data.Integration.IsAccessibleToAllProjects)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

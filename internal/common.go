@@ -149,10 +149,9 @@ var ServiceAccountScopes = []string{
 	"write:service_accounts",
 }
 
-// IntegrationScope is used in Wiz Integration to define the scope of the Integration
+// IntegrationScope is used in a Wiz Integration to define the scope of the Integration
 var IntegrationScope = []string{
-	"Select Project",
+	"Selected Project",
 	"All Resources",
 	"All Resources, Restrict this Integration to global roles only",
 }
-

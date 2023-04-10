@@ -2639,10 +2639,11 @@ var ActionTemplateType = []string{
 }
 
 // Integration struct
+// Deviation for IsAccessibleToAllProjects (omitempty) to handle null values
 type Integration struct {
 	CreatedAt                 string           `json:"createdAt"`
 	ID                        string           `json:"id"`
-	IsAccessibleToAllProjects bool             `json:"isAccessibleToAllProjects"`
+	IsAccessibleToAllProjects *bool            `json:"isAccessibleToAllProjects,omitempty"`
 	Name                      string           `json:"name"`
 	Params                    interface{}      `json:"params"` // union IntegrationParams
 	Project                   Project          `json:"project,omitempty"`
