@@ -44,58 +44,6 @@ type UserFilters struct {
 	AuthenticationSource string   `json:"source,omitempty"`
 }
 
-// YesNoUnknown enum
-var YesNoUnknown = []string{
-	"YES",
-	"NO",
-	"UNKNOWN",
-}
-
-// ProjectDataType enum
-var ProjectDataType = []string{
-	"CLASSIFIED",
-	"HEALTH",
-	"PII",
-	"PCI",
-	"FINANCIAL",
-	"CUSTOMER",
-}
-
-// RegulatoryStandard enum
-var RegulatoryStandard = []string{
-	"ISO_20000_1_2011",
-	"ISO_22301",
-	"ISO_27001",
-	"ISO_27017",
-	"ISO_27018",
-	"ISO_27701",
-	"ISO_9001",
-	"SOC",
-	"FEDRAMP",
-	"NIST_800_171",
-	"NIST_CSF",
-	"HIPPA_HITECH",
-	"HITRUST",
-	"PCI_DSS",
-	"SEC_17A_4",
-	"SEC_REGULATION_SCI",
-	"SOX",
-	"GDPR",
-}
-
-// BusinessImpact enum
-var BusinessImpact = []string{
-	"LBI",
-	"MBI",
-	"HBI",
-}
-
-// AuthenticationSource enum
-var AuthenticationSource = []string{
-	"LEGACY",
-	"MODERN",
-}
-
 // ProjectRiskProfileInput struct
 type ProjectRiskProfileInput struct {
 	IsActivelyDeveloped string   `json:"isActivelyDeveloped,omitempty"` // enum YesNoUnknown
@@ -129,15 +77,6 @@ type CreateProjectInput struct {
 	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks,omitempty"`
 	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks,omitempty"`
 	KubernetesClusterLinks []*ProjectKubernetesClusterLinkInput `json:"kubernetesClusterLinks,omitempty"`
-}
-
-// Environment enum
-var Environment = []string{
-	"PRODUCTION",
-	"STAGING",
-	"DEVELOPMENT",
-	"TESTING",
-	"OTHER",
 }
 
 // ProjectCloudOrganizationLinkInput struct
@@ -317,39 +256,6 @@ type DeleteSAMLIdentityProviderPayload struct {
 	Stub string `json:"_stub"`
 }
 
-// DeleteAutomationActionInput struct -- updates
-type DeleteAutomationActionInput struct {
-	ID string `json:"id"`
-}
-
-// DeleteAutomationActionPayload struct -- updates
-type DeleteAutomationActionPayload struct {
-	Stub string `json:"_stub,omitempty"`
-}
-
-// UpdateAutomationActionInput struct -- updates
-type UpdateAutomationActionInput struct {
-	ID       string                        `json:"id"`
-	Merge    *UpdateAutomationActionChange `json:"merge,omitempty"`
-	Override *UpdateAutomationActionChange `json:"override,omitempty"`
-}
-
-// UpdateAutomationActionChange struct
-type UpdateAutomationActionChange struct {
-	Name                         string                                                  `json:"name,omitempty"`
-	EmailParams                  *UpdateEmailAutomationActionParamsInput                 `json:"emailParams,omitempty"`
-	WebhookParams                *UpdateWebhookAutomationActionParamsInput               `json:"webhookParams,omitempty"`
-	SlackParams                  *UpdateSlackMessageAutomationActionParamsInput          `json:"slackParams,omitempty"`
-	GoogleChatParams             *UpdateGoogleChatMessageAutomationActionParamsInput     `json:"googleChatParams,omitempty"`
-	JiraParams                   *UpdateJiraAutomationActionParamInput                   `json:"jiraParams,omitempty"`
-	JiraTransitionParams         *UpdateJiraTransitionAutomationActionParamInput         `json:"jiraTransitionParams,omitempty"`
-	ServicenowParams             *UpdateServiceNowAutomationActionParamInput             `json:"servicenowParams,omitempty"`
-	ServicenowUpdateTicketParams *UpdateServiceNowUpdateTicketAutomationActionParamInput `json:"servicenowUpdateTicketParams,omitempty"`
-	AWSMessageParams             *UpdateAwsMessageAutomationActionParamsInput            `json:"awsMessageParams,omitempty"`
-	AzureServiceBusParams        *UpdateAzureServiceBusAutomationActionParamsInput       `json:"azureServiceBusParams,omitempty"`
-	GooglePubSubParams           *UpdateGooglePubSubAutomationActionParamsInput          `json:"googlePubSubParams,omitempty"`
-}
-
 // Project struct
 type Project struct {
 	Archived                bool                            `json:"archived"`
@@ -384,17 +290,6 @@ type ProjectCloudAccountLink struct {
 	Shared         bool           `json:"shared"`
 }
 
-// CloudAccountStatus enum
-var CloudAccountStatus = []string{
-	"CONNECTED",
-	"ERROR",
-	"DISABLED",
-	"INITIAL_SCANNING",
-	"PARTIALLY_CONNECTED",
-	"DISCONNECTED",
-	"DISCOVERED",
-}
-
 // CloudAccount struct
 type CloudAccount struct {
 	CloudProvider       string      `json:"cloudProvider"` // enum CloudProvider
@@ -415,12 +310,6 @@ type CloudAccount struct {
 type ProjectEntrypoint struct {
 	Environment string `json:"environment"` // enum Environment
 	URL         string `json:"url"`
-}
-
-// UserIdentityProviderType enum
-var UserIdentityProviderType = []string{
-	"WIZ",
-	"SAML",
 }
 
 // User struct
@@ -511,106 +400,6 @@ type CloudOrganizationEdge struct {
 	Node   CloudOrganization `json:"node"`
 }
 
-// AutomationActionType enum
-var AutomationActionType = []string{
-	"AWS_SNS",
-	"AZURE_DEVOPS",
-	"AZURE_LOGIC_APPS",
-	"AZURE_SENTINEL",
-	"AZURE_SERVICE_BUS",
-	"CISCO_WEBEX",
-	"CORTEX_XSOAR",
-	"CYWARE",
-	"EMAIL",
-	"EVENT_BRIDGE",
-	"FRESHSERVICE",
-	"GOOGLE_CHAT_MESSAGE",
-	"GOOGLE_PUB_SUB",
-	"JIRA_TICKET",
-	"JIRA_TICKET_TRANSITION",
-	"MICROSOFT_TEAMS",
-	"OPSGENIE_CLOSE_ALERT",
-	"OPSGENIE_CREATE_ALERT",
-	"PAGER_DUTY_CREATE_INCIDENT",
-	"PAGER_DUTY_RESOLVE_INCIDENT",
-	"SECURITY_HUB",
-	"SERVICENOW_TICKET",
-	"SERVICENOW_UPDATE_TICKET",
-	"SLACK_MESSAGE",
-	"SNOWFLAKE",
-	"SPLUNK",
-	"SUMO_LOGIC",
-	"TORQ",
-	"WEBHOOK",
-}
-
-// CreateAutomationActionInput struct -- updates
-type CreateAutomationActionInput struct {
-	Name                         string                                                  `json:"name"`
-	Type                         string                                                  `json:"type,omitempty"` // enum AutomationActionType
-	ProjectID                    string                                                  `json:"projectId,omitempty"`
-	IsAccessibleToAllProjects    bool                                                    `json:"isAccessibleToAllProjects"`
-	EmailParams                  *CreateEmailAutomationActionParamsInput                 `json:"emailParams,omitempty"`
-	WebhookParams                *CreateWebhookAutomationActionParamsInput               `json:"webhookParams,omitempty"`
-	SlackParams                  *CreateSlackMessageAutomationActionParamsInput          `json:"slackParams,omitempty"`
-	GoogleChatParams             *CreateGoogleChatMessageAutomationActionParamsInput     `json:"googleChatParams,omitempty"`
-	JiraParams                   *CreateJiraAutomationActionParamInput                   `json:"jiraParams,omitempty"`
-	JiraTransitionParams         *CreateJiraTransitionAutomationActionParamInput         `json:"jiraTransitionParams,omitempty"`
-	ServicenowParams             *CreateServiceNowAutomationActionParamInput             `json:"servicenowParams,omitempty"`
-	ServicenowUpdateTicketParams *CreateServiceNowUpdateTicketAutomationActionParamInput `json:"servicenowUpdateTicketParams,omitempty"`
-	AWSMessageParams             *CreateAwsMessageAutomationActionParamsInput            `json:"awsMessageParams,omitempty"`
-	AzureServiceBusParams        *CreateAzureServiceBusAutomationActionParamsInput       `json:"azureServiceBusParams,omitempty"`
-	GooglePubSubParams           *CreateGooglePubSubAutomationActionParamsInput          `json:"googlePubSubParams,omitempty"`
-}
-
-// CreateEmailAutomationActionParamsInput struct -- updates
-type CreateEmailAutomationActionParamsInput struct {
-	Note              string   `json:"note,omitempty"`
-	To                []string `json:"to"`
-	CC                []string `json:"cc,omitempty"`
-	AttachEvidenceCSV *bool    `json:"attachEvidenceCSV,omitempty"`
-}
-
-// CreateWebhookAutomationActionParamsInput struct -- updates
-type CreateWebhookAutomationActionParamsInput struct {
-	URL               string `json:"url"`
-	Body              string `json:"body"`
-	ClientCertificate string `json:"clientCertificate,omitempty"`
-	AuthUsername      string `json:"authUsername,omitempty"`
-	AuthPassword      string `json:"authPassword,omitempty"`
-	AuthToken         string `json:"authToken,omitempty"`
-}
-
-// CreateSlackMessageAutomationActionParamsInput struct -- updates
-type CreateSlackMessageAutomationActionParamsInput struct {
-	URL     string `json:"url"`
-	Note    string `json:"body,omitempty"`
-	Channel string `json:"channel,omitempty"`
-}
-
-// CreateGoogleChatMessageAutomationActionParamsInput struct -- upates
-type CreateGoogleChatMessageAutomationActionParamsInput struct {
-	URL  string `json:"url"`
-	Note string `json:"body,omitempty"`
-}
-
-// CreateJiraAutomationActionParamInput struct -- updates
-type CreateJiraAutomationActionParamInput struct {
-	ServerURL    string                          `json:"serverUrl"`
-	IsOnPrem     bool                            `json:"isOnPrem"`
-	TLSConfig    *AutomationActionTLSConfigInput `json:"tlsConfig,omitempty"`
-	User         string                          `json:"user"`
-	Token        string                          `json:"token"`
-	TicketFields CreateJiraTicketFieldsInput     `json:"ticketFields"`
-}
-
-// AutomationActionTLSConfigInput struct -- updates
-type AutomationActionTLSConfigInput struct {
-	AllowInsecureTLS               *bool  `json:"allowInsecureTLS,omitempty"`
-	ServerCA                       string `json:"serverCA,omitempty"`
-	ClientCertificateAndPrivateKey string `json:"clientCertificateAndPrivateKey,omitempty"`
-}
-
 // CreateJiraTicketFieldsInput struct -- updates
 type CreateJiraTicketFieldsInput struct {
 	Summary                     string          `json:"summary"`
@@ -627,30 +416,6 @@ type CreateJiraTicketFieldsInput struct {
 	AttachEvidenceCSV           *bool           `json:"attachEvidenceCSV,omitempty"`
 }
 
-// CreateJiraTransitionAutomationActionParamInput struct -- updates
-type CreateJiraTransitionAutomationActionParamInput struct {
-	ServerURL           string                          `json:"serverUrl"`
-	IsOnPrem            bool                            `json:"isOnPrem"`
-	TLSConfig           *AutomationActionTLSConfigInput `json:"tlsConfig,omitempty"`
-	User                string                          `json:"user"`
-	Token               string                          `json:"token"`
-	Project             string                          `json:"project"`
-	TransitionID        string                          `json:"transitionId"`
-	Fields              json.RawMessage                 `json:"fields,omitempty"`
-	Comment             string                          `json:"comment,omitempty"`
-	CommentOnTransition *bool                           `json:"commentOnTransition,omitempty"`
-}
-
-// CreateServiceNowAutomationActionParamInput struct -- updates
-type CreateServiceNowAutomationActionParamInput struct {
-	BaseURL      string                      `json:"baseUrl"`
-	User         string                      `json:"user"`
-	Password     string                      `json:"password"`
-	TicketFields CreateServiceNowFieldsInput `json:"ticketFields,omitempty"`
-	ClientID     string                      `json:"clientId,omitempty"`
-	ClientSecret string                      `json:"clientSecret,omitempty"`
-}
-
 // CreateServiceNowFieldsInput struct -- updates
 type CreateServiceNowFieldsInput struct {
 	TableName         string          `json:"tableName"`
@@ -658,68 +423,6 @@ type CreateServiceNowFieldsInput struct {
 	Summary           string          `json:"summary"`
 	Description       string          `json:"description"`
 	AttachEvidenceCSV *bool           `json:"attachEvidenceCSV,omitempty"`
-}
-
-// CreateServiceNowUpdateTicketAutomationActionParamInput struct -- updates
-type CreateServiceNowUpdateTicketAutomationActionParamInput struct {
-	BaseURL      string          `json:"baseUrl"`
-	User         string          `json:"user"`
-	Password     string          `json:"password"`
-	TableName    string          `json:"tableName"`
-	Fields       json.RawMessage `json:"fields,omitempty"`
-	ClientID     string          `json:"clientId,omitempty"`
-	ClientSecret string          `json:"clientSecret,omitempty"`
-}
-
-// CreateAwsMessageAutomationActionParamsInput struct -- updates
-type CreateAwsMessageAutomationActionParamsInput struct {
-	SNSTopicARN  string                                      `json:"snsTopicARN"`
-	Body         string                                      `json:"body"`
-	AccessMethod AwsMessageAutomationActionAccessMethodInput `json:"AwsMessageAutomationActionAccessMethodInput"`
-}
-
-// AwsMessageAutomationActionAccessMethodType enum
-var AwsMessageAutomationActionAccessMethodType = []string{
-	"ASSUME_CONNECTOR_ROLE",
-	"ASSUME_SPECIFIED_ROLE",
-}
-
-// AwsMessageAutomationActionAccessMethodInput struct -- updates
-type AwsMessageAutomationActionAccessMethodInput struct {
-	Type               string `json:"type"` // enum AwsMessageAutomationActionAccessMethodType
-	ConnectorForAccess string `json:"connectorForAccess,omitempty"`
-	CustomerRoleARN    string `json:"customerRoleARN,omitempty"`
-}
-
-// CreateAzureServiceBusAutomationActionParamsInput struct -- updates
-type CreateAzureServiceBusAutomationActionParamsInput struct {
-	QueueURL     string                                           `json:"queueUrl"`
-	Body         string                                           `json:"body"`
-	AccessMethod AzureServiceBusAutomationActionAccessMethodInput `json:"accessMethod"`
-}
-
-// AzureServiceBusAutomationActionAccessMethodType enum
-var AzureServiceBusAutomationActionAccessMethodType = []string{
-	"CONNECTOR_CREDENTIALS",
-	"CONNECTION_STRING_WITH_SAS",
-}
-
-// AzureServiceBusAutomationActionAccessMethodInput struct -- updates
-type AzureServiceBusAutomationActionAccessMethodInput struct {
-	Type                    string `json:"type"` // enum AzureServiceBusAutomationActionAccessMethodType
-	ConnectorForAccess      string `json:"connectorForAccess,omitempty"`
-	ConnectionStringWithSAS string `json:"connectionStringWithSAS,omitempty"`
-}
-
-// CreateAutomationActionPayload struct -- updates
-type CreateAutomationActionPayload struct {
-	AutomationAction *AutomationAction `json:"automationAction,omitempty"`
-}
-
-// AutomationActionStatus enum
-var AutomationActionStatus = []string{
-	"SUCCESS",
-	"FAILURE",
 }
 
 // AutomationAction struct -- updates; this is incomplete.  missing usedByRules. added paramsType
@@ -733,16 +436,6 @@ type AutomationAction struct {
 	Project                   *Project          `json:"project,omitempty"`
 	Status                    string            `json:"AutomationActionStatus,omitempty"` // enum AutomationActionStatus
 	Type                      string            `json:"type"`                             // enum AutomationActionType
-}
-
-// UpdateWebhookAutomationActionParamsInput struct -- updates
-type UpdateWebhookAutomationActionParamsInput struct {
-	URL               string `json:"url,omitempty"`
-	Body              string `json:"body,omitempty"`
-	ClientCertificate string `json:"clientCertificate,omitempty"`
-	AuthUsername      string `json:"authUsername,omitempty"`
-	AuthPassword      string `json:"authPassword,omitempty"`
-	AuthToken         string `json:"authToken,omitempty"`
 }
 
 // SlackMessageAutomationActionParams struct -- updates
@@ -868,21 +561,6 @@ type AzureServiceBusAutomationActionParams struct {
 	QueueURL                string    `json:"queueUrl"`
 }
 
-// ConnectorStatus enum
-var ConnectorStatus = []string{
-	"INITIAL_SCANNING",
-	"PARTIALLY_CONNECTED",
-	"ERROR",
-	"CONNECTED",
-	"DISABLED",
-}
-
-// ConnectorErrorCode enum
-var ConnectorErrorCode = []string{
-	"CONNECTION_ERROR",
-	"DISK_SCAN_ERROR",
-}
-
 // Connector struct -- updates.  this resource is incomplete.  missing ConnectorConfigs ConnectorModules TenantIdentityClient
 type Connector struct {
 	AddedBy           User            `json:"addedBy"`
@@ -896,165 +574,12 @@ type Connector struct {
 	Status            string          `json:"status"` // enum ConnectorStatus
 }
 
-// CreateGooglePubSubAutomationActionParamsInput struct -- updates
-type CreateGooglePubSubAutomationActionParamsInput struct {
-	ProjectID    string                                        `json:"projectId"`
-	TopicID      string                                        `json:"topicId"`
-	Body         string                                        `json:"body"`
-	AccessMethod GooglePubSubAutomationActionAccessMethodInput `json:"accessMethod"`
-}
-
-// GooglePubSubAutomationActionAccessMethodType enum
-var GooglePubSubAutomationActionAccessMethodType = []string{
-	"CONNECTOR_CREDENTIALS",
-	"SERVICE_ACCOUNT_KEY",
-}
-
-// GooglePubSubAutomationActionAccessMethodInput struct -- updates
-type GooglePubSubAutomationActionAccessMethodInput struct {
-	Type               string          `json:"type"` // enum GooglePubSubAutomationActionAccessMethodType
-	ConnectorForAccess string          `json:"connectorForAccess,omitempty"`
-	ServiceAccountKey  json.RawMessage `json:"serviceAccountKey,omitempty"`
-}
-
-// UpdateEmailAutomationActionParamsInput struct -- updates
-type UpdateEmailAutomationActionParamsInput struct {
-	Note              string   `json:"note,omitempty"`
-	To                []string `json:"to,omitempty"`
-	CC                []string `json:"cc,omitempty"`
-	AttachEvidenceCSV *bool    `json:"attachEvidenceCSV,omitempty"`
-}
-
-// UpdateSlackMessageAutomationActionParamsInput struct -- updates
-type UpdateSlackMessageAutomationActionParamsInput struct {
-	URL     string `json:"url,omitempty"`
-	Note    string `json:"note,omitempty"`
-	Channel string `json:"channel,omitempty"`
-}
-
-// UpdateGoogleChatMessageAutomationActionParamsInput struct -- updates
-type UpdateGoogleChatMessageAutomationActionParamsInput struct {
-	URL  string `json:"url,omitempty"`
-	Note string `json:"note,omitempty"`
-}
-
-// UpdateJiraAutomationActionParamInput struct -- updates
-type UpdateJiraAutomationActionParamInput struct {
-	ServerURL    string                          `json:"serverUrl,omitempty"`
-	IsOnPrem     *bool                           `json:"isOnPrem,omitempty"`
-	TLSConfig    *AutomationActionTLSConfigInput `json:"tlsConfig,omitempty"`
-	User         string                          `json:"user,omitempty"`
-	Token        string                          `json:"token,omitempty"`
-	TicketFields *UpdateJiraTicketFieldsInput    `json:"ticketFields,omitempty"`
-}
-
-// UpdateJiraTransitionAutomationActionParamInput struct -- updates
-type UpdateJiraTransitionAutomationActionParamInput struct {
-	ServerURL           string                          `json:"serverUrl,omitempty"`
-	IsOnPrem            *bool                           `json:"isOnPrem,omitempty"`
-	TLSConfig           *AutomationActionTLSConfigInput `json:"tlsConfig,omitempty"`
-	User                string                          `json:"user,omitempty"`
-	Token               string                          `json:"token,omitempty"`
-	Project             string                          `json:"project,omitempty"`
-	TransitionID        string                          `json:"transitionId,omitemptyd"`
-	Fields              json.RawMessage                 `json:"fields,omitempty"`
-	Comment             string                          `json:"comment,omitempty"`
-	CommentOnTransition *bool                           `json:"commentOnTransition,omitempty"`
-}
-
-// UpdateServiceNowAutomationActionParamInput struct -- updates
-type UpdateServiceNowAutomationActionParamInput struct {
-	BaseURL      string                       `json:"baseUrl,omitempty"`
-	User         string                       `json:"user,omitempty"`
-	Password     string                       `json:"password,omitempty"`
-	TicketFields *UpdateServiceNowFieldsInput `json:"ticketFields,omitempty"`
-	ClientID     string                       `json:"clientId,omitempty"`
-	ClientSecret string                       `json:"clientSecret,omitempty"`
-}
-
-// UpdateServiceNowUpdateTicketAutomationActionParamInput struct -- updates
-type UpdateServiceNowUpdateTicketAutomationActionParamInput struct {
-	BaseURL      string          `json:"baseUrl,omitempty"`
-	User         string          `json:"user,omitempty"`
-	Password     string          `json:"password,omitempty"`
-	TableName    string          `json:"tableName,omitempty"`
-	Fields       json.RawMessage `json:"fields,omitempty"`
-	ClientID     string          `json:"clientId,omitempty"`
-	ClientSecret string          `json:"clientSecret,omitempty"`
-}
-
-// UpdateAwsMessageAutomationActionParamsInput struct -- updates
-type UpdateAwsMessageAutomationActionParamsInput struct {
-	SNSTopicARN  string                                       `json:"snsTopicARN,omitempty"`
-	Body         string                                       `json:"body,omitempty"`
-	AccessMethod *AwsMessageAutomationActionAccessMethodInput `json:"accessMethod,omitempty"`
-}
-
-// UpdateAzureServiceBusAutomationActionParamsInput struct -- updates
-type UpdateAzureServiceBusAutomationActionParamsInput struct {
-	QueueURL     string                                            `json:"queueUrl,omitempty"`
-	Body         string                                            `json:"body,omitempty"`
-	AccessMethod *AzureServiceBusAutomationActionAccessMethodInput `json:"accessMethod,omitempty"`
-}
-
-// UpdateGooglePubSubAutomationActionParamsInput struct -- updates
-type UpdateGooglePubSubAutomationActionParamsInput struct {
-	ProjectID    string                                         `json:"projectId,omitempty"`
-	TopicID      string                                         `json:"topicId,omitempty"`
-	Body         string                                         `json:"body,omitempty"`
-	AccessMethod *GooglePubSubAutomationActionAccessMethodInput `json:"accessMethod,omitempty"`
-}
-
-// UpdateServiceNowFieldsInput struct -- updates
-type UpdateServiceNowFieldsInput struct {
-	TableName         string          `json:"tableName,omitempty"`
-	CustomFields      json.RawMessage `json:"customFields,omitempty"`
-	Summary           string          `json:"summary,omitempty"`
-	Description       string          `json:"description,omitempty"`
-	AttachEvidenceCSV *bool           `json:"attachEvidenceCSV,omitempty"`
-}
-
-// UpdateJiraTicketFieldsInput struct -- updates
-type UpdateJiraTicketFieldsInput struct {
-	Summary                     string          `json:"summary,omitempty"`
-	Description                 string          `json:"description,omitempty"`
-	IssueType                   string          `json:"issueType,omitempty"`
-	Assignee                    string          `json:"assignee,omitempty"`
-	Components                  []string        `json:"components,omitempty"`
-	FixVersion                  []string        `json:"fixVersion,omitempty"`
-	Labels                      []string        `json:"labels,omitempty"`
-	Priority                    string          `json:"priority,omitempty"`
-	Project                     string          `json:"project,omitempty"`
-	AlternativeDescriptionField string          `json:"alternativeDescriptionField,omitempty"`
-	CustomFields                json.RawMessage `json:"customFields,omitempty"`
-	AttachEvidenceCSV           *bool           `json:"attachEvidenceCSV,omitempty"`
-}
-
-// UpdateAutomationActionPayload struct -- updates
-type UpdateAutomationActionPayload struct {
-	AutomationAction AutomationAction `json:"automationAction,omitempty"`
-}
-
-// AutomationRuleTriggerSource enum
-var AutomationRuleTriggerSource = []string{
-	"ISSUES",
-	"CLOUD_EVENTS",
-	"CONTORL",
-}
-
-// AutomationRuleTriggerType enum
-var AutomationRuleTriggerType = []string{
-	"CREATED",
-	"UPDATED",
-	"RESOLVED",
-	"REOPENED",
-}
-
 // AutomationRule struct -- updates
 type AutomationRule struct {
 	Action               AutomationAction        `json:"action"`
 	Actions              []*AutomationRuleAction `json:"actions"`
 	CreatedAt            string                  `json:"createdAt"`
+	CreatedBy            User                    `json:"createdBy"`
 	Description          string                  `json:"description,omitempty"`
 	Enabled              bool                    `json:"enabled"`
 	Filters              json.RawMessage         `json:"filters,omitempty"`
@@ -1091,14 +616,13 @@ type UpdateAutomationRuleInput struct {
 
 // UpdateAutomationRulePatch struct -- updates
 type UpdateAutomationRulePatch struct {
-	Name                 string          `json:"name,omitempty"`
-	Description          string          `json:"description,omitempty"`
-	TriggerSource        string          `json:"triggerSource,omitempty"` // enum AutomationRuleTriggerSource
-	TriggerType          []string        `json:"triggerType,omitempty"`   // enum AutomationRuleTriggerType
-	Filters              json.RawMessage `json:"filters,omitempty"`
-	ActionID             string          `json:"actionId,omitempty"`
-	OverrideActionParams json.RawMessage `json:"overrideActionParams,omitempty"`
-	Enabled              *bool           `json:"enabled,omitempty"`
+	Name          string                      `json:"name,omitempty"`
+	Description   string                      `json:"description,omitempty"`
+	TriggerSource string                      `json:"triggerSource,omitempty"` // enum AutomationRuleTriggerSource
+	TriggerType   []string                    `json:"triggerType,omitempty"`   // enum AutomationRuleTriggerType
+	Filters       json.RawMessage             `json:"filters,omitempty"`
+	Enabled       *bool                       `json:"enabled,omitempty"`
+	Actions       []AutomationRuleActionInput `json:"actions,omitempty"`
 }
 
 // UpdateAutomationRulePayload struct -- updates
@@ -1106,7 +630,6 @@ type UpdateAutomationRulePayload struct {
 	AutomationRule AutomationRule `json:"automationRule"`
 }
 
-// DeleteAutomationRuleInput struct -- updates
 type DeleteAutomationRuleInput struct {
 	ID string `json:"id"`
 }
@@ -1127,14 +650,6 @@ type ServiceAccount struct {
 	Scopes           []string   `json:"scopes"`
 	Type             string     `json:"type"` //enum ServiceAccountType
 	LastRotatedAt    string     `json:"lastRotatedAt"`
-}
-
-// ServiceAccountType enum
-var ServiceAccountType = []string{
-	"THIRD_PARTY",
-	"SENSOR",
-	"KUBERNETES_ADMISSION_CONTROLLER",
-	"BROKER",
 }
 
 // CreateServiceAccountInput struct -- updates
@@ -1170,15 +685,6 @@ type CICDScanPolicy struct {
 	Params      interface{}       `json:"params"`
 }
 
-// DiskScanVulnerabilitySeverity enum
-var DiskScanVulnerabilitySeverity = []string{
-	"INFORMATIONAL",
-	"LOW",
-	"MEDIUM",
-	"HIGH",
-	"CRITICAL",
-}
-
 // CICDScanPolicyParamsVulnerabilities struct - updates
 type CICDScanPolicyParamsVulnerabilities struct {
 	IgnoreUnfixed         bool     `json:"ignoreUnfixed"`
@@ -1191,15 +697,6 @@ type CICDScanPolicyParamsVulnerabilities struct {
 type CICDScanPolicyParamsSecrets struct {
 	CountThreshold int      `json:"countThreshold"`
 	PathAllowList  []string `json:"pathAllowList"`
-}
-
-// IACScanSeverity enum
-var IACScanSeverity = []string{
-	"INFORMATIONAL",
-	"LOW",
-	"MEDIUM",
-	"HIGH",
-	"CRITICAL",
 }
 
 // CICDScanPolicyParamsIAC struct -- updates
@@ -1218,29 +715,6 @@ type CICDPolicyCustomIgnoreTag struct {
 	Key            string                    `json:"key"`
 	Rules          []*CloudConfigurationRule `json:"rules"`
 	Value          string                    `json:"value"`
-}
-
-// Severity enum
-var Severity = []string{
-	"INFORMATIONAL",
-	"LOW",
-	"MEDIUM",
-	"HIGH",
-	"CRITICAL",
-}
-
-// CloudConfigurationRuleServiceType enum
-var CloudConfigurationRuleServiceType = []string{
-	"AWS",
-	"Azure",
-	"GCP",
-	"OCI",
-	"Alibaba",
-	"AKS",
-	"EKS",
-	"GKE",
-	"Kubernetes",
-	"OKE",
 }
 
 // CloudConfigurationRule struct -- updates
@@ -1412,24 +886,6 @@ type WebhookAutomationActionAuthenticationTokenBearer struct {
 	Token string `json:"token"`
 }
 
-/*
-// CreateCloudConfigurationRuleInput struct -- updates
-type CreateCloudConfigurationRuleInput struct {
-	Name                    string                                   `json:"name"`
-	Description             string                                   `json:"description,omitempty"`
-	TargetNativeType        string                                   `json:"targetNativeType,omitempty"`
-	TargetNativeTypes       []string                                 `json:"targetNativeTypes,omitempty"`
-	OPAPolicy               string                                   `json:"opaPolicy,omitempty"`
-	Severity                string                                   `json:"severity,omitempty"` // enum Severity
-	Enabled                 *bool                                    `json:"enabled,omitempty"`
-	RemediationInstructions string                                   `json:"remediationInstructions,omitempty"`
-	ScopeAccountIDs         []string                                 `json:"scopeAccountIds,omitempty"`
-	FunctionAsControl       *bool                                    `json:"functionAsControl,omitempty"`
-	SecuritySubCategories   []string                                 `json:"securitySubCategories,omitempty"`
-	IACMatchers             []*CreateCloudConfigurationRuleMatcherInput `json:"iacMatchers,omitempty"`
-}
-*/
-
 // CreateCloudConfigurationRuleInput struct -- updates
 type CreateCloudConfigurationRuleInput struct {
 	Name                    string                                      `json:"name"`
@@ -1528,37 +984,6 @@ type UpdateCloudConfigurationRulePayload struct {
 	Rule CloudConfigurationRule `json:"rule,omitempty"`
 }
 
-// CloudConfigurationRuleMatcherType enum
-var CloudConfigurationRuleMatcherType = []string{
-	"TERRAFORM",
-	"CLOUD_FORMATION",
-	"KUBERNETES",
-	"AZURE_RESOURCE_MANAGER",
-	"DOCKER_FILE",
-}
-
-// CloudProvider enum
-var CloudProvider = []string{
-	"GCP",
-	"AWS",
-	"Azure",
-	"OCI",
-	"Alibaba",
-	"vSphere",
-	"OpenShift",
-	"Kubernetes",
-}
-
-// KubernetesClusterKind enum
-var KubernetesClusterKind = []string{
-	"EKS",
-	"GKE",
-	"AKS",
-	"OKE",
-	"OPEN_SHIFT",
-	"SELF_HOSTED",
-}
-
 // Control struct -- updates
 type Control struct {
 	CreatedAt                    string                      `json:"createdAt,omitempty"`
@@ -1587,12 +1012,6 @@ type Control struct {
 type ControlExternalReference struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-}
-
-// ControlType enum
-var ControlType = []string{
-	"SECURITY_GRAPH",
-	"CLOUD_CONFIGURATION",
 }
 
 // CreateUserInput struct
@@ -1851,64 +1270,6 @@ type UpdateControlsPatch struct {
 	SecuritySubCategories []string `json:"securitySubCategories,omitempty"`
 }
 
-// ControlCreatorType enum
-var ControlCreatorType = []string{
-	"USER",
-	"BUILTIN",
-}
-
-// TechnologyStackLayer enum
-var TechnologyStackLayer = []string{
-	"APPLICATION_AND_DATA",
-	"CI_CD",
-	"SECURITY_AND_IDENTITY",
-	"COMPUTE_PLATFORMS",
-	"CODE",
-	"CLOUD_ENTITLEMENTS",
-}
-
-// IssueStatus enum
-var IssueStatus = []string{
-	"OPEN",
-	"IN_PROGRESS",
-	"RESOLVED",
-	"REJECTED",
-}
-
-// IssueResolutionReason enum
-var IssueResolutionReason = []string{
-	"OBJECT_DELETED",
-	"ISSUE_FIXED",
-	"CONTROL_CHANGED",
-	"CONTROL_DISABLED",
-	"FALSE_POSITIVE",
-	"EXCEPTION",
-	"WONT_FIX",
-}
-
-// CloudResourceStatus enum
-var CloudResourceStatus = []string{
-	"Active",
-	"Inactive",
-	"Error",
-}
-
-// CloudPlatform enum
-var CloudPlatform = []string{
-	"GCP",
-	"AWS",
-	"Azure",
-	"OCI",
-	"Alibaba",
-	"vSphere",
-	"AKS",
-	"EKS",
-	"GKE",
-	"Kubernetes",
-	"OpenShift",
-	"OKE",
-}
-
 // UpdateControlsPayload struct
 type UpdateControlsPayload struct {
 	Errors       []UpdateControlsError `json:"errors,omitempty"`
@@ -1964,25 +1325,6 @@ type UpdateCloudConfigurationRulesPatch struct {
 	Enabled               *bool    `json:"enabled,omitempty"`
 	FunctionAsControl     *bool    `json:"functionAsControl,omitempty"`
 	SecuritySubCategories []string `json:"securitySubCategories,omitempty"`
-}
-
-// ConfigurationBenchmarkTypeID enum
-var ConfigurationBenchmarkTypeID = []string{
-	"AWS_CIS_1_2_0",
-	"AWS_CIS_1_3_0",
-	"AZURE_CIS_1_1_0",
-	"AZURE_CIS_1_3_0",
-	"GCP_CIS_1_1_0",
-}
-
-// CloudConfigurationRuleMatcherTypeFilter enum
-var CloudConfigurationRuleMatcherTypeFilter = []string{
-	"CLOUD",
-	"TERRAFORM",
-	"CLOUD_FORMATION",
-	"KUBERNETES",
-	"AZURE_RESOURCE_MANAGER",
-	"DOCKER_FILE",
 }
 
 // UpdateCloudConfigurationRulesPayload struct
@@ -2119,41 +1461,6 @@ type VulnerabilityCountByYear struct {
 	Year  int `json:"year"`
 }
 
-// DeploymentModel enum
-var DeploymentModel = []string{
-	"CLOUD_SERVICE",
-	"CLOUD_PLATFORM_SERVICE",
-	"SERVER_APPLICATION",
-	"CLIENT_APPLICATION",
-	"CODE_LIBRARY",
-	"CODE",
-	"VIRTUAL_APPLIANCE",
-}
-
-// TechnologyRisk enum
-var TechnologyRisk = []string{
-	"NONE",
-	"LOW",
-	"MEDIUM",
-	"HIGH",
-}
-
-// TechnologyStatus enum
-var TechnologyStatus = []string{
-	"UNREVIEWED",
-	"SANCTIONED",
-	"UNSANCTIONED",
-	"REQUIRED",
-}
-
-// TechnologyUsage enum
-var TechnologyUsage = []string{
-	"RARE",
-	"UNCOMMON",
-	"COMMON",
-	"VERY_COMMON",
-}
-
 // CreateHostConfigurationRuleInput struct
 type CreateHostConfigurationRuleInput struct {
 	Name                  string   `json:"name"`
@@ -2247,19 +1554,6 @@ type CloudConfigurationRuleOrder struct {
 	Field     string `json:"field"`     // enum CloudConfigurationRuleOrderField
 }
 
-// OrderDirection enum
-var OrderDirection = []string{
-	"ASC",
-	"DESC",
-}
-
-// CloudConfigurationRuleOrderField enum
-var CloudConfigurationRuleOrderField = []string{
-	"FAILED_CHECK_COUNT",
-	"SEVERITY",
-	"NAME",
-}
-
 // CloudConfigurationRuleConnection struct
 type CloudConfigurationRuleConnection struct {
 	AnalyticsUpdatedAt    string                        `json:"analyticsUpdatedAt"`
@@ -2286,12 +1580,6 @@ type CloudConfigurationRuleExternalReference struct {
 type HostConfigurationRuleOrder struct {
 	Direction string `json:"direction"` // enum OrderDirection
 	Field     string `json:"field"`     // enum HostConfigurationRuleOrderField
-}
-
-// HostConfigurationRuleOrderField enum
-var HostConfigurationRuleOrderField = []string{
-	"FAILED_CHECK_COUNT",
-	"NAME",
 }
 
 // HostConfigurationRuleConnection struct
@@ -2363,279 +1651,12 @@ type GraphSearchResultEdge struct {
 	Entities       []GraphEntity `json:"entities"`
 }
 
-// GraphRelationshipType enum
-var GraphRelationshipType = []string{
-	"ANY",
-	"ANY_OUTGOING",
-	"ACTING_AS",
-	"ADMINISTRATE",
-	"ALERTED_ON",
-	"ALLOWS",
-	"ALLOWS_ACCESS_TO",
-	"APPLIES_TO",
-	"ASSIGNED_TO",
-	"ATTACHED_TO",
-	"BEHIND",
-	"BOOTS",
-	"BUILT_FROM",
-	"CAUSES",
-	"COLLABORATES",
-	"CONNECTED_TO",
-	"CONTAINS",
-	"CONTAINS_DST_IP_RANGE",
-	"CONTAINS_DST_PORT_RANGE",
-	"CONTAINS_SRC_IP_RANGE",
-	"CONTAINS_SRC_PORT_RANGE",
-	"DENIES",
-	"DEPENDS_ON",
-	"DEPLOYED_TO",
-	"ENCRYPTS",
-	"ENCRYPTS_PARTITION",
-	"ENTITLES",
-	"EXCLUDES",
-	"EXPOSES",
-	"GOVERNS",
-	"HAS",
-	"HAS_BOUNDARY_POLICY",
-	"HAS_DATA_FINDING",
-	"HAS_DATA_INVENTORY",
-	"HAS_DATA_SCHEMA",
-	"HAS_DATA_STORE",
-	"HAS_ORGANIZATION_POLICY",
-	"HAS_PRINCIPAL_POLICY",
-	"HAS_RESOURCE_POLICY",
-	"HAS_SNAPSHOT",
-	"HAS_SOURCE",
-	"HAS_STANDARD_WEB_ACCESS_FROM",
-	"HAS_TECH",
-	"HOSTS",
-	"IGNORES",
-	"IMPLEMENTS",
-	"INCLUDES",
-	"INFECTS",
-	"INSIDE",
-	"INSTANCE_OF",
-	"INVOKES",
-	"LOGS_DATA_FOR",
-	"MANAGES",
-	"MOUNTS",
-	"OWNS",
-	"PART_OF",
-	"PEERED_TO",
-	"PERFORMED",
-	"PERFORMED_IMPERSONATED",
-	"PERMITS",
-	"POINTS_TO",
-	"PROTECTS",
-	"READS_DATA_FROM",
-	"REFERENCED_BY",
-	"REPLICA_OF",
-	"ROUTES_TRAFFIC_FROM",
-	"ROUTES_TRAFFIC_TO",
-	"RUNS",
-	"SCANNED",
-	"SEND_MESSAGES_TO",
-	"SERVES",
-	"STORES_DATA_IN",
-	"TRANSIT_PEERED_TO",
-	"USES",
-	"VALIDATES",
-}
-
-// GraphEntityType enum
-var GraphEntityType = []string{
-	"ANY",
-	"ACCESS_KEY",
-	"ACCESS_ROLE",
-	"ACCESS_ROLE_BINDING",
-	"ACCESS_ROLE_PERMISSION",
-	"API_GATEWAY",
-	"APPLICATION",
-	"AUTHENTICATION_CONFIGURATION",
-	"AUTHENTICATION_POLICY",
-	"BACKEND_BUCKET",
-	"BACKUP_SERVICE",
-	"BRANCH_PACKAGE",
-	"BUCKET",
-	"CALL_CENTER_SERVICE",
-	"CDN",
-	"CERTIFICATE",
-	"CICD_SERVICE",
-	"CLOUD_LOG_CONFIGURATION",
-	"CLOUD_ORGANIZATION",
-	"CLOUD_RESOURCE",
-	"COMPUTE_INSTANCE_GROUP",
-	"CONFIGURATION_FINDING",
-	"CONFIGURATION_RULE",
-	"CONFIGURATION_SCAN",
-	"CONFIG_MAP",
-	"CONTAINER",
-	"CONTAINER_GROUP",
-	"CONTAINER_IMAGE",
-	"CONTAINER_INSTANCE_GROUP",
-	"CONTAINER_REGISTRY",
-	"CONTAINER_REPOSITORY",
-	"CONTAINER_SERVICE",
-	"CONTROLLER_REVISION",
-	"DAEMON_SET",
-	"DATABASE",
-	"DATA_FINDING",
-	"DATA_INVENTORY",
-	"DATA_SCHEMA",
-	"DATA_STORE",
-	"DATA_WORKFLOW",
-	"DATA_WORKLOAD",
-	"DB_SERVER",
-	"DEPLOYMENT",
-	"DNS_RECORD",
-	"DNS_ZONE",
-	"DOMAIN",
-	"EMAIL_SERVICE",
-	"ENCRYPTION_KEY",
-	"ENDPOINT",
-	"EXCESSIVE_ACCESS_FINDING",
-	"FILE_DESCRIPTOR",
-	"FILE_DESCRIPTOR_FINDING",
-	"FILE_SYSTEM_SERVICE",
-	"FIREWALL",
-	"GATEWAY",
-	"GOVERNANCE_POLICY",
-	"GOVERNANCE_POLICY_GROUP",
-	"GROUP",
-	"HOSTED_APPLICATION",
-	"HOSTED_TECHNOLOGY",
-	"HOST_CONFIGURATION_FINDING",
-	"HOST_CONFIGURATION_RULE",
-	"IAC_DECLARATION_INSTANCE",
-	"IAC_RESOURCE_DECLARATION",
-	"IAC_STATE_INSTANCE",
-	"IAM_BINDING",
-	"IDENTITY_PROVIDER",
-	"IP_RANGE",
-	"KUBERNETES_CLUSTER",
-	"KUBERNETES_CRON_JOB",
-	"KUBERNETES_INGRESS",
-	"KUBERNETES_INGRESS_CONTROLLER",
-	"KUBERNETES_JOB",
-	"KUBERNETES_NETWORK_POLICY",
-	"KUBERNETES_NODE",
-	"KUBERNETES_PERSISTENT_VOLUME",
-	"KUBERNETES_PERSISTENT_VOLUME_CLAIM",
-	"KUBERNETES_POD_SECURITY_POLICY",
-	"KUBERNETES_SERVICE",
-	"KUBERNETES_STORAGE_CLASS",
-	"KUBERNETES_VOLUME",
-	"LAST_LOGIN",
-	"LATERAL_MOVEMENT_FINDING",
-	"LOAD_BALANCER",
-	"LOCAL_USER",
-	"MALWARE",
-	"MALWARE_INSTANCE",
-	"MANAGED_CERTIFICATE",
-	"MANAGEMENT_SERVICE",
-	"MAP_REDUCE_CLUSTER",
-	"MESSAGING_SERVICE",
-	"NAMESPACE",
-	"NAT",
-	"NETWORK_ADDRESS",
-	"NETWORK_APPLIANCE",
-	"NETWORK_INTERFACE",
-	"NETWORK_ROUTING_RULE",
-	"NETWORK_SECURITY_RULE",
-	"PACKAGE",
-	"PEERING",
-	"POD",
-	"PORT_RANGE",
-	"PREDEFINED_GROUP",
-	"PRIVATE_ENDPOINT",
-	"PRIVATE_LINK",
-	"PROJECT",
-	"PROXY",
-	"PROXY_RULE",
-	"RAW_ACCESS_POLICY",
-	"REGION",
-	"REGISTERED_DOMAIN",
-	"REPLICA_SET",
-	"REPOSITORY",
-	"REPOSITORY_BRANCH",
-	"REPOSITORY_TAG",
-	"RESOURCE_GROUP",
-	"ROUTE_TABLE",
-	"SEARCH_INDEX",
-	"SECRET",
-	"SECRET_CONTAINER",
-	"SECRET_DATA",
-	"SECRET_INSTANCE",
-	"SECURITY_EVENT_FINDING",
-	"SECURITY_TOOL_FINDING",
-	"SECURITY_TOOL_FINDING_TYPE",
-	"SECURITY_TOOL_SCAN",
-	"SERVERLESS",
-	"SERVERLESS_PACKAGE",
-	"SERVICE_ACCOUNT",
-	"SERVICE_CONFIGURATION",
-	"SERVICE_USAGE_TECHNOLOGY",
-	"SNAPSHOT",
-	"STATEFUL_SET",
-	"STORAGE_ACCOUNT",
-	"SUBNET",
-	"SUBSCRIPTION",
-	"SWITCH",
-	"TECHNOLOGY",
-	"USER_ACCOUNT",
-	"VIRTUAL_DESKTOP",
-	"VIRTUAL_MACHINE",
-	"VIRTUAL_MACHINE_IMAGE",
-	"VIRTUAL_NETWORK",
-	"VOLUME",
-	"VULNERABILITY",
-	"WEAKNESS",
-	"WEB_SERVICE",
-}
-
 // AutomationRuleAction struct
 type AutomationRuleAction struct {
 	ID                   string      `json:"id"`
 	ActionTemplateParams interface{} `json:"actionTemplateParams,omitempty"` // union ActionTemplateParams
 	ActionTemplateType   string      `json:"actionTemplateType"`             // enum ActionTemplateType
 	Integration          Integration `json:"integration"`
-}
-
-// ActionTemplateType enum
-var ActionTemplateType = []string{
-	"AWS_EVENT_BRIDGE",
-	"AWS_SECURITY_HUB",
-	"AWS_SNS",
-	"AZURE_DEVOPS",
-	"AZURE_LOGIC_APPS",
-	"AZURE_SENTINEL",
-	"AZURE_SERVICE_BUS",
-	"CISCO_WEBEX",
-	"CLICK_UP_CREATE_TASK",
-	"CORTEX_XSOAR",
-	"CYWARE",
-	"EMAIL",
-	"FRESHSERVICE",
-	"GCP_PUB_SUB",
-	"GOOGLE_CHAT",
-	"HUNTERS",
-	"JIRA_ADD_COMMENT",
-	"JIRA_CREATE_TICKET",
-	"JIRA_TRANSITION_TICKET",
-	"MICROSOFT_TEAMS",
-	"OPSGENIE_CLOSE_ALERT",
-	"OPSGENIE_CREATE_ALERT",
-	"PAGER_DUTY_CREATE_INCIDENT",
-	"PAGER_DUTY_RESOLVE_INCIDENT",
-	"SERVICE_NOW_CREATE_TICKET",
-	"SERVICE_NOW_UPDATE_TICKET",
-	"SLACK",
-	"SLACK_BOT",
-	"SPLUNK",
-	"SUMO_LOGIC",
-	"TINES",
-	"TORQ",
-	"WEBHOOK",
 }
 
 // Integration struct
@@ -2652,41 +1673,9 @@ type Integration struct {
 	UsedByRules               []AutomationRule `json:"usedByRules"`
 }
 
-// IntegrationType enum
-var IntegrationType = []string{
-	"AWS_SECURITY_HUB",
-	"AWS_SNS",
-	"AZURE_DEVOPS",
-	"AZURE_LOGIC_APPS",
-	"AZURE_SENTINEL",
-	"AZURE_SERVICE_BUS",
-	"CISCO_WEBEX",
-	"CORTEX_XSOAR",
-	"CYWARE",
-	"EMAIL",
-	"AWS_EVENT_BRIDGE",
-	"GOOGLE_CHAT",
-	"GCP_PUB_SUB",
-	"JIRA",
-	"MICROSOFT_TEAMS",
-	"PAGER_DUTY",
-	"SERVICE_NOW",
-	"SLACK",
-	"SLACK_BOT",
-	"SPLUNK",
-	"SUMO_LOGIC",
-	"TORQ",
-	"WEBHOOK",
-	"FRESHSERVICE",
-	"OPSGENIE",
-	"TINES",
-	"HUNTERS",
-	"CLICK_UP",
-}
-
 // AutomationRuleActionInput struct
 type AutomationRuleActionInput struct {
-	ID                   string                    `json:"id"`
+	ID                   string                    `json:"id,omitempty"`
 	IntegrationID        string                    `json:"integrationId"`
 	ActionTemplateParams ActionTemplateParamsInput `json:"actionTemplateParams,omitempty"`
 	ActionTemplateType   string                    `json:"actionTemplateType"` // enum ActionTemplateType
@@ -3070,12 +2059,6 @@ type GooglePubSubIntegrationAccessMethodInput struct {
 	ServiceAccountKey json.RawMessage `json:"serviceAccountKey,omitempty"`
 }
 
-// JiraServerType enum
-var JiraServerType = []string{
-	"CLOUD",
-	"SELF_HOSTED",
-}
-
 // JiraIntegrationAuthorizationInput struct
 type JiraIntegrationAuthorizationInput struct {
 	Username            string `json:"username,omitempty"`
@@ -3089,24 +2072,6 @@ type ServiceNowIntegrationAuthorizationInput struct {
 	Password     string `json:"password"`
 	ClientID     string `json:"clientId,omitempty"`
 	ClientSecret string `json:"clientSecret,omitempty"`
-}
-
-// AwsSNSIntegrationAccessMethodType enum
-var AwsSNSIntegrationAccessMethodType = []string{
-	"ASSUME_CONNECTOR_ROLE",
-	"ASSUME_SPECIFIED_ROLE",
-}
-
-// AzureServiceBusIntegrationAccessMethodType enum
-var AzureServiceBusIntegrationAccessMethodType = []string{
-	"CONNECTOR_CREDENTIALS",
-	"CONNECTION_STRING_WITH_SAS",
-}
-
-// GcpPubSubIntegrationAccessMethodType enum
-var GcpPubSubIntegrationAccessMethodType = []string{
-	"CONNECTOR_CREDENTIALS",
-	"SERVICE_ACCOUNT_KEY",
 }
 
 // CreateIntegrationPayload struct
@@ -3223,3 +2188,106 @@ type UpdateClickUpIntegrationParamsInput struct {
 type UpdateIntegrationPayload struct {
 	Integration Integration `json:"integration"`
 }
+
+// AwsSnsActionTemplateParams struct
+type AwsSnsActionTemplateParams struct {
+	Body string `json:"body"`
+}
+
+// EmailActionTemplateParams struct
+type EmailActionTemplateParams struct {
+	AttachEvidenceCSV *bool    `json:"attachEvidenceCSV,omitempty"`
+	CC                []string `json:"cc,omitempty"`
+	Note              string   `json:"note,omitempty"`
+	To                []string `json:"to"`
+}
+
+// WebhookActionTemplateParams struct
+type WebhookActionTemplateParams struct {
+	Body    string          `json:"body"`
+	Headers []WebhookHeader `json:"headers,omitempty"`
+}
+
+// SlackActionTemplateParams struct
+type SlackActionTemplateParams struct {
+	Channel string `json:"channel,omitempty"`
+	Note    string `json:"note,omitempty"`
+}
+
+// SlackBotActionTemplateParams struct
+type SlackBotActionTemplateParams struct {
+	Channel string `json:"channel"`
+	Note    string `json:"note,omitempty"`
+}
+
+// AzureServiceBusActionTemplateParams struct
+type AzureServiceBusActionTemplateParams struct {
+	Body string `json:"body"`
+}
+
+// GcpPubSubActionTemplateParams struct
+type GcpPubSubActionTemplateParams struct {
+	Body string `json:"body"`
+}
+
+// GoogleChatActionTemplateParams struct
+type GoogleChatActionTemplateParams struct {
+	Note string `json:"note,omitempty"`
+}
+
+// PagerDutyActionCreateIncidentTemplateParams struct
+type PagerDutyActionCreateIncidentTemplateParams struct {
+	Payload string `json:"payload"`
+}
+
+// JiraActionCreateTicketTemplateParams struct
+type JiraActionCreateTicketTemplateParams struct {
+	Fields JiraTicketFields `json:"filds"`
+}
+
+// JiraActionAddCommentTemplateParams struct
+type JiraActionAddCommentTemplateParams struct {
+	AddIssuesReport bool   `json:"addIssuesReport"`
+	Comment         string `json:"comment"`
+	ProjectKey      string `json:"projectKey,omitempty"`
+}
+
+// JiraActionTransitionTicketTemplateParams struct
+type JiraActionTransitionTicketTemplateParams struct {
+	AdvancedFields      json.RawMessage `json:"advancedFields,omitempty"`
+	AttachEvidenceCSV   *bool           `json:"attachEvidenceCSV,omitempty"`
+	Comment             string          `json:"comment,omitempty"`
+	CommentOnTransition *bool           `json:"commentOnTransition,omitempty"`
+	Project             string          `json:"project"`
+	TransitionId        string          `json:"transitionId"`
+}
+
+// ServiceNowActionCreateTicketTemplateParams struct
+type ServiceNowActionCreateTicketTemplateParams struct {
+	Fields ServiceNowTicketFields `json:"fields"`
+}
+
+// ServiceNowActionUpdateTicketTemplateParams struct
+type ServiceNowActionUpdateTicketTemplateParams struct {
+	AttachIssuesReport *bool           `json:"attachIssuesReport,omitempty"`
+	Fields             json.RawMessage `json:"fields,omitempty"`
+	TableName          string          `json:"tableName"`
+}
+
+// OpsgenieCreateAlertTemplateParams struct
+type OpsgenieCreateAlertTemplateParams struct {
+	Body string `json:"body"`
+}
+
+// OpsgenieCloseAlertTemplateParams struct
+type OpsgenieCloseAlertTemplateParams struct {
+	Body string `json:"body"`
+}
+
+// ClickUpCreateTaskActionTemplateParams struct
+type ClickUpCreateTaskActionTemplateParams struct {
+	Body   string `json:"body"`
+	ListId string `json:"listId"`
+}
+
+//
