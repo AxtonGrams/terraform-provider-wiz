@@ -10,6 +10,11 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
 )
 
+// CreateAutomationRule struct
+type CreateAutomationRule struct {
+	CreateAutomationRule vendor.CreateAutomationRulePayload `json:"createAutomationRule"`
+}
+
 // DeleteAutomationRule struct
 type DeleteAutomationRule struct {
 	DeleteAutomationRule vendor.DeleteAutomationRulePayload `json:"deleteAutomationRule"`

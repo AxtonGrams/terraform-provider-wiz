@@ -593,14 +593,14 @@ type AutomationRule struct {
 
 // CreateAutomationRuleInput struct -- updates
 type CreateAutomationRuleInput struct {
-	Name          string                       `json:"name"`
-	Description   string                       `json:"description,omitempty"`
-	TriggerSource string                       `json:"triggerSource"` // enum AutomationRuleTriggerSource
-	TriggerType   []string                     `json:"triggerType"`   // enum AutomationRuleTriggerType
-	Filters       json.RawMessage              `json:"filters,omitempty"`
-	Enabled       *bool                        `json:"enabled,omitempty"`
-	ProjectID     string                       `json:"projectId,omitempty"`
-	Actions       []*AutomationRuleActionInput `json:"actions"`
+	Name          string                      `json:"name"`
+	Description   string                      `json:"description,omitempty"`
+	TriggerSource string                      `json:"triggerSource"` // enum AutomationRuleTriggerSource
+	TriggerType   []string                    `json:"triggerType"`   // enum AutomationRuleTriggerType
+	Filters       json.RawMessage             `json:"filters,omitempty"`
+	Enabled       *bool                       `json:"enabled,omitempty"`
+	ProjectID     string                      `json:"projectId,omitempty"`
+	Actions       []AutomationRuleActionInput `json:"actions"`
 }
 
 // CreateAutomationRulePayload struct -- updates
@@ -1684,23 +1684,23 @@ type AutomationRuleActionInput struct {
 
 // ActionTemplateParamsInput struct
 type ActionTemplateParamsInput struct {
-	AwsSNS                  AwsSNSActionTemplateParamsInput                  `json:"awsSNS,omitempty"`
-	Email                   EmailActionTemplateParamsInput                   `json:"email,omitempty"`
-	Webhook                 WebhookActionTemplateParamsInput                 `json:"webhook,omitempty"`
-	Slack                   SlackActionTemplateParamsInput                   `json:"slack,omitempty"`
-	SlackBot                SlackBotActionTemplateParamsInput                `json:"slackBot,omitempty"`
-	AzureServiceBus         AzureServiceBusActionTemplateParamsInput         `json:"azureServiceBus,omitempty"`
-	GoogleChat              GoogleChatActionTemplateParamsInput              `json:"googleChat,omitempty"`
-	GcpPubSub               GcpPubSubActionTemplateParamsInput               `json:"gcpPubSub,omitempty"`
-	PagerDutyCreateIncident PagerDutyActionCreateIncidentTemplateParamsInput `json:"pagerDutyCreateIncident,omitempty"`
-	JiraCreateTicket        JiraActionCreateTicketTemplateParamsInput        `json:"jiraCreateTicket,omitempty"`
-	JiraAddComment          JiraActionAddCommentTemplateParamsInput          `json:"jiraAddComment,omitempty"`
-	JiraTransitionTicket    JiraActionTransitionTicketTemplateParamsInput    `json:"jiraTransitionTicket,omitempty"`
-	ServiceNowCreateTicket  ServiceNowActionCreateTicketTemplateParamsInput  `json:"serviceNowCreateTicket,omitempty"`
-	ServiceNowUpdateTicket  ServiceNowActionUpdateTicketTemplateParamsInput  `json:"serviceNowUpdateTicket,omitempty"`
-	OpsgenieCreateAlert     OpsgenieCreateAlertTemplateParamsInput           `json:"opsgenieCreateAlert,omitempty"`
-	OpsgenieCloseAlert      OpsgenieCloseAlertTemplateParamsInput            `json:"opsgenieCloseAlert,omitempty"`
-	ClickUpCreateTask       ClickUpCreateTaskActionTemplateParamsInput       `json:"clickUpCreateTask,omitempty"`
+	AwsSNS                  *AwsSNSActionTemplateParamsInput                  `json:"awsSNS,omitempty"`
+	Email                   *EmailActionTemplateParamsInput                   `json:"email,omitempty"`
+	Webhook                 *WebhookActionTemplateParamsInput                 `json:"webhook,omitempty"`
+	Slack                   *SlackActionTemplateParamsInput                   `json:"slack,omitempty"`
+	SlackBot                *SlackBotActionTemplateParamsInput                `json:"slackBot,omitempty"`
+	AzureServiceBus         *AzureServiceBusActionTemplateParamsInput         `json:"azureServiceBus,omitempty"`
+	GoogleChat              *GoogleChatActionTemplateParamsInput              `json:"googleChat,omitempty"`
+	GcpPubSub               *GcpPubSubActionTemplateParamsInput               `json:"gcpPubSub,omitempty"`
+	PagerDutyCreateIncident *PagerDutyActionCreateIncidentTemplateParamsInput `json:"pagerDutyCreateIncident,omitempty"`
+	JiraCreateTicket        *JiraActionCreateTicketTemplateParamsInput        `json:"jiraCreateTicket,omitempty"`
+	JiraAddComment          *JiraActionAddCommentTemplateParamsInput          `json:"jiraAddComment,omitempty"`
+	JiraTransitionTicket    *JiraActionTransitionTicketTemplateParamsInput    `json:"jiraTransitionTicket,omitempty"`
+	ServiceNowCreateTicket  *ServiceNowActionCreateTicketTemplateParamsInput  `json:"serviceNowCreateTicket,omitempty"`
+	ServiceNowUpdateTicket  *ServiceNowActionUpdateTicketTemplateParamsInput  `json:"serviceNowUpdateTicket,omitempty"`
+	OpsgenieCreateAlert     *OpsgenieCreateAlertTemplateParamsInput           `json:"opsgenieCreateAlert,omitempty"`
+	OpsgenieCloseAlert      *OpsgenieCloseAlertTemplateParamsInput            `json:"opsgenieCloseAlert,omitempty"`
+	ClickUpCreateTask       *ClickUpCreateTaskActionTemplateParamsInput       `json:"clickUpCreateTask,omitempty"`
 }
 
 // AwsSNSActionTemplateParamsInput struct
