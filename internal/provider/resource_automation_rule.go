@@ -15,6 +15,11 @@ type CreateAutomationRule struct {
 	CreateAutomationRule vendor.CreateAutomationRulePayload `json:"createAutomationRule"`
 }
 
+// ReadAutomationRulePayload struct -- updates
+type ReadAutomationRulePayload struct {
+	AutomationRule vendor.AutomationRule `json:"automationRule"`
+}
+
 // DeleteAutomationRule struct
 type DeleteAutomationRule struct {
 	DeleteAutomationRule vendor.DeleteAutomationRulePayload `json:"deleteAutomationRule"`

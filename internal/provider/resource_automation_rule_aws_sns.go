@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
@@ -141,6 +141,7 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 	vars.ProjectID = d.Get("project_id").(string)
 	vars.TriggerType = utils.ConvertListToString(d.Get("trigger_type").([]interface{}))
 	vars.TriggerSource = d.Get("trigger_source").(string)
+
 	// populate the actions parameter
 	awsSNSParams := &vendor.AwsSNSActionTemplateParamsInput{
 		Body: d.Get("aws_sns_body").(string),
@@ -173,6 +174,98 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 
 func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizAutomationRuleRead called...")
+
+	// check the id
+	if d.Id() == "" {
+		return nil
+	}
+
+	// define the graphql query
+	query := `query automationRule (
+	  $id: ID!
+	){
+	  automationRule(
+	    id: $id
+	  ){
+	    id
+	    name
+	    description
+	    createdAt
+	    triggerSource
+	    triggerType
+	    filters
+	    enabled
+	    project {
+	      id
+	    }
+	    actions {
+	      id
+	      actionTemplateType
+	      integration {
+	        id
+	      }
+	      actionTemplateParams {
+	        ... on AwsSnsActionTemplateParams {
+	          body
+	        }
+	      }
+	    }
+	  }
+	}`
+
+	// populate the graphql variables
+	vars := &internal.QueryVariables{}
+	vars.ID = d.Id()
+
+	// process the request
+	data := &ReadAutomationRulePayload{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_aws_sns", "read")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		tflog.Info(ctx, "Error from API call, checking if resource was deleted outside Terraform.")
+		if data.AutomationRule.ID == "" {
+			tflog.Debug(ctx, fmt.Sprintf("Response: (%T) %s", data, utils.PrettyPrint(data)))
+			tflog.Info(ctx, "Resource not found, marking as new.")
+			d.SetId("")
+			d.MarkNewResource()
+			return nil
+		}
+		return diags
+	}
+
+	// set the resource parameters
+	err := d.Set("name", data.AutomationRule.Name)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("description", data.AutomationRule.Description)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("enabled", data.AutomationRule.Enabled)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("trigger_type", data.AutomationRule.TriggerType)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("trigger_source", data.AutomationRule.TriggerSource)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("filters", string(data.AutomationRule.Filters))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("project_id", data.AutomationRule.Project.ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("created_at", data.AutomationRule.CreatedAt)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
