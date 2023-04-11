@@ -58,9 +58,10 @@ resource "wiz_automation_rule_aws_sns" "example" {
 
 ### Required
 
+- `description` (String) Description of the automation rule
 - `filters` (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
-- `integration_id` (String)
-- `name` (String)
+- `integration_id` (String) Wiz identifier for the Integration to leverage for this action. Must be resource type integration_aws_sns.
+- `name` (String) Name of the automation rule
 - `trigger_source` (String) Trigger source.
     - Allowed values: 
         - ISSUES
@@ -75,17 +76,15 @@ resource "wiz_automation_rule_aws_sns" "example" {
 
 ### Optional
 
-- `aws_sns_body` (String)
-- `description` (String) Description.
-    - Defaults to ``.
+- `aws_sns_body` (String) AWS SNS body.
 - `enabled` (Boolean) Enabled?
     - Defaults to `true`.
-- `project_id` (String)
+- `project_id` (String) Wiz internal ID for a project.
 
 ### Read-Only
 
-- `action_id` (String)
-- `created_at` (String)
+- `action_id` (String) Wiz internal ID for the action.
+- `created_at` (String) The date/time at which the automation rule was created.
 - `id` (String) Wiz internal identifier.
 
 

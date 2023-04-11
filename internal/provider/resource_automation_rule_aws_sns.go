@@ -26,18 +26,19 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 				Computed:    true,
 			},
 			"created_at": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The date/time at which the automation rule was created.",
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the automation rule",
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Description.",
-				Default:     "",
+				Required:    true,
+				Description: "Description of the automation rule",
 			},
 			"trigger_source": {
 				Type:     schema.TypeString,
@@ -89,21 +90,25 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 				Default:     true,
 			},
 			"project_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Wiz internal ID for a project.",
 			},
 			"action_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Wiz internal ID for the action.",
 			},
 			"integration_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Wiz identifier for the Integration to leverage for this action. Must be resource type integration_aws_sns.",
 			},
 			"aws_sns_body": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "AWS SNS body.",
 			},
 		},
 		CreateContext: resourceWizAutomationRuleAwsSNSCreate,
@@ -266,12 +271,83 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("project_id", data.AutomationRule.Project.ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("action_id", data.AutomationRule.Actions[0].ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("integration_id", data.AutomationRule.Actions[0].Integration.ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("aws_sns_body", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["body"])
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
 
 func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizAutomationRuleUpdate called...")
+
+	// check the id
+	if d.Id() == "" {
+		return nil
+	}
+
+	// define the graphql query
+	query := `mutation updateAutomationRule($input: UpdateAutomationRuleInput!) {
+	  updateAutomationRule(
+	    input: $input
+	  ) {
+	    automationRule {
+	      id
+	    }
+	  }
+	}`
+
+	// populate the graphql variables
+	vars := &vendor.UpdateAutomationRuleInput{}
+	vars.ID = d.Id()
+	vars.Patch.Name = d.Get("name").(string)
+	vars.Patch.Description = d.Get("description").(string)
+	vars.Patch.TriggerSource = d.Get("trigger_source").(string)
+	triggerTypes := make([]string, 0, 0)
+	for _, j := range d.Get("trigger_type").([]interface{}) {
+		triggerTypes = append(triggerTypes, j.(string))
+	}
+	vars.Patch.TriggerType = triggerTypes
+	vars.Patch.Filters = json.RawMessage(d.Get("filters").(string))
+	vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
+
+	actions := []vendor.AutomationRuleActionInput{}
+	awsSNS := &vendor.AwsSNSActionTemplateParamsInput{
+		Body: d.Get("aws_sns_body").(string),
+	}
+
+	actionTemplateParams := vendor.ActionTemplateParamsInput{
+		AwsSNS: awsSNS,
+	}
+	action := vendor.AutomationRuleActionInput{
+		IntegrationID:        d.Get("integration_id").(string),
+		ActionTemplateType:   "AWS_SNS",
+		ActionTemplateParams: actionTemplateParams,
+	}
+	actions = append(actions, action)
+
+	vars.Patch.Actions = actions
+
+	// process the request
+	data := &UpdateAutomationRule{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule", "update")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
+	}
 
 	return resourceWizAutomationRuleAwsSNSRead(ctx, d, m)
 }

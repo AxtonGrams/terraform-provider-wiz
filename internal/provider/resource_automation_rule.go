@@ -20,6 +20,11 @@ type ReadAutomationRulePayload struct {
 	AutomationRule vendor.AutomationRule `json:"automationRule"`
 }
 
+// UpdateAutomationRule struct
+type UpdateAutomationRule struct {
+	UpdateAutomationRule vendor.UpdateAutomationRulePayload `json:"updateAutomationRule"`
+}
+
 // DeleteAutomationRule struct
 type DeleteAutomationRule struct {
 	DeleteAutomationRule vendor.DeleteAutomationRulePayload `json:"deleteAutomationRule"`
