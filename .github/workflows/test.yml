@@ -107,7 +107,6 @@ jobs:
     - run: go test -v -cover ./internal/provider/
       timeout-minutes: 10
       env:
-        TF_ACC: "1"
         TF_VAR_WIZ_URL: ${{ secrets.WIZ_URL }}
         TF_VAR_WIZ_AUTH_CLIENT_ID: ${{ secrets.WIZ_AUTH_CLIENT_ID }}
         TF_VAR_WIZ_AUTH_CLIENT_SECRET: ${{ secrets.WIZ_AUTH_CLIENT_SECRET }}
