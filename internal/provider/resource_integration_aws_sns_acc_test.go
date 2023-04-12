@@ -12,7 +12,7 @@ func TestAccResourceWizIntegrationAwsSNS_basic(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceWizIntegrationAwsSNS_basic,
+				Config: testAccResourceWizIntegrationAwsSNSBasic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"wiz_integration_aws_sns.foo",
@@ -45,7 +45,7 @@ func TestAccResourceWizIntegrationAwsSNS_basic(t *testing.T) {
 	})
 }
 
-const testAccResourceWizIntegrationAwsSNS_basic = `
+const testAccResourceWizIntegrationAwsSNSBasic = `
 resource "wiz_integration_aws_sns" "foo" {
   name                      = "test-acc-WizIntegrationAwsSNS_basic"
   aws_sns_topic_arn         = "arn:aws:sns:us-east-1:123456789012:Wiz-Remediation-Issues-Topic"

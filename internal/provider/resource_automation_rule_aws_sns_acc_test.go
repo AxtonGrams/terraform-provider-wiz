@@ -13,7 +13,7 @@ func TestAccResourceWizAutomationRuleAwsSNS_basic(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceWizAutomationRuleAwsSNS_basic,
+				Config: testAccResourceWizAutomationRuleAwsSNSBasic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"wiz_integration_aws_sns.foo",
@@ -77,7 +77,7 @@ func TestAccResourceWizAutomationRuleAwsSNS_basic(t *testing.T) {
 	})
 }
 
-const testAccResourceWizAutomationRuleAwsSNS_basic = `
+const testAccResourceWizAutomationRuleAwsSNSBasic = `
 resource "wiz_integration_aws_sns" "foo" {
   name                      = "test-acc-WizAutomationRuleAwsSNS_basic"
   aws_sns_topic_arn         = "arn:aws:sns:us-east-1:123456789012:Wiz"
