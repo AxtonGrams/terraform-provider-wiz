@@ -1,25 +1,25 @@
 package provider
 
 import (
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 // CreateHostConfigurationRule struct
 type CreateHostConfigurationRule struct {
-	CreateHostConfigurationRule vendor.CreateHostConfigurationRulePayload `json:"createHostConfigurationRule"`
+	CreateHostConfigurationRule wiz.CreateHostConfigurationRulePayload `json:"createHostConfigurationRule"`
 }
 
 // ReadHostConfigurationRulePayload struct -- updates
 type ReadHostConfigurationRulePayload struct {
-	HostConfigurationRule vendor.HostConfigurationRule `json:"hostConfigurationRule"`
+	HostConfigurationRule wiz.HostConfigurationRule `json:"hostConfigurationRule"`
 }
 
 // UpdateHostConfigurationRule struct
 type UpdateHostConfigurationRule struct {
-	UpdateHostConfigurationRule vendor.UpdateHostConfigurationRulePayload `json:"updateHostConfigurationRule"`
+	UpdateHostConfigurationRule wiz.UpdateHostConfigurationRulePayload `json:"updateHostConfigurationRule"`
 }
 
 // DeleteHostConfigurationRule struct
 type DeleteHostConfigurationRule struct {
-	DeleteHostConfigurationRule vendor.DeleteHostConfigurationRulePayload `json:"deleteHostConfigurationRule"`
+	DeleteHostConfigurationRule wiz.DeleteHostConfigurationRulePayload `json:"deleteHostConfigurationRule"`
 }

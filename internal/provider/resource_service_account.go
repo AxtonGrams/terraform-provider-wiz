@@ -12,7 +12,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizServiceAccount() *schema.Resource {
@@ -49,12 +49,12 @@ func resourceWizServiceAccount() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Service account type, for Helm use `BROKER` type.`\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.ServiceAccountType,
+						wiz.ServiceAccountType,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.ServiceAccountType,
+						wiz.ServiceAccountType,
 						false,
 					),
 				),
@@ -116,7 +116,7 @@ func resourceWizServiceAccount() *schema.Resource {
 
 // CreateServiceAccount struct
 type CreateServiceAccount struct {
-	CreateServiceAccount vendor.CreateServiceAccountPayload `json:"createServiceAccount"`
+	CreateServiceAccount wiz.CreateServiceAccountPayload `json:"createServiceAccount"`
 }
 
 func resourceWizServiceAccountCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -142,7 +142,7 @@ func resourceWizServiceAccountCreate(ctx context.Context, d *schema.ResourceData
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateServiceAccountInput{}
+	vars := &wiz.CreateServiceAccountInput{}
 	vars.Name = d.Get("name").(string)
 	t := d.Get("type").(string)
 	vars.Type = &t
@@ -171,7 +171,7 @@ func resourceWizServiceAccountCreate(ctx context.Context, d *schema.ResourceData
 
 // ReadServiceAccountPayload struct -- updates
 type ReadServiceAccountPayload struct {
-	ServiceAccount vendor.ServiceAccount `json:"serviceAccount,omitempty"`
+	ServiceAccount wiz.ServiceAccount `json:"serviceAccount,omitempty"`
 }
 
 func resourceWizServiceAccountRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -266,7 +266,7 @@ func resourceWizServiceAccountUpdate(ctx context.Context, d *schema.ResourceData
 
 // DeleteServiceAccount struct
 type DeleteServiceAccount struct {
-	DeleteServiceAccount vendor.DeleteServiceAccountPayload `json:"deleteServiceAccount"`
+	DeleteServiceAccount wiz.DeleteServiceAccountPayload `json:"deleteServiceAccount"`
 }
 
 func resourceWizServiceAccountDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -289,11 +289,11 @@ func resourceWizServiceAccountDelete(ctx context.Context, d *schema.ResourceData
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteServiceAccountInput{}
+	vars := &wiz.DeleteServiceAccountInput{}
 	vars.ID = d.Id()
 
 	// process the request
-	data := &vendor.DeleteServiceAccountPayload{}
+	data := &wiz.DeleteServiceAccountPayload{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "service_account", "delete")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {

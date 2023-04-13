@@ -11,7 +11,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizSecurityFramework() *schema.Resource {
@@ -98,23 +98,23 @@ func resourceWizSecurityFramework() *schema.Resource {
 	}
 }
 
-func getSecurityCategories(ctx context.Context, data *schema.ResourceData) []vendor.SecurityCategoryInput {
+func getSecurityCategories(ctx context.Context, data *schema.ResourceData) []wiz.SecurityCategoryInput {
 	tflog.Debug(ctx, "getSecurityCategories called...")
 
 	securityCategories := data.Get("category").(*schema.Set)
-	var mySecurityCategories []vendor.SecurityCategoryInput
+	var mySecurityCategories []wiz.SecurityCategoryInput
 
 	for a, b := range securityCategories.List() {
 		tflog.Debug(ctx, fmt.Sprintf("a: %d", a))
 		tflog.Debug(ctx, fmt.Sprintf("b: %t %s", b, utils.PrettyPrint(b)))
 
-		localSecurityCategory := vendor.SecurityCategoryInput{}
+		localSecurityCategory := wiz.SecurityCategoryInput{}
 
 		for c, d := range b.(map[string]interface{}) {
 			tflog.Debug(ctx, fmt.Sprintf("c: %s", utils.PrettyPrint(c)))
 			tflog.Debug(ctx, fmt.Sprintf("d: %t %s", d, utils.PrettyPrint(d)))
 
-			//localSecuritySubCategories := []vendor.SecuritySubCategoryInput{}
+			//localSecuritySubCategories := []wiz.SecuritySubCategoryInput{}
 
 			switch c {
 			case "name":
@@ -134,16 +134,16 @@ func getSecurityCategories(ctx context.Context, data *schema.ResourceData) []ven
 	return mySecurityCategories
 }
 
-func getSecuritySubCategories(ctx context.Context, set *schema.Set) []vendor.SecuritySubCategoryInput {
+func getSecuritySubCategories(ctx context.Context, set *schema.Set) []wiz.SecuritySubCategoryInput {
 	tflog.Debug(ctx, "getSecuritySubCategories called...")
 
-	var mySecuritySubCategories []vendor.SecuritySubCategoryInput
+	var mySecuritySubCategories []wiz.SecuritySubCategoryInput
 
 	for a, b := range set.List() {
 		tflog.Debug(ctx, fmt.Sprintf("a: %d", a))
 		tflog.Debug(ctx, fmt.Sprintf("b: %t %s", b, utils.PrettyPrint(b)))
 
-		localSubCategory := vendor.SecuritySubCategoryInput{}
+		localSubCategory := wiz.SecuritySubCategoryInput{}
 
 		for c, d := range b.(map[string]interface{}) {
 			tflog.Debug(ctx, fmt.Sprintf("c: %s", utils.PrettyPrint(c)))
@@ -167,7 +167,7 @@ func getSecuritySubCategories(ctx context.Context, set *schema.Set) []vendor.Sec
 
 // CreateSecurityFramework struct
 type CreateSecurityFramework struct {
-	CreateSecurityFramework vendor.CreateSecurityFrameworkPayload `json:"createSecurityFramework"`
+	CreateSecurityFramework wiz.CreateSecurityFrameworkPayload `json:"createSecurityFramework"`
 }
 
 func resourceWizSecurityFrameworkCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -187,7 +187,7 @@ func resourceWizSecurityFrameworkCreate(ctx context.Context, d *schema.ResourceD
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateSecurityFrameworkInput{}
+	vars := &wiz.CreateSecurityFrameworkInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	vars.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
@@ -207,7 +207,7 @@ func resourceWizSecurityFrameworkCreate(ctx context.Context, d *schema.ResourceD
 	return resourceWizSecurityFrameworkRead(ctx, d, m)
 }
 
-func flattenSecurityCategories(ctx context.Context, securityFrameworks vendor.SecurityFramework) []interface{} {
+func flattenSecurityCategories(ctx context.Context, securityFrameworks wiz.SecurityFramework) []interface{} {
 	tflog.Info(ctx, "flattenSecurityCategories called...")
 	tflog.Debug(ctx, fmt.Sprintf("flattenSecurityCategories input: %T %s", securityFrameworks, utils.PrettyPrint(securityFrameworks)))
 
@@ -230,7 +230,7 @@ func flattenSecurityCategories(ctx context.Context, securityFrameworks vendor.Se
 	return output
 }
 
-func flattenSecuritySubCategories(ctx context.Context, securitySubCategories []vendor.SecuritySubCategory) []interface{} {
+func flattenSecuritySubCategories(ctx context.Context, securitySubCategories []wiz.SecuritySubCategory) []interface{} {
 	tflog.Info(ctx, "flattenSecuritySubCategories called...")
 	tflog.Debug(ctx, fmt.Sprintf("flattenSecuritySubCategories input: %T %s", securitySubCategories, utils.PrettyPrint(securitySubCategories)))
 
@@ -253,7 +253,7 @@ func flattenSecuritySubCategories(ctx context.Context, securitySubCategories []v
 
 // ReadSecurityFrameworkPayload struct -- updates
 type ReadSecurityFrameworkPayload struct {
-	SecurityFramework vendor.SecurityFramework `json:"securityFramework"`
+	SecurityFramework wiz.SecurityFramework `json:"securityFramework"`
 }
 
 func resourceWizSecurityFrameworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -333,7 +333,7 @@ func resourceWizSecurityFrameworkRead(ctx context.Context, d *schema.ResourceDat
 
 // UpdateSecurityFramework struct
 type UpdateSecurityFramework struct {
-	UpdateSecurityFramework vendor.UpdateSecurityFrameworkPayload `json:"updateSecurityFramework"`
+	UpdateSecurityFramework wiz.UpdateSecurityFrameworkPayload `json:"updateSecurityFramework"`
 }
 
 func resourceWizSecurityFrameworkUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -358,7 +358,7 @@ func resourceWizSecurityFrameworkUpdate(ctx context.Context, d *schema.ResourceD
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateSecurityFrameworkInput{}
+	vars := &wiz.UpdateSecurityFrameworkInput{}
 	vars.ID = d.Id()
 
 	// description must be passed with every update
@@ -390,7 +390,7 @@ func resourceWizSecurityFrameworkUpdate(ctx context.Context, d *schema.ResourceD
 
 // DeleteSecurityFramework struct
 type DeleteSecurityFramework struct {
-	DeleteSecurityFramework vendor.DeleteSecurityFrameworkPayload `json:"deleteSecurityFramework"`
+	DeleteSecurityFramework wiz.DeleteSecurityFrameworkPayload `json:"deleteSecurityFramework"`
 }
 
 func resourceWizSecurityFrameworkDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -413,7 +413,7 @@ func resourceWizSecurityFrameworkDelete(ctx context.Context, d *schema.ResourceD
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteSecurityFrameworkInput{}
+	vars := &wiz.DeleteSecurityFrameworkInput{}
 	vars.ID = d.Id()
 
 	// process the request

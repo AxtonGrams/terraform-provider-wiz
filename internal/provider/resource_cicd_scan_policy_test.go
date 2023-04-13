@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenScanPolicyParamsIACNoTags(t *testing.T) {
@@ -29,11 +29,11 @@ func TestFlattenScanPolicyParamsIACNoTags(t *testing.T) {
 			"severity_threshold": "CRITICAL",
 		},
 	}
-	var expanded = &vendor.CICDScanPolicyParamsIAC{
+	var expanded = &wiz.CICDScanPolicyParamsIAC{
 		BuiltinIgnoreTagsEnabled: false,
 		CountThreshold:           3,
 		SeverityThreshold:        "CRITICAL",
-		IgnoredRules: []*vendor.CloudConfigurationRule{
+		IgnoredRules: []*wiz.CloudConfigurationRule{
 			{
 				ID: "fd7dd0c6-4953-4b36-bc39-004ec3d870db",
 			},
@@ -41,7 +41,7 @@ func TestFlattenScanPolicyParamsIACNoTags(t *testing.T) {
 				ID: "063fb380-9eda-4c08-a31b-9211ee37bd42",
 			},
 		},
-		SecurityFrameworks: []*vendor.SecurityFramework{
+		SecurityFrameworks: []*wiz.SecurityFramework{
 			{
 				ID: "fd7dd0c6-4953-4b36-bc39-004ec3d870db",
 			},
@@ -102,11 +102,11 @@ func TestFlattenScanPolicyParamsIACTags(t *testing.T) {
 			"severity_threshold": "CRITICAL",
 		},
 	}
-	var expanded = &vendor.CICDScanPolicyParamsIAC{
+	var expanded = &wiz.CICDScanPolicyParamsIAC{
 		BuiltinIgnoreTagsEnabled: false,
 		CountThreshold:           3,
 		SeverityThreshold:        "CRITICAL",
-		IgnoredRules: []*vendor.CloudConfigurationRule{
+		IgnoredRules: []*wiz.CloudConfigurationRule{
 			{
 				ID: "fd7dd0c6-4953-4b36-bc39-004ec3d870db",
 			},
@@ -114,7 +114,7 @@ func TestFlattenScanPolicyParamsIACTags(t *testing.T) {
 				ID: "063fb380-9eda-4c08-a31b-9211ee37bd42",
 			},
 		},
-		SecurityFrameworks: []*vendor.SecurityFramework{
+		SecurityFrameworks: []*wiz.SecurityFramework{
 			{
 				ID: "fd7dd0c6-4953-4b36-bc39-004ec3d870db",
 			},
@@ -122,12 +122,12 @@ func TestFlattenScanPolicyParamsIACTags(t *testing.T) {
 				ID: "063fb380-9eda-4c08-a31b-9211ee37bd42",
 			},
 		},
-		CustomIgnoreTags: []*vendor.CICDPolicyCustomIgnoreTag{
+		CustomIgnoreTags: []*wiz.CICDPolicyCustomIgnoreTag{
 			{
 				IgnoreAllRules: false,
 				Key:            "testkey1",
 				Value:          "testval1",
-				Rules: []*vendor.CloudConfigurationRule{
+				Rules: []*wiz.CloudConfigurationRule{
 					{
 						ID: "063fb380-9eda-4c08-a31b-9211ee37bd42",
 					},
@@ -137,7 +137,7 @@ func TestFlattenScanPolicyParamsIACTags(t *testing.T) {
 				IgnoreAllRules: false,
 				Key:            "testkey2",
 				Value:          "testval2",
-				Rules: []*vendor.CloudConfigurationRule{
+				Rules: []*wiz.CloudConfigurationRule{
 					{
 						ID: "1f0ee3b5-5404-4b40-bbc8-33a990330ac3",
 					},
@@ -174,7 +174,7 @@ func TestFlattenScanPolicyParamsSecrets(t *testing.T) {
 			},
 		},
 	}
-	var expanded = &vendor.CICDScanPolicyParamsSecrets{
+	var expanded = &wiz.CICDScanPolicyParamsSecrets{
 		CountThreshold: 3,
 		PathAllowList: []string{
 			"/root",
@@ -204,7 +204,7 @@ func TestFlattenScanPolicyParamsVulnerabilitiesTrue(t *testing.T) {
 			"severity":                "HIGH",
 		},
 	}
-	var expanded = &vendor.CICDScanPolicyParamsVulnerabilities{
+	var expanded = &wiz.CICDScanPolicyParamsVulnerabilities{
 		IgnoreUnfixed: true,
 		PackageAllowList: []string{
 			"lsof",
@@ -236,7 +236,7 @@ func TestFlattenScanPolicyParamsVulnerabilitiesFalse(t *testing.T) {
 			"severity":                "HIGH",
 		},
 	}
-	var expanded = &vendor.CICDScanPolicyParamsVulnerabilities{
+	var expanded = &wiz.CICDScanPolicyParamsVulnerabilities{
 		IgnoreUnfixed: false,
 		PackageAllowList: []string{
 			"lsof",
@@ -258,7 +258,7 @@ func TestFlattenScanPolicyParamsVulnerabilitiesFalse(t *testing.T) {
 func TestGetDiskVulnerabilitiesParams(t *testing.T) {
 	ctx := context.Background()
 
-	var expected = &vendor.CreateCICDScanPolicyDiskVulnerabilitiesInput{
+	var expected = &wiz.CreateCICDScanPolicyDiskVulnerabilitiesInput{
 		Severity:              "1525fe10-2575-43ef-84bc-6969f81625e7",
 		PackageCountThreshold: 3,
 		IgnoreUnfixed:         false,
@@ -301,7 +301,7 @@ func TestGetDiskVulnerabilitiesParams(t *testing.T) {
 func TestGetDiskSecretsParams(t *testing.T) {
 	ctx := context.Background()
 
-	var expected = &vendor.CreateCICDScanPolicyDiskSecretsInput{
+	var expected = &wiz.CreateCICDScanPolicyDiskSecretsInput{
 		CountThreshold: 3,
 		PathAllowList: []string{
 			"f9de6434-38bc-4da7-b6ea-ff02ad55073f",
@@ -340,7 +340,7 @@ func TestGetDiskSecretsParams(t *testing.T) {
 func TestGetIACParams(t *testing.T) {
 	ctx := context.Background()
 
-	var expected = &vendor.CreateCICDScanPolicyIACInput{
+	var expected = &wiz.CreateCICDScanPolicyIACInput{
 		SeverityThreshold: "5f45a8d4-24b2-463d-b604-ca532e4ec4d3",
 		CountThreshold:    3,
 		IgnoredRules: []string{
@@ -348,7 +348,7 @@ func TestGetIACParams(t *testing.T) {
 			"3f25530e-3295-462e-a300-4ef456291263",
 		},
 		BuiltinIgnoreTagsEnabled: utils.ConvertBoolToPointer(false),
-		CustomIgnoreTags: []*vendor.CICDPolicyCustomIgnoreTagCreateInput{
+		CustomIgnoreTags: []*wiz.CICDPolicyCustomIgnoreTagCreateInput{
 			{
 				Key:   "eb9b5425-1635-4cf6-a7b1-44f015795efc",
 				Value: "cdebef02-fc13-472e-a4cc-2fe4d355c924",

@@ -12,7 +12,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizCloudConfigurationRule() *schema.Resource {
@@ -53,12 +53,12 @@ func resourceWizCloudConfigurationRule() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Severity that will be set for findings of this rule.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.Severity,
+						wiz.Severity,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.Severity,
+						wiz.Severity,
 						false,
 					),
 				),
@@ -109,12 +109,12 @@ func resourceWizCloudConfigurationRule() *schema.Resource {
 							Description: fmt.Sprintf(
 								"The type of resource that will be evaluated by the Rego Code.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.CloudConfigurationRuleMatcherType,
+									wiz.CloudConfigurationRuleMatcherType,
 								),
 							),
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.CloudConfigurationRuleMatcherType,
+									wiz.CloudConfigurationRuleMatcherType,
 									false,
 								),
 							),
@@ -138,14 +138,14 @@ func resourceWizCloudConfigurationRule() *schema.Resource {
 	}
 }
 
-func getIACMatchers(ctx context.Context, d *schema.ResourceData) []*vendor.CreateCloudConfigurationRuleMatcherInput {
+func getIACMatchers(ctx context.Context, d *schema.ResourceData) []*wiz.CreateCloudConfigurationRuleMatcherInput {
 	tflog.Info(ctx, "getIACMatchers called...")
 
 	iacMatchers := d.Get("iac_matchers").(*schema.Set).List()
-	var myIacMatchers []*vendor.CreateCloudConfigurationRuleMatcherInput
+	var myIacMatchers []*wiz.CreateCloudConfigurationRuleMatcherInput
 	for _, a := range iacMatchers {
 		tflog.Debug(ctx, fmt.Sprintf("a: %t %s", a, utils.PrettyPrint(a)))
-		localIacMatchers := &vendor.CreateCloudConfigurationRuleMatcherInput{}
+		localIacMatchers := &wiz.CreateCloudConfigurationRuleMatcherInput{}
 		for b, c := range a.(map[string]interface{}) {
 			tflog.Trace(ctx, fmt.Sprintf("b: %T %s", b, b))
 			tflog.Trace(ctx, fmt.Sprintf("c: %T %s", c, c))
@@ -164,7 +164,7 @@ func getIACMatchers(ctx context.Context, d *schema.ResourceData) []*vendor.Creat
 
 // CreateCloudConfigurationRule struct
 type CreateCloudConfigurationRule struct {
-	CreateCloudConfigurationRule vendor.CreateCloudConfigurationRulePayload `json:"createCloudConfigurationRule"`
+	CreateCloudConfigurationRule wiz.CreateCloudConfigurationRulePayload `json:"createCloudConfigurationRule"`
 }
 
 func resourceWizCloudConfigurationRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -184,7 +184,7 @@ func resourceWizCloudConfigurationRuleCreate(ctx context.Context, d *schema.Reso
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateCloudConfigurationRuleInput{}
+	vars := &wiz.CreateCloudConfigurationRuleInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	vars.TargetNativeTypes = utils.ConvertListToString(d.Get("target_native_types").(*schema.Set).List())
@@ -210,7 +210,7 @@ func resourceWizCloudConfigurationRuleCreate(ctx context.Context, d *schema.Reso
 	return resourceWizCloudConfigurationRuleRead(ctx, d, m)
 }
 
-func flattenIACMatchers(ctx context.Context, iacMatchers []*vendor.CloudConfigurationRuleMatcher) []interface{} {
+func flattenIACMatchers(ctx context.Context, iacMatchers []*wiz.CloudConfigurationRuleMatcher) []interface{} {
 	tflog.Info(ctx, "flattenIACMatchers called...")
 
 	var output = make([]interface{}, 0, 0)
@@ -225,7 +225,7 @@ func flattenIACMatchers(ctx context.Context, iacMatchers []*vendor.CloudConfigur
 	return output
 }
 
-func flattenSecuritySubCategoriesID(ctx context.Context, securitySubCategories []*vendor.SecuritySubCategory) []interface{} {
+func flattenSecuritySubCategoriesID(ctx context.Context, securitySubCategories []*wiz.SecuritySubCategory) []interface{} {
 	tflog.Info(ctx, "flattenSecuritySubCategoriesID called...")
 
 	var output = make([]interface{}, 0, 0)
@@ -237,7 +237,7 @@ func flattenSecuritySubCategoriesID(ctx context.Context, securitySubCategories [
 	return output
 }
 
-func flattenScopeAccountIDs(ctx context.Context, scopeAccounts []*vendor.CloudAccount) []interface{} {
+func flattenScopeAccountIDs(ctx context.Context, scopeAccounts []*wiz.CloudAccount) []interface{} {
 	tflog.Info(ctx, "flattenScopeAccountIDs called...")
 
 	var output = make([]interface{}, 0, 0)
@@ -251,7 +251,7 @@ func flattenScopeAccountIDs(ctx context.Context, scopeAccounts []*vendor.CloudAc
 
 // ReadCloudConfigurationRulePayload struct -- updates
 type ReadCloudConfigurationRulePayload struct {
-	CloudConfigurationRule vendor.CloudConfigurationRule `json:"cloudConfigurationRule"`
+	CloudConfigurationRule wiz.CloudConfigurationRule `json:"cloudConfigurationRule"`
 }
 
 func resourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -363,7 +363,7 @@ func resourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.Resour
 
 // UpdateCloudConfigurationRule struct
 type UpdateCloudConfigurationRule struct {
-	UpdateCloudConfigurationRule vendor.UpdateCloudConfigurationRulePayload `json:"updateCloudConfigurationRule"`
+	UpdateCloudConfigurationRule wiz.UpdateCloudConfigurationRulePayload `json:"updateCloudConfigurationRule"`
 }
 
 func resourceWizCloudConfigurationRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -388,7 +388,7 @@ func resourceWizCloudConfigurationRuleUpdate(ctx context.Context, d *schema.Reso
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateCloudConfigurationRuleInput{}
+	vars := &wiz.UpdateCloudConfigurationRuleInput{}
 	vars.ID = d.Id()
 	// check if changes were made to required fields
 	if d.HasChange("name") {
@@ -420,9 +420,9 @@ func resourceWizCloudConfigurationRuleUpdate(ctx context.Context, d *schema.Reso
 	vars.Patch.ScopeAccountIds = scopeAccountIds
 	// flatten iacMatchers
 	iacMatchers := d.Get("iac_matchers")
-	iacMatcherUpdates := make([]*vendor.UpdateCloudConfigurationRuleMatcherInput, 0)
+	iacMatcherUpdates := make([]*wiz.UpdateCloudConfigurationRuleMatcherInput, 0)
 	for _, b := range iacMatchers.(*schema.Set).List() {
-		var myMap = &vendor.UpdateCloudConfigurationRuleMatcherInput{}
+		var myMap = &wiz.UpdateCloudConfigurationRuleMatcherInput{}
 		tflog.Trace(ctx, fmt.Sprintf("b: %T %s", b, b))
 		for c, d := range b.(map[string]interface{}) {
 			tflog.Trace(ctx, fmt.Sprintf("c: %T %s", c, c))
@@ -451,7 +451,7 @@ func resourceWizCloudConfigurationRuleUpdate(ctx context.Context, d *schema.Reso
 
 // DeleteCloudConfigurationRule struct
 type DeleteCloudConfigurationRule struct {
-	DeleteCloudConfigurationRule vendor.DeleteCloudConfigurationRulePayload `json:"deleteCloudConfigurationRule"`
+	DeleteCloudConfigurationRule wiz.DeleteCloudConfigurationRulePayload `json:"deleteCloudConfigurationRule"`
 }
 
 func resourceWizCloudConfigurationRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -474,7 +474,7 @@ func resourceWizCloudConfigurationRuleDelete(ctx context.Context, d *schema.Reso
         }`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteCloudConfigurationRuleInput{}
+	vars := &wiz.DeleteCloudConfigurationRuleInput{}
 	vars.ID = d.Id()
 
 	// process the request

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenGroupMapping(t *testing.T) {
@@ -39,12 +39,12 @@ func TestFlattenGroupMapping(t *testing.T) {
 	}
 
 	// verify multiple projects
-	var groupMapping1 = &vendor.SAMLGroupMapping{
+	var groupMapping1 = &wiz.SAMLGroupMapping{
 		ProviderGroupID: "Wiz-Project-Reader",
-		Role: vendor.UserRole{
+		Role: wiz.UserRole{
 			ID: "PROJECT_READER",
 		},
-		Projects: []vendor.Project{
+		Projects: []wiz.Project{
 			{
 				ID: "cb95ced6-3ed6-5fd5-a68a-1059556fc909",
 			},
@@ -55,12 +55,12 @@ func TestFlattenGroupMapping(t *testing.T) {
 	}
 
 	// verify single project
-	var groupMapping2 = &vendor.SAMLGroupMapping{
+	var groupMapping2 = &wiz.SAMLGroupMapping{
 		ProviderGroupID: "Wiz-Project-Admin",
-		Role: vendor.UserRole{
+		Role: wiz.UserRole{
 			ID: "PROJECT_ADMIN",
 		},
-		Projects: []vendor.Project{
+		Projects: []wiz.Project{
 			{
 				ID: "69229a09-f831-484e-9d3c-21f2a984a014",
 			},
@@ -68,14 +68,14 @@ func TestFlattenGroupMapping(t *testing.T) {
 	}
 
 	// verify no projects
-	var groupMapping3 = &vendor.SAMLGroupMapping{
+	var groupMapping3 = &wiz.SAMLGroupMapping{
 		ProviderGroupID: "Wiz-Global-Admin",
-		Role: vendor.UserRole{
+		Role: wiz.UserRole{
 			ID: "GLOBAL_ADMIN",
 		},
 	}
 
-	expanded := []*vendor.SAMLGroupMapping{}
+	expanded := []*wiz.SAMLGroupMapping{}
 	expanded = append(expanded, groupMapping1)
 	expanded = append(expanded, groupMapping2)
 	expanded = append(expanded, groupMapping3)
@@ -94,7 +94,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 func TestGetGroupMappingVar(t *testing.T) {
 	ctx := context.Background()
 
-	var expectedMember1 = &vendor.SAMLGroupMappingCreateInput{
+	var expectedMember1 = &wiz.SAMLGroupMappingCreateInput{
 		ProviderGroupID: "f11fd4a4-ba73-448d-9894-8dbd4c94f48b",
 		Role:            "bd3545c2-9d3e-4c43-ab55-c9fc982d8ae4",
 		Projects: []string{
@@ -103,12 +103,12 @@ func TestGetGroupMappingVar(t *testing.T) {
 		},
 	}
 
-	var expectedMember2 = &vendor.SAMLGroupMappingCreateInput{
+	var expectedMember2 = &wiz.SAMLGroupMappingCreateInput{
 		ProviderGroupID: "5591d307-49ec-41f4-acfc-c2295dc90c94",
 		Role:            "b32da743-4725-4ff6-b1e5-8e330b9f0080",
 	}
 
-	var expected = []*vendor.SAMLGroupMappingCreateInput{}
+	var expected = []*wiz.SAMLGroupMappingCreateInput{}
 
 	expected = append(expected, expectedMember1)
 	expected = append(expected, expectedMember2)

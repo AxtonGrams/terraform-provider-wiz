@@ -13,7 +13,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizCICDScanPolicy() *schema.Resource {
@@ -62,12 +62,12 @@ func resourceWizCICDScanPolicy() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Severity.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.DiskScanVulnerabilitySeverity,
+									wiz.DiskScanVulnerabilitySeverity,
 								),
 							),
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.DiskScanVulnerabilitySeverity,
+									wiz.DiskScanVulnerabilitySeverity,
 									false,
 								),
 							),
@@ -134,12 +134,12 @@ func resourceWizCICDScanPolicy() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Severity threshold.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.IACScanSeverity,
+									wiz.IACScanSeverity,
 								),
 							),
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.IACScanSeverity,
+									wiz.IACScanSeverity,
 									false,
 								),
 							),
@@ -209,14 +209,14 @@ func resourceWizCICDScanPolicy() *schema.Resource {
 
 // CreateCICDScanPolicy struct
 type CreateCICDScanPolicy struct {
-	CreateCICDScanPolicy vendor.CreateCICDScanPolicyPayload `json:"createCICDScanPolicy"`
+	CreateCICDScanPolicy wiz.CreateCICDScanPolicyPayload `json:"createCICDScanPolicy"`
 }
 
-func getDiskVulnerabilitiesParams(ctx context.Context, d *schema.ResourceData) *vendor.CreateCICDScanPolicyDiskVulnerabilitiesInput {
+func getDiskVulnerabilitiesParams(ctx context.Context, d *schema.ResourceData) *wiz.CreateCICDScanPolicyDiskVulnerabilitiesInput {
 	tflog.Info(ctx, "getDiskVulnerabilitiesParams called...")
 
 	// return var
-	var output vendor.CreateCICDScanPolicyDiskVulnerabilitiesInput
+	var output wiz.CreateCICDScanPolicyDiskVulnerabilitiesInput
 
 	// fetch and walk the structure
 	params := d.Get("disk_vulnerabilities_params").(*schema.Set).List()
@@ -241,11 +241,11 @@ func getDiskVulnerabilitiesParams(ctx context.Context, d *schema.ResourceData) *
 	return &output
 }
 
-func getDiskSecretsParams(ctx context.Context, d *schema.ResourceData) *vendor.CreateCICDScanPolicyDiskSecretsInput {
+func getDiskSecretsParams(ctx context.Context, d *schema.ResourceData) *wiz.CreateCICDScanPolicyDiskSecretsInput {
 	tflog.Info(ctx, "getDiskSecretsParams called...")
 
 	// return var
-	var output vendor.CreateCICDScanPolicyDiskSecretsInput
+	var output wiz.CreateCICDScanPolicyDiskSecretsInput
 
 	// fetch and walk the structure
 	params := d.Get("disk_secrets_params").(*schema.Set).List()
@@ -266,12 +266,12 @@ func getDiskSecretsParams(ctx context.Context, d *schema.ResourceData) *vendor.C
 	return &output
 }
 
-func getIACParams(ctx context.Context, d *schema.ResourceData) *vendor.CreateCICDScanPolicyIACInput {
+func getIACParams(ctx context.Context, d *schema.ResourceData) *wiz.CreateCICDScanPolicyIACInput {
 	tflog.Info(ctx, "getIACParams called...")
 
 	// return var
-	var output vendor.CreateCICDScanPolicyIACInput
-	var customTags []*vendor.CICDPolicyCustomIgnoreTagCreateInput
+	var output wiz.CreateCICDScanPolicyIACInput
+	var customTags []*wiz.CICDPolicyCustomIgnoreTagCreateInput
 
 	// fetch and walk the structure
 	params := d.Get("iac_params").(*schema.Set).List()
@@ -294,7 +294,7 @@ func getIACParams(ctx context.Context, d *schema.ResourceData) *vendor.CreateCIC
 			case "custom_ignore_tags":
 				for _, f := range c.(*schema.Set).List() {
 					tflog.Trace(ctx, fmt.Sprintf("f: %T %s", f, f))
-					customTag := &vendor.CICDPolicyCustomIgnoreTagCreateInput{}
+					customTag := &wiz.CICDPolicyCustomIgnoreTagCreateInput{}
 					for g, h := range f.(map[string]interface{}) {
 						tflog.Trace(ctx, fmt.Sprintf("g: %T %s", g, g))
 						tflog.Trace(ctx, fmt.Sprintf("h: %T %s", h, h))
@@ -340,7 +340,7 @@ func resourceWizCICDScanPolicyCreate(ctx context.Context, d *schema.ResourceData
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateCICDScanPolicyInput{}
+	vars := &wiz.CreateCICDScanPolicyInput{}
 	var policyType string
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
@@ -394,7 +394,7 @@ func flattenScanPolicyParams(ctx context.Context, paramType string, params inter
 		// convert generic params to specific type
 		tflog.Debug(ctx, fmt.Sprintf("params %T %s", params, utils.PrettyPrint(params)))
 		jsonString, _ := json.Marshal(params)
-		myCICDScanPolicyParamsIAC := &vendor.CICDScanPolicyParamsIAC{}
+		myCICDScanPolicyParamsIAC := &wiz.CICDScanPolicyParamsIAC{}
 		json.Unmarshal(jsonString, &myCICDScanPolicyParamsIAC)
 		tflog.Debug(
 			ctx,
@@ -451,7 +451,7 @@ func flattenScanPolicyParams(ctx context.Context, paramType string, params inter
 		// convert generic params to specific type
 		tflog.Debug(ctx, fmt.Sprintf("params %T %s", params, utils.PrettyPrint(params)))
 		jsonString, _ := json.Marshal(params)
-		myCICDScanPolicyParamsSecrets := &vendor.CICDScanPolicyParamsSecrets{}
+		myCICDScanPolicyParamsSecrets := &wiz.CICDScanPolicyParamsSecrets{}
 		json.Unmarshal(jsonString, &myCICDScanPolicyParamsSecrets)
 		tflog.Debug(
 			ctx,
@@ -479,7 +479,7 @@ func flattenScanPolicyParams(ctx context.Context, paramType string, params inter
 		// convert generic params to specific type
 		tflog.Debug(ctx, fmt.Sprintf("params %T %s", params, utils.PrettyPrint(params)))
 		jsonString, _ := json.Marshal(params)
-		myCICDScanPolicyParamsVulnerabilities := &vendor.CICDScanPolicyParamsVulnerabilities{}
+		myCICDScanPolicyParamsVulnerabilities := &wiz.CICDScanPolicyParamsVulnerabilities{}
 		json.Unmarshal(jsonString, &myCICDScanPolicyParamsVulnerabilities)
 		tflog.Debug(
 			ctx,
@@ -512,7 +512,7 @@ func flattenScanPolicyParams(ctx context.Context, paramType string, params inter
 
 // ReadCICDScanPolicyPayload struct
 type ReadCICDScanPolicyPayload struct {
-	CICDScanPolicy vendor.CICDScanPolicy `json:"cicdScanPolicy"`
+	CICDScanPolicy wiz.CICDScanPolicy `json:"cicdScanPolicy"`
 }
 
 func resourceWizCICDScanPolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -628,7 +628,7 @@ func resourceWizCICDScanPolicyRead(ctx context.Context, d *schema.ResourceData, 
 
 // UpdateCICDScanPolicy struct
 type UpdateCICDScanPolicy struct {
-	UpdateCICDScanPolicy vendor.UpdateCICDScanPolicyPayload `json:"updateCICDScanPolicy"`
+	UpdateCICDScanPolicy wiz.UpdateCICDScanPolicyPayload `json:"updateCICDScanPolicy"`
 }
 
 func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -653,7 +653,7 @@ func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateCICDScanPolicyInput{}
+	vars := &wiz.UpdateCICDScanPolicyInput{}
 	vars.ID = d.Id()
 	if d.HasChange("name") {
 		vars.Patch.Name = d.Get("name").(string)
@@ -684,8 +684,8 @@ func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData
 	switch d.Get("type") {
 	case "CICDScanPolicyParamsIAC":
 		tflog.Debug(ctx, "Handling updates for CICDScanPolicyParamsIAC")
-		varsType := &vendor.UpdateCICDScanPolicyIACPatch{}
-		varsTypeIgnoreTags := make([]*vendor.CICDPolicyCustomIgnoreTagUpdateInput, 0)
+		varsType := &wiz.UpdateCICDScanPolicyIACPatch{}
+		varsTypeIgnoreTags := make([]*wiz.CICDPolicyCustomIgnoreTagUpdateInput, 0)
 		for a, b := range d.Get("iac_params").(*schema.Set).List() {
 			tflog.Trace(ctx, fmt.Sprintf("a: (%T) %d", a, a))
 			tflog.Trace(ctx, fmt.Sprintf("b: (%T) %s", b, utils.PrettyPrint(b)))
@@ -707,7 +707,7 @@ func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData
 					for e, f := range d.(*schema.Set).List() {
 						tflog.Trace(ctx, fmt.Sprintf("e: (%T) %d", e, e))
 						tflog.Trace(ctx, fmt.Sprintf("f: (%T) %s", f, utils.PrettyPrint(f)))
-						varsTypeIgnoreTag := &vendor.CICDPolicyCustomIgnoreTagUpdateInput{}
+						varsTypeIgnoreTag := &wiz.CICDPolicyCustomIgnoreTagUpdateInput{}
 						for g, h := range f.(map[string]interface{}) {
 							tflog.Trace(ctx, fmt.Sprintf("g: (%T) %s", g, g))
 							tflog.Trace(ctx, fmt.Sprintf("h: (%T) %s", h, utils.PrettyPrint(h)))
@@ -732,7 +732,7 @@ func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData
 		vars.Patch.IACParams = varsType
 	case "CICDScanPolicyParamsSecrets":
 		tflog.Debug(ctx, "Handling updates for CICDScanPolicyParamsSecrets")
-		varsType := &vendor.UpdateCICDScanPolicyDiskSecretsPatch{}
+		varsType := &wiz.UpdateCICDScanPolicyDiskSecretsPatch{}
 		for a, b := range d.Get("disk_secrets_params").(*schema.Set).List() {
 			tflog.Trace(ctx, fmt.Sprintf("a: (%T) %d", a, a))
 			tflog.Trace(ctx, fmt.Sprintf("b: (%T) %s", b, utils.PrettyPrint(b)))
@@ -750,7 +750,7 @@ func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData
 		vars.Patch.DiskSecretsParams = varsType
 	case "CICDScanPolicyParamsVulnerabilities":
 		tflog.Debug(ctx, "Handling updates for CICDScanPolicyParamsVulnerabilities")
-		varsType := &vendor.UpdateCICDScanPolicyDiskVulnerabilitiesPatch{}
+		varsType := &wiz.UpdateCICDScanPolicyDiskVulnerabilitiesPatch{}
 		for a, b := range d.Get("disk_vulnerabilities_params").(*schema.Set).List() {
 			tflog.Trace(ctx, fmt.Sprintf("a: (%T) %d", a, a))
 			tflog.Trace(ctx, fmt.Sprintf("b: (%T) %s", b, utils.PrettyPrint(b)))
@@ -785,7 +785,7 @@ func resourceWizCICDScanPolicyUpdate(ctx context.Context, d *schema.ResourceData
 
 // DeleteCICDScanPolicy struct
 type DeleteCICDScanPolicy struct {
-	DeleteCICDScanPolicy vendor.DeleteCICDScanPolicyPayload `json:"deleteCICDScanPolicy"`
+	DeleteCICDScanPolicy wiz.DeleteCICDScanPolicyPayload `json:"deleteCICDScanPolicy"`
 }
 
 func resourceWizCICDScanPolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -808,7 +808,7 @@ func resourceWizCICDScanPolicyDelete(ctx context.Context, d *schema.ResourceData
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteCICDScanPolicyInput{}
+	vars := &wiz.DeleteCICDScanPolicyInput{}
 	vars.ID = d.Id()
 
 	// process the request

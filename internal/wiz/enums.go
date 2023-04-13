@@ -1,4 +1,4 @@
-package vendor
+package wiz
 
 // YesNoUnknown enum
 var YesNoUnknown = []string{

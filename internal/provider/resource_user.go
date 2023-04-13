@@ -12,7 +12,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizUser() *schema.Resource {
@@ -69,7 +69,7 @@ func resourceWizUser() *schema.Resource {
 
 // CreateUser struct
 type CreateUser struct {
-	CreateUser vendor.CreateUserPayload `json:"createUser"`
+	CreateUser wiz.CreateUserPayload `json:"createUser"`
 }
 
 func resourceWizUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -85,7 +85,7 @@ func resourceWizUserCreate(ctx context.Context, d *schema.ResourceData, m interf
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateUserInput{}
+	vars := &wiz.CreateUserInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Email = d.Get("email").(string)
 	vars.Role = d.Get("role").(string)
@@ -106,7 +106,7 @@ func resourceWizUserCreate(ctx context.Context, d *schema.ResourceData, m interf
 	return resourceWizUserRead(ctx, d, m)
 }
 
-func flattenAssignedProjectIDs(ctx context.Context, project []vendor.Project) []interface{} {
+func flattenAssignedProjectIDs(ctx context.Context, project []wiz.Project) []interface{} {
 	tflog.Info(ctx, "flattenAssignedProjectIDs called...")
 	tflog.Debug(ctx, fmt.Sprintf("flattenAssignedProjectIDs input: %+v", project))
 	var output = make([]interface{}, 0, 0)
@@ -121,7 +121,7 @@ func flattenAssignedProjectIDs(ctx context.Context, project []vendor.Project) []
 
 // ReadUserPayload struct -- updates
 type ReadUserPayload struct {
-	User vendor.User `json:"user"`
+	User wiz.User `json:"user"`
 }
 
 func resourceWizUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -189,7 +189,7 @@ func resourceWizUserRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 // UpdateUser struct
 type UpdateUser struct {
-	UpdateUser vendor.UpdateUserPayload `json:"updateUser"`
+	UpdateUser wiz.UpdateUserPayload `json:"updateUser"`
 }
 
 func resourceWizUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -210,7 +210,7 @@ func resourceWizUserUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateUserInput{}
+	vars := &wiz.UpdateUserInput{}
 	vars.ID = d.Id()
 
 	if d.HasChange("name") {
@@ -239,7 +239,7 @@ func resourceWizUserUpdate(ctx context.Context, d *schema.ResourceData, m interf
 
 // DeleteUser struct
 type DeleteUser struct {
-	DeleteUser vendor.DeleteUserPayload `json:"deleteUser"`
+	DeleteUser wiz.DeleteUserPayload `json:"deleteUser"`
 }
 
 func resourceWizUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -262,7 +262,7 @@ func resourceWizUserDelete(ctx context.Context, d *schema.ResourceData, m interf
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteUserInput{}
+	vars := &wiz.DeleteUserInput{}
 	vars.ID = d.Id()
 
 	// process the request

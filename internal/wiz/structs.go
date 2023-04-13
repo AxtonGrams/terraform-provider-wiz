@@ -1,4 +1,4 @@
-package vendor
+package wiz
 
 import (
 	"encoding/json"
@@ -2145,7 +2145,7 @@ type UpdateSlackBotIntegrationParamsInput struct {
 // UpdateAzureServiceBusIntegrationParamsInput struct
 type UpdateAzureServiceBusIntegrationParamsInput struct {
 	QueueURL     string                                      `json:"queueUrl,omitempty"`
-	accessMethod AzureServiceBusIntegrationAccessMethodInput `json:"accessMethod,omitempty"`
+	AccessMethod AzureServiceBusIntegrationAccessMethodInput `json:"accessMethod,omitempty"`
 }
 
 // UpdateGcpPubSubIntegrationParamsInput struct

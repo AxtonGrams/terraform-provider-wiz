@@ -11,7 +11,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizSAMLIdP() *schema.Resource {
@@ -115,12 +115,12 @@ func resourceWizSAMLIdP() *schema.Resource {
 	}
 }
 
-func getGroupMappingVar(ctx context.Context, d *schema.ResourceData) []*vendor.SAMLGroupMappingCreateInput {
+func getGroupMappingVar(ctx context.Context, d *schema.ResourceData) []*wiz.SAMLGroupMappingCreateInput {
 	groupMapping := d.Get("group_mapping").(*schema.Set).List()
-	var myGroupMappings []*vendor.SAMLGroupMappingCreateInput
+	var myGroupMappings []*wiz.SAMLGroupMappingCreateInput
 	for _, a := range groupMapping {
 		tflog.Debug(ctx, fmt.Sprintf("groupMapping: %t %s", a, utils.PrettyPrint(a)))
-		localGroupMapping := &vendor.SAMLGroupMappingCreateInput{}
+		localGroupMapping := &wiz.SAMLGroupMappingCreateInput{}
 		for b, c := range a.(map[string]interface{}) {
 			tflog.Trace(ctx, fmt.Sprintf("b: %T %s", b, b))
 			tflog.Trace(ctx, fmt.Sprintf("c: %T %s", c, c))
@@ -144,7 +144,7 @@ func getGroupMappingVar(ctx context.Context, d *schema.ResourceData) []*vendor.S
 
 // CreateSAMLIdentityProvider struct
 type CreateSAMLIdentityProvider struct {
-	CreateSAMLIdentityProvider vendor.CreateSAMLIdentityProviderPayload `json:"createSAMLIdentityProvider"`
+	CreateSAMLIdentityProvider wiz.CreateSAMLIdentityProviderPayload `json:"createSAMLIdentityProvider"`
 }
 
 func resourceWizSAMLIdPCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -162,7 +162,7 @@ func resourceWizSAMLIdPCreate(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateSAMLIdentityProviderInput{}
+	vars := &wiz.CreateSAMLIdentityProviderInput{}
 	vars.Name = d.Get("name").(string)
 	vars.LoginURL = d.Get("login_url").(string)
 	vars.LogoutURL = d.Get("logout_url").(string)
@@ -187,7 +187,7 @@ func resourceWizSAMLIdPCreate(ctx context.Context, d *schema.ResourceData, m int
 	return resourceWizSAMLIdPRead(ctx, d, m)
 }
 
-func flattenGroupMapping(ctx context.Context, samlGroupMapping []*vendor.SAMLGroupMapping) []interface{} {
+func flattenGroupMapping(ctx context.Context, samlGroupMapping []*wiz.SAMLGroupMapping) []interface{} {
 	tflog.Info(ctx, "flattenGroupMapping called...")
 	var output = make([]interface{}, 0, 0)
 	for _, b := range samlGroupMapping {
@@ -211,7 +211,7 @@ func flattenGroupMapping(ctx context.Context, samlGroupMapping []*vendor.SAMLGro
 
 // ReadSAMLIdentityProviderPayload struct -- updates
 type ReadSAMLIdentityProviderPayload struct {
-	SAMLIdentityProvider vendor.SAMLIdentityProvider `json:"samlIdentityProvider"`
+	SAMLIdentityProvider wiz.SAMLIdentityProvider `json:"samlIdentityProvider"`
 }
 
 func resourceWizSAMLIdPRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -319,7 +319,7 @@ func resourceWizSAMLIdPRead(ctx context.Context, d *schema.ResourceData, m inter
 
 // UpdateSAMLIdentityProvider struct
 type UpdateSAMLIdentityProvider struct {
-	UpdateSAMLIdentityProvider vendor.UpdateSAMLIdentityProviderPayload `json:"updateSAMLIdentityProvider"`
+	UpdateSAMLIdentityProvider wiz.UpdateSAMLIdentityProviderPayload `json:"updateSAMLIdentityProvider"`
 }
 
 func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -340,7 +340,7 @@ func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateSAMLIdentityProviderInput{}
+	vars := &wiz.UpdateSAMLIdentityProviderInput{}
 	vars.ID = d.Id()
 	vars.Patch.Name = d.Get("name").(string)
 	vars.Patch.IssuerURL = d.Get("issuer_url").(string)
@@ -352,9 +352,9 @@ func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m int
 	vars.Patch.MergeGroupsMappingByRole = utils.ConvertBoolToPointer(d.Get("merge_groups_mapping_by_role").(bool))
 	// populate the group mapping
 	mappings := d.Get("group_mapping").(*schema.Set).List()
-	mappingUpdates := make([]vendor.SAMLGroupMappingUpdateInput, 0)
+	mappingUpdates := make([]wiz.SAMLGroupMappingUpdateInput, 0)
 	for a, b := range mappings {
-		var myMap = vendor.SAMLGroupMappingUpdateInput{}
+		var myMap = wiz.SAMLGroupMappingUpdateInput{}
 		tflog.Trace(ctx, fmt.Sprintf("a:b: %d %s", a, b))
 
 		for c, d := range b.(map[string]interface{}) {
@@ -388,7 +388,7 @@ func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 // DeleteSAMLIdentityProvider struct
 type DeleteSAMLIdentityProvider struct {
-	DeleteSAMLIdentityProvider vendor.DeleteSAMLIdentityProviderPayload `json:"deleteSAMLIdentityProvider"`
+	DeleteSAMLIdentityProvider wiz.DeleteSAMLIdentityProviderPayload `json:"deleteSAMLIdentityProvider"`
 }
 
 func resourceWizSAMLIdPDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -411,7 +411,7 @@ func resourceWizSAMLIdPDelete(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteSAMLIdentityProviderInput{}
+	vars := &wiz.DeleteSAMLIdentityProviderInput{}
 	vars.ID = d.Id()
 
 	// process the request

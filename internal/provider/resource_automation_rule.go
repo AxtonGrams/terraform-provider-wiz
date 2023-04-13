@@ -6,28 +6,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 // CreateAutomationRule struct
 type CreateAutomationRule struct {
-	CreateAutomationRule vendor.CreateAutomationRulePayload `json:"createAutomationRule"`
+	CreateAutomationRule wiz.CreateAutomationRulePayload `json:"createAutomationRule"`
 }
 
 // ReadAutomationRulePayload struct -- updates
 type ReadAutomationRulePayload struct {
-	AutomationRule vendor.AutomationRule `json:"automationRule"`
+	AutomationRule wiz.AutomationRule `json:"automationRule"`
 }
 
 // UpdateAutomationRule struct
 type UpdateAutomationRule struct {
-	UpdateAutomationRule vendor.UpdateAutomationRulePayload `json:"updateAutomationRule"`
+	UpdateAutomationRule wiz.UpdateAutomationRulePayload `json:"updateAutomationRule"`
 }
 
 // DeleteAutomationRule struct
 type DeleteAutomationRule struct {
-	DeleteAutomationRule vendor.DeleteAutomationRulePayload `json:"deleteAutomationRule"`
+	DeleteAutomationRule wiz.DeleteAutomationRulePayload `json:"deleteAutomationRule"`
 }
 
 func resourceWizAutomationRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -50,7 +51,7 @@ func resourceWizAutomationRuleDelete(ctx context.Context, d *schema.ResourceData
         }`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteAutomationRuleInput{}
+	vars := &wiz.DeleteAutomationRuleInput{}
 	vars.ID = d.Id()
 
 	// process the request

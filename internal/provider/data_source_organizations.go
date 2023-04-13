@@ -13,7 +13,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func dataSourceWizOrganizations() *schema.Resource {
@@ -76,7 +76,7 @@ func dataSourceWizOrganizations() *schema.Resource {
 
 // ReadCloudOrganizations struct
 type ReadCloudOrganizations struct {
-	CloudOrganizations vendor.CloudOrganizationConnection `json:"cloudOrganizations,omitempty"`
+	CloudOrganizations wiz.CloudOrganizationConnection `json:"cloudOrganizations,omitempty"`
 }
 
 func dataSourceWizOrganizationsRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -109,7 +109,7 @@ func dataSourceWizOrganizationsRead(ctx context.Context, d *schema.ResourceData,
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
 	tflog.Debug(ctx, fmt.Sprintf("search strings (%T) %s", d.Get("search"), d.Get("search").(string)))
-	filterBy := &vendor.CloudOrganizationFilters{}
+	filterBy := &wiz.CloudOrganizationFilters{}
 	filterBy.Search = append(filterBy.Search, d.Get("search").(string))
 	vars.FilterBy = filterBy
 
@@ -147,7 +147,7 @@ func dataSourceWizOrganizationsRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func flattenOrganizations(ctx context.Context, nodes *[]vendor.CloudOrganization) []interface{} {
+func flattenOrganizations(ctx context.Context, nodes *[]wiz.CloudOrganization) []interface{} {
 	tflog.Info(ctx, "flattenOrganizations called...")
 	tflog.Debug(ctx, fmt.Sprintf("Nodes: %s", utils.PrettyPrint(nodes)))
 

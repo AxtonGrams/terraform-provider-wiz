@@ -1,19 +1,27 @@
-TEST?=$$(go list ./...)
-GOFMT_FILES?=$$(find . -name '*.go')
-PKG_NAME=http
+TEST                ?= ./...
+PKG_NAME   ?= internal
+GO_VER     ?= go
+TEST_COUNT ?= 1
+ACCTEST_PARALLELISM ?= 20
+ACCTEST_TIMEOUT     ?= 180m
 
-default: testacc
+default: build
 
-build:
-	go install
+build: fmtcheck
+	$(GO_VER) install
 
-test:
-	go test $(TEST) || exit 1
-	echo $(TEST) | \
-		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
+fmt:
+	@echo "==> Fixing source code with gofmt..."
+	gofmt -s -w -l ./$(PKG_NAME) tools.go main.go
 
-testacc:
-	TF_ACC=1 go test ./... -v $(TESTARGS) -timeout 120m
+fmtcheck:
+	@sh -c "'$(CURDIR)/.ci/scripts/gofmtcheck.sh'"
+
+test: fmtcheck
+	$(GO_VER) test $(TEST) -v $(TESTARGS) -timeout=5m
+
+testacc: fmtcheck
+	TF_ACC=1 $(GO_VER) test ./${PKG_NAME}/... -v -count $(TEST_COUNT) -parallel $(ACCTEST_PARALLELISM) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT)
 
 vet:
 	@echo "go vet ."
@@ -24,7 +32,4 @@ vet:
 		exit 1; \
 	fi
 
-fmt:
-	gofmt -w $(GOFMT_FILES)
-
-.PHONY: build test testacc vet fmt
+.PHONY: build test testacc vet

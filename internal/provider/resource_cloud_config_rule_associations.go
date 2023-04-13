@@ -8,10 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizCloudConfigRuleAssociations() *schema.Resource {
@@ -95,7 +96,7 @@ func validateCloudConfigRulesExist(ctx context.Context, m interface{}, cloudConf
 
 // UpdateCloudConfigurationRules struct
 type UpdateCloudConfigurationRules struct {
-	UpdateCloudConfigurationRules vendor.UpdateCloudConfigurationRulesPayload `json:"updateCloudConfigurationRules"`
+	UpdateCloudConfigurationRules wiz.UpdateCloudConfigurationRulesPayload `json:"updateCloudConfigurationRules"`
 }
 
 func resourceWizCloudConfigRuleAssociationsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -137,7 +138,7 @@ func resourceWizCloudConfigRuleAssociationsCreate(ctx context.Context, d *schema
 	}`
 
 	// populate the graphql variables
-	mvars := &vendor.UpdateCloudConfigurationRulesInput{}
+	mvars := &wiz.UpdateCloudConfigurationRulesInput{}
 	mvars.IDs = utils.ConvertListToString(d.Get("cloud_config_rule_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
@@ -284,7 +285,7 @@ func resourceWizCloudConfigRuleAssociationsDelete(ctx context.Context, d *schema
 	}`
 
 	// populate the graphql variables
-	mvars := &vendor.UpdateCloudConfigurationRulesInput{}
+	mvars := &wiz.UpdateCloudConfigurationRulesInput{}
 	mvars.IDs = utils.ConvertListToString(d.Get("cloud_config_rule_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToRemove = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
