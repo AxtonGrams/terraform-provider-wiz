@@ -13,7 +13,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizProject() *schema.Resource {
@@ -87,13 +87,13 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Business impact.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.BusinessImpact,
+									wiz.BusinessImpact,
 								),
 							),
 							Optional: true,
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.BusinessImpact,
+									wiz.BusinessImpact,
 									false,
 								),
 							),
@@ -103,14 +103,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Is the project under active development?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -120,14 +120,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Does the project require authentication?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -137,14 +137,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Does the project expose an API?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -154,14 +154,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Is the project Internet facing?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -171,14 +171,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Is the project customer facing?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -188,14 +188,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Does the project store data?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -205,14 +205,14 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Is the project regulated?\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 								),
 							),
 							Optional: true,
 							Default:  "UNKNOWN",
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.YesNoUnknown,
+									wiz.YesNoUnknown,
 									false,
 								),
 							),
@@ -222,7 +222,7 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Sensitive Data Types.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.ProjectDataType,
+									wiz.ProjectDataType,
 								),
 							),
 							Optional: true,
@@ -230,7 +230,7 @@ func resourceWizProject() *schema.Resource {
 								Type: schema.TypeString,
 								ValidateDiagFunc: validation.ToDiagFunc(
 									validation.StringInSlice(
-										vendor.ProjectDataType,
+										wiz.ProjectDataType,
 										false,
 									),
 								),
@@ -241,7 +241,7 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"Regulatory Standards.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.RegulatoryStandard,
+									wiz.RegulatoryStandard,
 								),
 							),
 							Optional: true,
@@ -249,7 +249,7 @@ func resourceWizProject() *schema.Resource {
 								Type: schema.TypeString,
 								ValidateDiagFunc: validation.ToDiagFunc(
 									validation.StringInSlice(
-										vendor.RegulatoryStandard,
+										wiz.RegulatoryStandard,
 										false,
 									),
 								),
@@ -280,13 +280,13 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"The environment.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.Environment,
+									wiz.Environment,
 								),
 							),
 							Optional: true,
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.Environment,
+									wiz.Environment,
 									false,
 								),
 							),
@@ -320,13 +320,13 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"The environment.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.Environment,
+									wiz.Environment,
 								),
 							),
 							Optional: true,
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.Environment,
+									wiz.Environment,
 									false,
 								),
 							),
@@ -381,13 +381,13 @@ func resourceWizProject() *schema.Resource {
 							Description: fmt.Sprintf(
 								"The environment.\n    - Allowed values: %s",
 								utils.SliceOfStringToMDUList(
-									vendor.Environment,
+									wiz.Environment,
 								),
 							),
 							Optional: true,
 							ValidateDiagFunc: validation.ToDiagFunc(
 								validation.StringInSlice(
-									vendor.Environment,
+									wiz.Environment,
 									false,
 								),
 							),
@@ -438,11 +438,11 @@ func resourceWizProject() *schema.Resource {
 	}
 }
 
-func getOrganizationLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.ProjectCloudOrganizationLinkInput {
+func getOrganizationLinksVar(ctx context.Context, d *schema.ResourceData) []*wiz.ProjectCloudOrganizationLinkInput {
 	linkSet := d.Get("cloud_organization_link").(*schema.Set).List()
-	var myLinks []*vendor.ProjectCloudOrganizationLinkInput
+	var myLinks []*wiz.ProjectCloudOrganizationLinkInput
 	for _, y := range linkSet {
-		var localLink vendor.ProjectCloudOrganizationLinkInput
+		var localLink wiz.ProjectCloudOrganizationLinkInput
 		for a, b := range y.(map[string]interface{}) {
 			switch a {
 			case "environment":
@@ -457,9 +457,9 @@ func getOrganizationLinksVar(ctx context.Context, d *schema.ResourceData) []*ven
 					localLink.ResourceGroups = rgs
 				}
 			case "resource_tags":
-				var myResourceTags []*vendor.ResourceTagInput
+				var myResourceTags []*wiz.ResourceTagInput
 				for _, d := range b.(*schema.Set).List() {
-					var localResourceTag vendor.ResourceTagInput
+					var localResourceTag wiz.ResourceTagInput
 					for e, f := range d.(map[string]interface{}) {
 						if e == "key" {
 							localResourceTag.Key = f.(string)
@@ -478,11 +478,11 @@ func getOrganizationLinksVar(ctx context.Context, d *schema.ResourceData) []*ven
 	return myLinks
 }
 
-func getKubernetesClusterLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.ProjectKubernetesClusterLinkInput {
+func getKubernetesClusterLinksVar(ctx context.Context, d *schema.ResourceData) []*wiz.ProjectKubernetesClusterLinkInput {
 	clusterSet := d.Get("kubernetes_cluster_link").(*schema.Set).List()
-	var myClusters []*vendor.ProjectKubernetesClusterLinkInput
+	var myClusters []*wiz.ProjectKubernetesClusterLinkInput
 	for _, y := range clusterSet {
-		var localCluster vendor.ProjectKubernetesClusterLinkInput
+		var localCluster wiz.ProjectKubernetesClusterLinkInput
 		for a, b := range y.(map[string]interface{}) {
 			switch a {
 			case "environment":
@@ -501,11 +501,11 @@ func getKubernetesClusterLinksVar(ctx context.Context, d *schema.ResourceData) [
 	return myClusters
 }
 
-func getAccountLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.ProjectCloudAccountLinkInput {
+func getAccountLinksVar(ctx context.Context, d *schema.ResourceData) []*wiz.ProjectCloudAccountLinkInput {
 	accountSet := d.Get("cloud_account_link").(*schema.Set).List()
-	var myAccounts []*vendor.ProjectCloudAccountLinkInput
+	var myAccounts []*wiz.ProjectCloudAccountLinkInput
 	for _, y := range accountSet {
-		var localAccount vendor.ProjectCloudAccountLinkInput
+		var localAccount wiz.ProjectCloudAccountLinkInput
 		for a, b := range y.(map[string]interface{}) {
 			switch a {
 			case "environment":
@@ -520,9 +520,9 @@ func getAccountLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.P
 					localAccount.ResourceGroups = rgs
 				}
 			case "resource_tags":
-				var myResourceTags []*vendor.ResourceTagInput
+				var myResourceTags []*wiz.ResourceTagInput
 				for _, d := range b.(*schema.Set).List() {
-					var localResourceTag vendor.ResourceTagInput
+					var localResourceTag wiz.ResourceTagInput
 					for e, f := range d.(map[string]interface{}) {
 						if e == "key" {
 							localResourceTag.Key = f.(string)
@@ -544,7 +544,7 @@ func getAccountLinksVar(ctx context.Context, d *schema.ResourceData) []*vendor.P
 
 // CreateProject struct
 type CreateProject struct {
-	CreateProject vendor.CreateProjectPayload `json:"createProject"`
+	CreateProject wiz.CreateProjectPayload `json:"createProject"`
 }
 
 func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -560,7 +560,7 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateProjectInput{}
+	vars := &wiz.CreateProjectInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	vars.BusinessUnit = d.Get("business_unit").(string)
@@ -596,7 +596,7 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 	return resourceWizProjectRead(ctx, d, m)
 }
 
-func flattenRiskProfile(ctx context.Context, riskProfile *vendor.ProjectRiskProfile) []interface{} {
+func flattenRiskProfile(ctx context.Context, riskProfile *wiz.ProjectRiskProfile) []interface{} {
 	var output = make([]interface{}, 0, 0)
 	riskProfileMap := make(map[string]interface{})
 	riskProfileMap["business_impact"] = riskProfile.BusinessImpact
@@ -626,7 +626,7 @@ func flattenRiskProfile(ctx context.Context, riskProfile *vendor.ProjectRiskProf
 	return output
 }
 
-func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []*vendor.ProjectCloudOrganizationLink) []interface{} {
+func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []*wiz.ProjectCloudOrganizationLink) []interface{} {
 	var output = make([]interface{}, 0, 0)
 
 	for _, b := range cloudOrganizationLink {
@@ -656,7 +656,7 @@ func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []
 	return output
 }
 
-func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*vendor.ProjectCloudAccountLink) []interface{} {
+func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*wiz.ProjectCloudAccountLink) []interface{} {
 	var output = make([]interface{}, 0, 0)
 
 	for _, b := range cloudAccountLink {
@@ -686,7 +686,7 @@ func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*vendor.Pr
 	return output
 }
 
-func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []*vendor.ProjectKubernetesClusterLink) []interface{} {
+func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []*wiz.ProjectKubernetesClusterLink) []interface{} {
 	var output = make([]interface{}, 0, 0)
 
 	for _, b := range kubernetesClusterLink {
@@ -706,7 +706,7 @@ func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []
 	return output
 }
 
-func flattenUserIds(ctx context.Context, userIds []*vendor.User) []interface{} {
+func flattenUserIds(ctx context.Context, userIds []*wiz.User) []interface{} {
 	var output = make([]interface{}, 0, 0)
 	for _, b := range userIds {
 		output = append(output, b.ID)
@@ -716,7 +716,7 @@ func flattenUserIds(ctx context.Context, userIds []*vendor.User) []interface{} {
 
 // ReadProjectPayload struct -- updates
 type ReadProjectPayload struct {
-	Project vendor.Project `json:"project"`
+	Project wiz.Project `json:"project"`
 }
 
 func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -869,7 +869,7 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 
 // UpdateProject struct
 type UpdateProject struct {
-	UpdateProject vendor.UpdateProjectPayload `json:"updateProject"`
+	UpdateProject wiz.UpdateProjectPayload `json:"updateProject"`
 }
 
 /*
@@ -895,7 +895,7 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateProjectInput{}
+	vars := &wiz.UpdateProjectInput{}
 	vars.ID = d.Id()
 
 	vars.Override.Archived = utils.ConvertBoolToPointer(d.Get("archived").(bool))
@@ -906,7 +906,7 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	vars.Override.Slug = d.Get("slug").(string)
 
 	// The API treats a patch to riskProfile as an override so we set all values
-	riskProfile := &vendor.ProjectRiskProfileInput{}
+	riskProfile := &wiz.ProjectRiskProfileInput{}
 	riskProfile.BusinessImpact = d.Get("risk_profile.0.business_impact").(string)
 	riskProfile.IsActivelyDeveloped = d.Get("risk_profile.0.is_actively_developed").(string)
 	riskProfile.HasAuthentication = d.Get("risk_profile.0.has_authentication").(string)
@@ -922,10 +922,10 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	vars.Override.ProjectOwners = utils.ConvertListToString((d.Get("project_owners")).([]interface{}))
 	vars.Override.SecurityChampions = utils.ConvertListToString((d.Get("security_champions")).([]interface{}))
 
-	var updateOrgLinks = []*vendor.ProjectCloudOrganizationLinkInput{}
+	var updateOrgLinks = []*wiz.ProjectCloudOrganizationLinkInput{}
 	cloudOrganizationlinks := d.Get("cloud_organization_link").(*schema.Set).List()
 	for _, b := range cloudOrganizationlinks {
-		var updateOrgLink = &vendor.ProjectCloudOrganizationLinkInput{}
+		var updateOrgLink = &wiz.ProjectCloudOrganizationLinkInput{}
 		for c, d := range b.(map[string]interface{}) {
 			switch c {
 			case "environment":
@@ -937,9 +937,9 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 			case "resource_groups":
 				updateOrgLink.ResourceGroups = utils.ConvertListToString(d.([]interface{}))
 			case "resource_tags":
-				var updateResourceTags = []*vendor.ResourceTagInput{}
+				var updateResourceTags = []*wiz.ResourceTagInput{}
 				for _, f := range d.(*schema.Set).List() {
-					var updateResourceTag = &vendor.ResourceTagInput{}
+					var updateResourceTag = &wiz.ResourceTagInput{}
 					for g, h := range f.(map[string]interface{}) {
 						if g == "key" {
 							updateResourceTag.Key = h.(string)
@@ -957,10 +957,10 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	vars.Override.CloudOrganizationLinks = updateOrgLinks
 
-	var updateAccountLinks = []*vendor.ProjectCloudAccountLinkInput{}
+	var updateAccountLinks = []*wiz.ProjectCloudAccountLinkInput{}
 	cloudAccountLinks := d.Get("cloud_account_link").(*schema.Set).List()
 	for _, b := range cloudAccountLinks {
-		var updateAccountLink = &vendor.ProjectCloudAccountLinkInput{}
+		var updateAccountLink = &wiz.ProjectCloudAccountLinkInput{}
 		for c, d := range b.(map[string]interface{}) {
 			switch c {
 			case "environment":
@@ -972,9 +972,9 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 			case "resource_groups":
 				updateAccountLink.ResourceGroups = utils.ConvertListToString(d.([]interface{}))
 			case "resource_tags":
-				var updateResourceTags = []*vendor.ResourceTagInput{}
+				var updateResourceTags = []*wiz.ResourceTagInput{}
 				for _, f := range d.(*schema.Set).List() {
-					var updateResourceTag = &vendor.ResourceTagInput{}
+					var updateResourceTag = &wiz.ResourceTagInput{}
 					for g, h := range f.(map[string]interface{}) {
 						if g == "key" {
 							updateResourceTag.Key = h.(string)
@@ -992,10 +992,10 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 	vars.Override.CloudAccountLinks = updateAccountLinks
 
-	var updateKubernetesClusterLinks = []*vendor.ProjectKubernetesClusterLinkInput{}
+	var updateKubernetesClusterLinks = []*wiz.ProjectKubernetesClusterLinkInput{}
 	kubernetesClusterLinks := d.Get("kubernetes_cluster_link").(*schema.Set).List()
 	for _, b := range kubernetesClusterLinks {
-		var updateClusterLink = &vendor.ProjectKubernetesClusterLinkInput{}
+		var updateClusterLink = &wiz.ProjectKubernetesClusterLinkInput{}
 		for c, d := range b.(map[string]interface{}) {
 			switch c {
 			case "environment":
@@ -1047,7 +1047,7 @@ func resourceWizProjectDelete(ctx context.Context, d *schema.ResourceData, m int
         }`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateProjectInput{}
+	vars := &wiz.UpdateProjectInput{}
 	vars.ID = d.Id()
 	vars.Override.Name = d.Get("slug").(string)
 	vars.Override.Slug = d.Get("slug").(string)

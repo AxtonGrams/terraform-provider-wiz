@@ -13,7 +13,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizAutomationRuleAwsSns() *schema.Resource {
@@ -46,12 +46,12 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Trigger source.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.AutomationRuleTriggerSource,
+						wiz.AutomationRuleTriggerSource,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.AutomationRuleTriggerSource,
+						wiz.AutomationRuleTriggerSource,
 						false,
 					),
 				),
@@ -62,14 +62,14 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Trigger type.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.AutomationRuleTriggerType,
+						wiz.AutomationRuleTriggerType,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.AutomationRuleTriggerType,
+							wiz.AutomationRuleTriggerType,
 							false,
 						),
 					),
@@ -138,7 +138,7 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateAutomationRuleInput{}
+	vars := &wiz.CreateAutomationRuleInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	vars.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
@@ -148,14 +148,14 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 	vars.TriggerSource = d.Get("trigger_source").(string)
 
 	// populate the actions parameter
-	awsSNSParams := &vendor.AwsSNSActionTemplateParamsInput{
+	awsSNSParams := &wiz.AwsSNSActionTemplateParamsInput{
 		Body: d.Get("aws_sns_body").(string),
 	}
-	actionTemplateParams := vendor.ActionTemplateParamsInput{
+	actionTemplateParams := wiz.ActionTemplateParamsInput{
 		AwsSNS: awsSNSParams,
 	}
-	actions := []vendor.AutomationRuleActionInput{}
-	action := vendor.AutomationRuleActionInput{
+	actions := []wiz.AutomationRuleActionInput{}
+	action := wiz.AutomationRuleActionInput{
 		IntegrationID:        d.Get("integration_id").(string),
 		ActionTemplateParams: actionTemplateParams,
 		ActionTemplateType:   "AWS_SNS",
@@ -311,7 +311,7 @@ func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.Resour
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateAutomationRuleInput{}
+	vars := &wiz.UpdateAutomationRuleInput{}
 	vars.ID = d.Id()
 	vars.Patch.Name = d.Get("name").(string)
 	vars.Patch.Description = d.Get("description").(string)
@@ -324,15 +324,15 @@ func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.Resour
 	vars.Patch.Filters = json.RawMessage(d.Get("filters").(string))
 	vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
 
-	actions := []vendor.AutomationRuleActionInput{}
-	awsSNS := &vendor.AwsSNSActionTemplateParamsInput{
+	actions := []wiz.AutomationRuleActionInput{}
+	awsSNS := &wiz.AwsSNSActionTemplateParamsInput{
 		Body: d.Get("aws_sns_body").(string),
 	}
 
-	actionTemplateParams := vendor.ActionTemplateParamsInput{
+	actionTemplateParams := wiz.ActionTemplateParamsInput{
 		AwsSNS: awsSNS,
 	}
-	action := vendor.AutomationRuleActionInput{
+	action := wiz.AutomationRuleActionInput{
 		IntegrationID:        d.Get("integration_id").(string),
 		ActionTemplateType:   "AWS_SNS",
 		ActionTemplateParams: actionTemplateParams,

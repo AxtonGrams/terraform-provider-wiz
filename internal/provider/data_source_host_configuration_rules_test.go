@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenTargetPlatformIDs(t *testing.T) {
@@ -16,7 +16,7 @@ func TestFlattenTargetPlatformIDs(t *testing.T) {
 		"cdd2c255-921d-4ea9-b348-5660a7b9d459",
 	}
 
-	var plats = []vendor.Technology{
+	var plats = []wiz.Technology{
 		{
 			ID: "cdd2c255-921d-4ea9-b348-5660a7b9d459",
 		},

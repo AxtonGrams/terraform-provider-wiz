@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenRiskProfileAll(t *testing.T) {
@@ -38,7 +38,7 @@ func TestFlattenRiskProfileAll(t *testing.T) {
 		},
 	}
 
-	var expanded = &vendor.ProjectRiskProfile{
+	var expanded = &wiz.ProjectRiskProfile{
 		BusinessImpact:      "HBI",
 		HasAuthentication:   "Yes",
 		HasExposedAPI:       "Yes",
@@ -88,7 +88,7 @@ func TestFlattenRiskProfileRequired(t *testing.T) {
 		},
 	}
 
-	var expanded = &vendor.ProjectRiskProfile{
+	var expanded = &wiz.ProjectRiskProfile{
 		BusinessImpact: "HBI",
 	}
 
@@ -121,7 +121,7 @@ func TestFlattenRiskProfileDefaults(t *testing.T) {
 		},
 	}
 
-	var expanded = &vendor.ProjectRiskProfile{
+	var expanded = &wiz.ProjectRiskProfile{
 		BusinessImpact:      "MBI",
 		HasAuthentication:   "Unknown",
 		HasExposedAPI:       "Unknown",
@@ -157,9 +157,9 @@ func TestFlattenKubernetesClusterLinks(t *testing.T) {
 			},
 		},
 	}
-	var clusterlink = &vendor.ProjectKubernetesClusterLink{
+	var clusterlink = &wiz.ProjectKubernetesClusterLink{
 		Environment: "STAGING",
-		KubernetesCluster: vendor.KubernetesCluster{
+		KubernetesCluster: wiz.KubernetesCluster{
 			ID: "77de7ca1-02f9-5ed2-a94b-5d19c683efa2",
 		},
 		Shared: true,
@@ -168,7 +168,7 @@ func TestFlattenKubernetesClusterLinks(t *testing.T) {
 		},
 	}
 
-	expanded := []*vendor.ProjectKubernetesClusterLink{}
+	expanded := []*wiz.ProjectKubernetesClusterLink{}
 	expanded = append(expanded, clusterlink)
 
 	var flattened = flattenKubernetesClusterLinks(ctx, expanded)
@@ -206,13 +206,13 @@ func TestFlattenCloudAccountLinksWithTags(t *testing.T) {
 		},
 	}
 
-	var projectCloudAccountLink1 = &vendor.ProjectCloudAccountLink{
-		CloudAccount: vendor.CloudAccount{
+	var projectCloudAccountLink1 = &wiz.ProjectCloudAccountLink{
+		CloudAccount: wiz.CloudAccount{
 			ID: "3225def3-0e0e-5cb8-955a-3583f696f77f",
 		},
 		Shared:      true,
 		Environment: "PRODUCTION",
-		ResourceTags: []*vendor.ResourceTag{
+		ResourceTags: []*wiz.ResourceTag{
 			{
 				Key:   "k1",
 				Value: "v1",
@@ -228,7 +228,7 @@ func TestFlattenCloudAccountLinksWithTags(t *testing.T) {
 		},
 	}
 
-	expanded := []*vendor.ProjectCloudAccountLink{}
+	expanded := []*wiz.ProjectCloudAccountLink{}
 	expanded = append(expanded, projectCloudAccountLink1)
 
 	cloudAccountLinks := flattenCloudAccountLinks(ctx, expanded)
@@ -255,17 +255,17 @@ func TestFlattenCloudAccountLinksNoTags(t *testing.T) {
 		},
 	}
 
-	var projectCloudAccountLink1 = &vendor.ProjectCloudAccountLink{
-		CloudAccount: vendor.CloudAccount{
+	var projectCloudAccountLink1 = &wiz.ProjectCloudAccountLink{
+		CloudAccount: wiz.CloudAccount{
 			ID: "3225def3-0e0e-5cb8-955a-3583f696f77f",
 		},
 		Shared:         true,
 		Environment:    "PRODUCTION",
-		ResourceTags:   []*vendor.ResourceTag{},
+		ResourceTags:   []*wiz.ResourceTag{},
 		ResourceGroups: []string{},
 	}
 
-	expanded := []*vendor.ProjectCloudAccountLink{}
+	expanded := []*wiz.ProjectCloudAccountLink{}
 	expanded = append(expanded, projectCloudAccountLink1)
 
 	cloudAccountLinks := flattenCloudAccountLinks(ctx, expanded)
@@ -282,11 +282,11 @@ func TestFlattenCloudAccountLinksNoTags(t *testing.T) {
 func TestGetCloudAccountLinksVar(t *testing.T) {
 	ctx := context.Background()
 
-	var expectedAcclink1 = &vendor.ProjectCloudAccountLinkInput{
+	var expectedAcclink1 = &wiz.ProjectCloudAccountLinkInput{
 		CloudAccount: "3225def3-0e0e-5cb8-955a-3583f696f77f",
 		Environment:  "PRODUCTION",
 		Shared:       utils.ConvertBoolToPointer(true),
-		ResourceTags: []*vendor.ResourceTagInput{
+		ResourceTags: []*wiz.ResourceTagInput{
 			{
 				Key:   "7982c5c6-1c66-435c-a509-68fae7718bd8",
 				Value: "fbf63c90-67ed-4198-af07-05ee17a58c1d",
@@ -298,13 +298,13 @@ func TestGetCloudAccountLinksVar(t *testing.T) {
 		},
 	}
 
-	var expectedAcclink2 = &vendor.ProjectCloudAccountLinkInput{
+	var expectedAcclink2 = &wiz.ProjectCloudAccountLinkInput{
 		CloudAccount: "d8181cf9-38bb-486c-8278-f95f416afb3c",
 		Environment:  "PRODUCTION",
 		Shared:       utils.ConvertBoolToPointer(false),
 	}
 
-	var expected = []*vendor.ProjectCloudAccountLinkInput{}
+	var expected = []*wiz.ProjectCloudAccountLinkInput{}
 	expected = append(expected, expectedAcclink1)
 	expected = append(expected, expectedAcclink2)
 
@@ -377,13 +377,13 @@ func TestFlattenCloudOrganizationLinksWithTags(t *testing.T) {
 		},
 	}
 
-	var projectCloudOrganizationLink1 = &vendor.ProjectCloudOrganizationLink{
-		CloudOrganization: vendor.CloudOrganization{
+	var projectCloudOrganizationLink1 = &wiz.ProjectCloudOrganizationLink{
+		CloudOrganization: wiz.CloudOrganization{
 			ID: "f2b48c0b-57c6-4e1c-9bea-09c92c2fe0ed",
 		},
 		Shared:      true,
 		Environment: "PRODUCTION",
-		ResourceTags: []*vendor.ResourceTag{
+		ResourceTags: []*wiz.ResourceTag{
 			{
 				Key:   "k1",
 				Value: "v1",
@@ -399,7 +399,7 @@ func TestFlattenCloudOrganizationLinksWithTags(t *testing.T) {
 		},
 	}
 
-	expanded := []*vendor.ProjectCloudOrganizationLink{}
+	expanded := []*wiz.ProjectCloudOrganizationLink{}
 	expanded = append(expanded, projectCloudOrganizationLink1)
 
 	cloudOrganizationLinks := flattenCloudOrganizationLinks(ctx, expanded)
@@ -418,11 +418,11 @@ func TestFlattenUserIds(t *testing.T) {
 	expected := []interface{}{
 		"01882691-fb1b-5e72-b4cf-dc207a875907",
 	}
-	var userID = &vendor.User{
+	var userID = &wiz.User{
 		ID: "01882691-fb1b-5e72-b4cf-dc207a875907",
 	}
 
-	expanded := []*vendor.User{}
+	expanded := []*wiz.User{}
 	expanded = append(expanded, userID)
 
 	userIds := flattenUserIds(ctx, expanded)
@@ -448,16 +448,16 @@ func TestFlattenCloudOrganizationLinksNoTags(t *testing.T) {
 		},
 	}
 
-	var projectCloudOrganizationLink1 = &vendor.ProjectCloudOrganizationLink{
-		CloudOrganization: vendor.CloudOrganization{
+	var projectCloudOrganizationLink1 = &wiz.ProjectCloudOrganizationLink{
+		CloudOrganization: wiz.CloudOrganization{
 			ID: "f2b48c0b-57c6-4e1c-9bea-09c92c2fe0ed",
 		},
 		Shared:       true,
 		Environment:  "PRODUCTION",
-		ResourceTags: []*vendor.ResourceTag{},
+		ResourceTags: []*wiz.ResourceTag{},
 	}
 
-	expanded := []*vendor.ProjectCloudOrganizationLink{}
+	expanded := []*wiz.ProjectCloudOrganizationLink{}
 	expanded = append(expanded, projectCloudOrganizationLink1)
 
 	cloudOrganizationLinks := flattenCloudOrganizationLinks(ctx, expanded)
@@ -474,10 +474,10 @@ func TestFlattenCloudOrganizationLinksNoTags(t *testing.T) {
 func TestGetOrganizationLinksVar(t *testing.T) {
 	ctx := context.Background()
 
-	var expectedOrgLink1 = &vendor.ProjectCloudOrganizationLinkInput{
+	var expectedOrgLink1 = &wiz.ProjectCloudOrganizationLinkInput{
 		CloudOrganization: "98a51e0c-7ab9-4f40-b8d9-a4fc398ad98a",
 		Environment:       "PRODUCTION",
-		ResourceTags: []*vendor.ResourceTagInput{
+		ResourceTags: []*wiz.ResourceTagInput{
 			{
 				Key:   "7982c5c6-1c66-435c-a509-68fae7718bd8",
 				Value: "fbf63c90-67ed-4198-af07-05ee17a58c1d",
@@ -486,13 +486,13 @@ func TestGetOrganizationLinksVar(t *testing.T) {
 		Shared: true,
 	}
 
-	var expectedOrgLink2 = &vendor.ProjectCloudOrganizationLinkInput{
+	var expectedOrgLink2 = &wiz.ProjectCloudOrganizationLinkInput{
 		CloudOrganization: "d8181cf9-38bb-486c-8278-f95f416afb3c",
 		Environment:       "PRODUCTION",
 		Shared:            false,
 	}
 
-	var expected = []*vendor.ProjectCloudOrganizationLinkInput{}
+	var expected = []*wiz.ProjectCloudOrganizationLinkInput{}
 	expected = append(expected, expectedOrgLink1)
 	expected = append(expected, expectedOrgLink2)
 

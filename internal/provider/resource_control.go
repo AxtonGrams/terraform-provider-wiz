@@ -13,7 +13,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizControl() *schema.Resource {
@@ -83,12 +83,12 @@ func resourceWizControl() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Severity that will be set for this control.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.Severity,
+						wiz.Severity,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.Severity,
+						wiz.Severity,
 						false,
 					),
 				),
@@ -106,7 +106,7 @@ func resourceWizControl() *schema.Resource {
 
 // CreateControl struct
 type CreateControl struct {
-	CreateControl vendor.CreateControlPayload `json:"createControl"`
+	CreateControl wiz.CreateControlPayload `json:"createControl"`
 }
 
 func resourceWizControlCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -126,7 +126,7 @@ func resourceWizControlCreate(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.CreateControlInput{}
+	vars := &wiz.CreateControlInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	val, hasVal := d.GetOk("resolution_recommendation")
@@ -153,7 +153,7 @@ func resourceWizControlCreate(ctx context.Context, d *schema.ResourceData, m int
 	return resourceWizControlRead(ctx, d, m)
 }
 
-func flattenControlSecuritySubCategories(ctx context.Context, securitySubCategories []*vendor.SecuritySubCategory) []interface{} {
+func flattenControlSecuritySubCategories(ctx context.Context, securitySubCategories []*wiz.SecuritySubCategory) []interface{} {
 	tflog.Info(ctx, "flattenControlSecuritySubCategories called...")
 	tflog.Debug(ctx, fmt.Sprintf("flattenControlSecuritySubCategories input: %T %s", securitySubCategories, utils.PrettyPrint(securitySubCategories)))
 
@@ -172,7 +172,7 @@ func flattenControlSecuritySubCategories(ctx context.Context, securitySubCategor
 
 // ReadControlPayload struct -- updates
 type ReadControlPayload struct {
-	Control vendor.Control `json:"control"`
+	Control wiz.Control `json:"control"`
 }
 
 func resourceWizControlRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -280,7 +280,7 @@ func resourceWizControlRead(ctx context.Context, d *schema.ResourceData, m inter
 
 // UpdateControl struct
 type UpdateControl struct {
-	UpdateControl vendor.UpdateControlPayload `json:"updateControl"`
+	UpdateControl wiz.UpdateControlPayload `json:"updateControl"`
 }
 
 func resourceWizControlUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -305,7 +305,7 @@ func resourceWizControlUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateControlInput{}
+	vars := &wiz.UpdateControlInput{}
 	vars.ID = d.Id()
 
 	// these can optionally be included in the patch
@@ -347,7 +347,7 @@ func resourceWizControlUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 // DeleteControl struct
 type DeleteControl struct {
-	DeleteControl vendor.DeleteControlPayload `json:"deleteControl"`
+	DeleteControl wiz.DeleteControlPayload `json:"deleteControl"`
 }
 
 func resourceWizControlDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -370,7 +370,7 @@ func resourceWizControlDelete(ctx context.Context, d *schema.ResourceData, m int
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteControlInput{}
+	vars := &wiz.DeleteControlInput{}
 	vars.ID = d.Id()
 
 	// process the request

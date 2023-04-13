@@ -1,10 +1,12 @@
-package provider
+package provider_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/provider"
 )
 
 // providerFactories are used to instantiate a provider during acceptance testing.
@@ -12,12 +14,12 @@ import (
 // to create a provider server to which the CLI can reattach.
 var providerFactories = map[string]func() (*schema.Provider, error){
 	"wiz": func() (*schema.Provider, error) {
-		return New("dev")(), nil
+		return provider.New("dev")(), nil
 	},
 }
 
 func TestProvider(t *testing.T) {
-	if err := New("dev")().InternalValidate(); err != nil {
+	if err := provider.New("dev")().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }

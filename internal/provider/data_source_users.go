@@ -16,12 +16,12 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 // ReadUsers struct
 type ReadUsers struct {
-	Users vendor.UserConnection `json:"users"`
+	Users wiz.UserConnection `json:"users"`
 }
 
 func dataSourceWizUsers() *schema.Resource {
@@ -51,12 +51,12 @@ func dataSourceWizUsers() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Authentication Source.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.AuthenticationSource,
+						wiz.AuthenticationSource,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.AuthenticationSource,
+						wiz.AuthenticationSource,
 						false,
 					),
 				),
@@ -235,7 +235,7 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
-	filterBy := &vendor.UserFilters{}
+	filterBy := &wiz.UserFilters{}
 	a, b = d.GetOk("search")
 	if b {
 		filterBy.Search = a.(string)
@@ -268,7 +268,7 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func flattenUsers(ctx context.Context, users *[]*vendor.User) []interface{} {
+func flattenUsers(ctx context.Context, users *[]*wiz.User) []interface{} {
 	tflog.Info(ctx, "flattenUsers called...")
 	tflog.Debug(ctx, fmt.Sprintf("Users: %s", utils.PrettyPrint(users)))
 

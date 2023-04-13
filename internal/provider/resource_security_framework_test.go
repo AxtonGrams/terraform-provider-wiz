@@ -8,25 +8,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestGetSecuritySubCategories(t *testing.T) {
 	ctx := context.Background()
 
-	var expectedSubCategory1 = vendor.SecuritySubCategoryInput{
+	var expectedSubCategory1 = wiz.SecuritySubCategoryInput{
 		ID:          "efd96f85-293a-462c-8f38-d2731d93db3d",
 		Title:       "03371981-bceb-42f2-8bb7-61a4b1408b64",
 		Description: "5c53a6be-75ff-453f-9ba6-3464de7fab42",
 	}
 
-	var expectedSubCategory2 = vendor.SecuritySubCategoryInput{
+	var expectedSubCategory2 = wiz.SecuritySubCategoryInput{
 		ID:          "7622db38-8b5c-44ba-a766-2d8d48a63eb6",
 		Title:       "337b63d5-b553-4802-80da-f20ea10de803",
 		Description: "31d44de7-ce27-4361-8c3f-5329bb9a8231",
 	}
 
-	var expected = []vendor.SecuritySubCategoryInput{}
+	var expected = []wiz.SecuritySubCategoryInput{}
 
 	expected = append(expected, expectedSubCategory1)
 	expected = append(expected, expectedSubCategory2)
@@ -82,11 +82,11 @@ func TestGetSecuritySubCategories(t *testing.T) {
 func testGetSecurityCategories(t *testing.T) {
 	ctx := context.Background()
 
-	var expectedCategory1 = vendor.SecurityCategoryInput{
+	var expectedCategory1 = wiz.SecurityCategoryInput{
 		ID:          "547e6ca8-8caf-4229-a232-e128939dec52",
 		Name:        "9872a0e0-3861-47bb-8faf-8093507a5cab",
 		Description: "465e9993-dd6e-4902-8e1b-c0c54373623b",
-		SubCategories: []vendor.SecuritySubCategoryInput{
+		SubCategories: []wiz.SecuritySubCategoryInput{
 			{
 				ID:          "efd96f85-293a-462c-8f38-d2731d93db3d",
 				Title:       "03371981-bceb-42f2-8bb7-61a4b1408b64",
@@ -100,11 +100,11 @@ func testGetSecurityCategories(t *testing.T) {
 		},
 	}
 
-	var expectedCategory2 = vendor.SecurityCategoryInput{
+	var expectedCategory2 = wiz.SecurityCategoryInput{
 		ID:          "db64775d-66d5-404d-bf1e-3dc3fbf52b6c",
 		Name:        "4d6fa680-96e3-489e-8e41-8603cbf9902a",
 		Description: "f70f4eae-f8e0-4771-bbef-e700c0b2a394",
-		SubCategories: []vendor.SecuritySubCategoryInput{
+		SubCategories: []wiz.SecuritySubCategoryInput{
 			{
 				ID:    "9a505144-4819-423a-9375-25d569404c4f",
 				Title: "d5785980-30ca-4ae6-9eed-93f78d0ec826",
@@ -112,7 +112,7 @@ func testGetSecurityCategories(t *testing.T) {
 		},
 	}
 
-	var expected = []vendor.SecurityCategoryInput{}
+	var expected = []wiz.SecurityCategoryInput{}
 	expected = append(expected, expectedCategory1)
 	expected = append(expected, expectedCategory2)
 
@@ -182,17 +182,17 @@ func TestFlattenSecurityCategories(t *testing.T) {
 		},
 	}
 
-	var expanded = vendor.SecurityFramework{
+	var expanded = wiz.SecurityFramework{
 		Name:        "5c8268cc-2c41-4f14-a331-5a4dae67b836",
 		Description: "abb8b08a-964a-4a7d-8a33-b1d0f2caea35",
 		Enabled:     true,
 		ID:          "721b490c-31fc-4af1-ba9b-5713c37a569a",
-		Categories: []vendor.SecurityCategory{
+		Categories: []wiz.SecurityCategory{
 			{
 				ID:          "57195246-327a-4266-a5f6-8af81bc5b752",
 				Name:        "e6e1b491-ad79-4d9f-9ea2-cae34ab6befa",
 				Description: "a9649710-556f-490c-b383-b1324dc21711",
-				SubCategories: []vendor.SecuritySubCategory{
+				SubCategories: []wiz.SecuritySubCategory{
 					{
 						ID:          "8453e1b3-cc94-4966-8d72-baec7331e7df",
 						Title:       "2ab89df0-c150-49b7-aad3-1a4706a4e613",
@@ -225,7 +225,7 @@ func TestFlattenSecuritySubCategories(t *testing.T) {
 		},
 	}
 
-	var expanded = []vendor.SecuritySubCategory{
+	var expanded = []wiz.SecuritySubCategory{
 		{
 			ID:          "8453e1b3-cc94-4966-8d72-baec7331e7df",
 			Title:       "2ab89df0-c150-49b7-aad3-1a4706a4e613",

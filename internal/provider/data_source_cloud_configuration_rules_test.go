@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenCloudConfigurationRules(t *testing.T) {
@@ -67,19 +67,19 @@ func TestFlattenCloudConfigurationRules(t *testing.T) {
 		},
 	}
 
-	var configRules = &[]*vendor.CloudConfigurationRule{
+	var configRules = &[]*wiz.CloudConfigurationRule{
 		{
 			Builtin:       utils.ConvertBoolToPointer(false),
 			CloudProvider: "62c7de2d-d884-4b68-ae8b-f920ed1d60ba",
-			Control: &vendor.Control{
+			Control: &wiz.Control{
 				ID: "ef708a85-0c78-4a50-b5eb-f44501dc5fc2",
 			},
-			CreatedBy: &vendor.User{
+			CreatedBy: &wiz.User{
 				ID: "7aa9f806-18b2-48fd-83d1-2c151d462ea7",
 			},
 			Description: "27669d80-612d-4e25-9c85-369625e2e990",
 			Enabled:     utils.ConvertBoolToPointer(false),
-			ExternalReferences: []*vendor.CloudConfigurationRuleExternalReference{
+			ExternalReferences: []*wiz.CloudConfigurationRuleExternalReference{
 				{
 					ID:   "0bbe2b15-31f1-4786-b2b9-c57704c10fbf",
 					Name: "7afbbec4-76c6-40e2-aeda-24e89f616df0",
@@ -96,7 +96,7 @@ func TestFlattenCloudConfigurationRules(t *testing.T) {
 			FunctionAsControl:  utils.ConvertBoolToPointer(false),
 			GraphID:            "a81dc546-e3e3-4fbc-83c4-0ed5edbfa0c9",
 			HasAutoRemediation: utils.ConvertBoolToPointer(false),
-			IACMatchers: []*vendor.CloudConfigurationRuleMatcher{
+			IACMatchers: []*wiz.CloudConfigurationRuleMatcher{
 				{
 					ID: "4d5e2d5c-1157-487b-b9c1-7aa10bc83f83",
 				},
@@ -111,7 +111,7 @@ func TestFlattenCloudConfigurationRules(t *testing.T) {
 			Name:                    "1d401010-0e50-4101-93c7-35b7f9226997",
 			OPAPolicy:               "49d5692f-7681-435d-8eb5-e5f22758ffb2",
 			RemediationInstructions: "eb3e8071-49dd-4679-90d6-46bdf4387ee8",
-			ScopeAccounts: []*vendor.CloudAccount{
+			ScopeAccounts: []*wiz.CloudAccount{
 				{
 					ID: "42cecee6-45ec-41d0-8d66-b0571e2b6f62",
 				},
@@ -122,7 +122,7 @@ func TestFlattenCloudConfigurationRules(t *testing.T) {
 					ID: "868eb547-5b76-4b5e-b9a1-9aecec79846d",
 				},
 			},
-			SecuritySubCategories: []*vendor.SecuritySubCategory{
+			SecuritySubCategories: []*wiz.SecuritySubCategory{
 				{
 					ID: "49817d03-5a33-4c52-b7bc-51d800d173de",
 				},
@@ -174,7 +174,7 @@ func TestFlattenExternalReferences(t *testing.T) {
 		},
 	}
 
-	var refs = &[]*vendor.CloudConfigurationRuleExternalReference{
+	var refs = &[]*wiz.CloudConfigurationRuleExternalReference{
 		{
 			ID:   "6362a2a5-a7fc-48fd-9f38-f5a1e9c560d8",
 			Name: "284aab9b-88a5-4e13-a182-212de84989af",
@@ -208,7 +208,7 @@ func TestFlattenScopeAccounts(t *testing.T) {
 		"9c5d545a-bcb2-41ac-89f9-7dcca90483b7",
 	}
 
-	var accounts = &[]*vendor.CloudAccount{
+	var accounts = &[]*wiz.CloudAccount{
 		{
 			ID: "6362a2a5-a7fc-48fd-9f38-f5a1e9c560d8",
 		},
@@ -239,7 +239,7 @@ func TestFlattenSecuritySubCategoryIDs(t *testing.T) {
 		"9c5d545a-bcb2-41ac-89f9-7dcca90483b7",
 	}
 
-	var cats = &[]*vendor.SecuritySubCategory{
+	var cats = &[]*wiz.SecuritySubCategory{
 		{
 			ID: "6362a2a5-a7fc-48fd-9f38-f5a1e9c560d8",
 		},
@@ -270,7 +270,7 @@ func TestFlattenIACMatcherIDs(t *testing.T) {
 		"9c5d545a-bcb2-41ac-89f9-7dcca90483b7",
 	}
 
-	var matchers = &[]*vendor.CloudConfigurationRuleMatcher{
+	var matchers = &[]*wiz.CloudConfigurationRuleMatcher{
 		{
 			ID: "6362a2a5-a7fc-48fd-9f38-f5a1e9c560d8",
 		},

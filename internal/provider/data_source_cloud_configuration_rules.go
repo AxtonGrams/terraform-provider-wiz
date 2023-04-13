@@ -16,7 +16,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func dataSourceWizCloudConfigurationRules() *schema.Resource {
@@ -52,14 +52,14 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Find CSPM rules related to cloud provider.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.CloudProvider,
+						wiz.CloudProvider,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.CloudProvider,
+							wiz.CloudProvider,
 							false,
 						),
 					),
@@ -70,14 +70,14 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Find CSPM rules related to the service.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.CloudConfigurationRuleServiceType,
+						wiz.CloudConfigurationRuleServiceType,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.CloudConfigurationRuleServiceType,
+							wiz.CloudConfigurationRuleServiceType,
 							false,
 						),
 					),
@@ -96,14 +96,14 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("CSPM Rule severity.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.Severity,
+						wiz.Severity,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.Severity,
+							wiz.Severity,
 							false,
 						),
 					),
@@ -166,14 +166,14 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Search rules by target native type.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.CloudConfigurationRuleMatcherTypeFilter,
+						wiz.CloudConfigurationRuleMatcherTypeFilter,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.CloudConfigurationRuleMatcherTypeFilter,
+							wiz.CloudConfigurationRuleMatcherTypeFilter,
 							false,
 						),
 					),
@@ -349,7 +349,7 @@ func dataSourceWizCloudConfigurationRules() *schema.Resource {
 
 // ReadCloudConfigurationRules struct
 type ReadCloudConfigurationRules struct {
-	CloudConfigurationRules vendor.CloudConfigurationRuleConnection `json:"cloudConfigurationRules"`
+	CloudConfigurationRules wiz.CloudConfigurationRuleConnection `json:"cloudConfigurationRules"`
 }
 
 func dataSourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -599,7 +599,7 @@ func dataSourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.Reso
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
-	filterBy := &vendor.CloudConfigurationRuleFilters{}
+	filterBy := &wiz.CloudConfigurationRuleFilters{}
 	a, b = d.GetOk("search")
 	if b {
 		filterBy.Search = a.(string)
@@ -695,7 +695,7 @@ func dataSourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.Reso
 	return diags
 }
 
-func flattenCloudConfigurationRules(ctx context.Context, nodes *[]*vendor.CloudConfigurationRule) []interface{} {
+func flattenCloudConfigurationRules(ctx context.Context, nodes *[]*wiz.CloudConfigurationRule) []interface{} {
 	tflog.Info(ctx, "flattenCloudConfigurationRules called...")
 	tflog.Debug(ctx, fmt.Sprintf("CloudConfigurationRules: %s", utils.PrettyPrint(nodes)))
 
@@ -737,7 +737,7 @@ func flattenCloudConfigurationRules(ctx context.Context, nodes *[]*vendor.CloudC
 	return output
 }
 
-func flattenExternalReferences(ctx context.Context, refs *[]*vendor.CloudConfigurationRuleExternalReference) []interface{} {
+func flattenExternalReferences(ctx context.Context, refs *[]*wiz.CloudConfigurationRuleExternalReference) []interface{} {
 	tflog.Info(ctx, "flattenExternalReferences called...")
 	tflog.Debug(ctx, fmt.Sprintf("External References: %s", utils.PrettyPrint(refs)))
 
@@ -761,7 +761,7 @@ func flattenExternalReferences(ctx context.Context, refs *[]*vendor.CloudConfigu
 	return output
 }
 
-func flattenScopeAccounts(ctx context.Context, accounts *[]*vendor.CloudAccount) []interface{} {
+func flattenScopeAccounts(ctx context.Context, accounts *[]*wiz.CloudAccount) []interface{} {
 	tflog.Info(ctx, "flattenScopeAccounts called...")
 	tflog.Debug(ctx, fmt.Sprintf("ScopeAccounts: %s", utils.PrettyPrint(accounts)))
 
@@ -782,7 +782,7 @@ func flattenScopeAccounts(ctx context.Context, accounts *[]*vendor.CloudAccount)
 	return output
 }
 
-func flattenSecuritySubCategoryIDs(ctx context.Context, subCats *[]*vendor.SecuritySubCategory) []interface{} {
+func flattenSecuritySubCategoryIDs(ctx context.Context, subCats *[]*wiz.SecuritySubCategory) []interface{} {
 	tflog.Info(ctx, "flattenSecuritySubCategoryIDs called...")
 	tflog.Debug(ctx, fmt.Sprintf("SecuritySubCategories: %s", utils.PrettyPrint(subCats)))
 
@@ -803,7 +803,7 @@ func flattenSecuritySubCategoryIDs(ctx context.Context, subCats *[]*vendor.Secur
 	return output
 }
 
-func flattenIACMatcherIDs(ctx context.Context, matchers *[]*vendor.CloudConfigurationRuleMatcher) []interface{} {
+func flattenIACMatcherIDs(ctx context.Context, matchers *[]*wiz.CloudConfigurationRuleMatcher) []interface{} {
 	tflog.Info(ctx, "flattenIACMatchers called...")
 	tflog.Debug(ctx, fmt.Sprintf("flattenIACMatchers: %s", utils.PrettyPrint(matchers)))
 

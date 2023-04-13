@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenAssignedProjectIDs(t *testing.T) {
@@ -16,7 +16,7 @@ func TestFlattenAssignedProjectIDs(t *testing.T) {
 		"bc0dc093-e74e-4eea-9734-e3e5cfe1ecab",
 	}
 
-	var expanded = []vendor.Project{
+	var expanded = []wiz.Project{
 		{
 			ID: "2dc9a5ee-b52e-41a2-a13f-75c57d466acf",
 		},

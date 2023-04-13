@@ -16,7 +16,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func dataSourceWizCloudAccounts() *schema.Resource {
@@ -60,14 +60,14 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Query cloud accounts of specific cloud provider.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.CloudProvider,
+						wiz.CloudProvider,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.CloudProvider,
+							wiz.CloudProvider,
 							false,
 						),
 					),
@@ -78,14 +78,14 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Query cloud accounts by status.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.CloudAccountStatus,
+						wiz.CloudAccountStatus,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.CloudAccountStatus,
+							wiz.CloudAccountStatus,
 							false,
 						),
 					),
@@ -173,7 +173,7 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 
 // ReadCloudAccounts struct
 type ReadCloudAccounts struct {
-	CloudAccounts vendor.CloudAccountConnection `json:"cloudAccounts"`
+	CloudAccounts wiz.CloudAccountConnection `json:"cloudAccounts"`
 }
 
 func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -314,7 +314,7 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
-	filterBy := &vendor.CloudAccountFilters{}
+	filterBy := &wiz.CloudAccountFilters{}
 	a, b = d.GetOk("ids")
 	if b {
 		filterBy.ID = utils.ConvertListToString(a.([]interface{}))
@@ -369,7 +369,7 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func flattenCloudAccounts(ctx context.Context, nodes *[]*vendor.CloudAccount) []interface{} {
+func flattenCloudAccounts(ctx context.Context, nodes *[]*wiz.CloudAccount) []interface{} {
 	tflog.Info(ctx, "flattenCloudAccounts called...")
 	tflog.Debug(ctx, fmt.Sprintf("Nodes: %s", utils.PrettyPrint(nodes)))
 
@@ -398,7 +398,7 @@ func flattenCloudAccounts(ctx context.Context, nodes *[]*vendor.CloudAccount) []
 	return output
 }
 
-func flattenProjectIDs(ctx context.Context, projects *[]*vendor.Project) []interface{} {
+func flattenProjectIDs(ctx context.Context, projects *[]*wiz.Project) []interface{} {
 	tflog.Info(ctx, "flattenProjectIDs called...")
 	tflog.Debug(ctx, fmt.Sprintf("Projects: %s", utils.PrettyPrint(projects)))
 
@@ -419,7 +419,7 @@ func flattenProjectIDs(ctx context.Context, projects *[]*vendor.Project) []inter
 	return output
 }
 
-func flattenSourceConnectorIDs(ctx context.Context, connectors *[]vendor.Connector) []interface{} {
+func flattenSourceConnectorIDs(ctx context.Context, connectors *[]wiz.Connector) []interface{} {
 	tflog.Info(ctx, "flattenSourceConnectorIDs called...")
 	tflog.Debug(ctx, fmt.Sprintf("Projects: %s", utils.PrettyPrint(connectors)))
 

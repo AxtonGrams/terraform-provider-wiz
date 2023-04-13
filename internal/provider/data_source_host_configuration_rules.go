@@ -14,7 +14,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func dataSourceWizHostConfigurationRules() *schema.Resource {
@@ -128,7 +128,7 @@ func dataSourceWizHostConfigurationRules() *schema.Resource {
 
 // ReadHostConfigurationRules struct
 type ReadHostConfigurationRules struct {
-	HostConfigurationRules vendor.HostConfigurationRuleConnection `json:"hostConfigurationRules"`
+	HostConfigurationRules wiz.HostConfigurationRuleConnection `json:"hostConfigurationRules"`
 }
 
 func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -231,7 +231,7 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
-	filterBy := &vendor.HostConfigurationRuleFilters{}
+	filterBy := &wiz.HostConfigurationRuleFilters{}
 	a, b = d.GetOk("search")
 	if b {
 		filterBy.Search = a.(string)
@@ -267,7 +267,7 @@ func dataSourceWizHostConfigurationRuleRead(ctx context.Context, d *schema.Resou
 	return diags
 }
 
-func flattenHostConfigurationRules(ctx context.Context, nodes *[]*vendor.HostConfigurationRule) []interface{} {
+func flattenHostConfigurationRules(ctx context.Context, nodes *[]*wiz.HostConfigurationRule) []interface{} {
 	tflog.Info(ctx, "flattenHostConfigurationRules called...")
 	tflog.Debug(ctx, fmt.Sprintf("HostConfigurationRules: %s", utils.PrettyPrint(nodes)))
 
@@ -294,7 +294,7 @@ func flattenHostConfigurationRules(ctx context.Context, nodes *[]*vendor.HostCon
 	return output
 }
 
-func flattenTargetPlatformIDs(ctx context.Context, plats []vendor.Technology) []interface{} {
+func flattenTargetPlatformIDs(ctx context.Context, plats []wiz.Technology) []interface{} {
 	tflog.Info(ctx, "flattenTargetPlatformIDs called...")
 	tflog.Debug(ctx, fmt.Sprintf("TargetPlatforms: %s", utils.PrettyPrint(plats)))
 

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenKubernetesClusters(t *testing.T) {
@@ -25,11 +25,11 @@ func TestFlattenKubernetesClusters(t *testing.T) {
 		},
 	}
 
-	var clusterLinks = &[]*vendor.KubernetesCluster{
+	var clusterLinks = &[]*wiz.KubernetesCluster{
 		{
 			ID:   "8f137cbc-0810-55ff-acd6-f7574eb0d071",
 			Name: "24x7-dev",
-			CloudAccount: *&vendor.CloudAccount{
+			CloudAccount: *&wiz.CloudAccount{
 				ID:            "31e5304c-baca-54fa-bff3-aaf493eaeae0",
 				ExternalID:    "151668690081",
 				CloudProvider: "AWS",

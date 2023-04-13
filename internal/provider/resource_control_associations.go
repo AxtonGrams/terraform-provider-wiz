@@ -8,10 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizControlAssociations() *schema.Resource {
@@ -125,12 +126,12 @@ func validateSecuritySubCategoriesExist(ctx context.Context, m interface{}, secu
 
 // UpdateControls struct
 type UpdateControls struct {
-	UpdateControls vendor.UpdateControlsPayload `json:"updateControls"`
+	UpdateControls wiz.UpdateControlsPayload `json:"updateControls"`
 }
 
 // ReadSecuritySubCategoryPayload struct
 type ReadSecuritySubCategoryPayload struct {
-	SecuritySubCategory vendor.SecuritySubCategory `json:"securitySubCategory"`
+	SecuritySubCategory wiz.SecuritySubCategory `json:"securitySubCategory"`
 }
 
 func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -172,7 +173,7 @@ func resourceWizControlAssociationsCreate(ctx context.Context, d *schema.Resourc
         }`
 
 	// populate the graphql variables
-	mvars := &vendor.UpdateControlsInput{}
+	mvars := &wiz.UpdateControlsInput{}
 	mvars.IDs = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
@@ -319,7 +320,7 @@ func resourceWizControlAssociationsDelete(ctx context.Context, d *schema.Resourc
         }`
 
 	// populate the graphql variables
-	mvars := &vendor.UpdateControlsInput{}
+	mvars := &wiz.UpdateControlsInput{}
 	mvars.IDs = utils.ConvertListToString(d.Get("control_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToRemove = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 

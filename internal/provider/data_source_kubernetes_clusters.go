@@ -15,12 +15,12 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 // ReadKubernetesClusters struct
 type ReadKubernetesClusters struct {
-	KubernetesClusters vendor.KubernetesClusterConnection `json:"kubernetesClusters"`
+	KubernetesClusters wiz.KubernetesClusterConnection `json:"kubernetesClusters"`
 }
 
 func dataSourceWizKubernetesClusters() *schema.Resource {
@@ -56,14 +56,14 @@ func dataSourceWizKubernetesClusters() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Query Kubernetes Cluster of specific kind(s) or cloud provider(s).\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.KubernetesClusterKind,
+						wiz.KubernetesClusterKind,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.KubernetesClusterKind,
+							wiz.KubernetesClusterKind,
 							false,
 						),
 					),
@@ -74,14 +74,14 @@ func dataSourceWizKubernetesClusters() *schema.Resource {
 				Optional: true,
 				Description: fmt.Sprintf("Query cloud accounts of specific cloud provider.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.CloudProvider,
+						wiz.CloudProvider,
 					),
 				),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateDiagFunc: validation.ToDiagFunc(
 						validation.StringInSlice(
-							vendor.CloudProvider,
+							wiz.CloudProvider,
 							false,
 						),
 					),
@@ -222,7 +222,7 @@ func dataSourceWizKubernetesClustersRead(ctx context.Context, d *schema.Resource
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.First = d.Get("first").(int)
-	filterBy := &vendor.KubernetesClusterFilters{}
+	filterBy := &wiz.KubernetesClusterFilters{}
 	a, b = d.GetOk("search")
 	if b {
 		filterBy.Search = a.(string)
@@ -257,7 +257,7 @@ func dataSourceWizKubernetesClustersRead(ctx context.Context, d *schema.Resource
 
 }
 
-func flattenClusters(ctx context.Context, clusters *[]*vendor.KubernetesCluster) []interface{} {
+func flattenClusters(ctx context.Context, clusters *[]*wiz.KubernetesCluster) []interface{} {
 	tflog.Info(ctx, "flattenClusters called...")
 	tflog.Debug(ctx, fmt.Sprintf("Clusters: %s", utils.PrettyPrint(clusters)))
 

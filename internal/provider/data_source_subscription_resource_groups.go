@@ -15,12 +15,12 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 // ReadSubscriptionResourceGroups struct
 type ReadSubscriptionResourceGroups struct {
-	SubscriptionResourceGroups vendor.GraphSearchResultConnection `json:"graphsearch"`
+	SubscriptionResourceGroups wiz.GraphSearchResultConnection `json:"graphsearch"`
 }
 
 func dataSourceWizSubscriptionResourceGroups() *schema.Resource {
@@ -49,12 +49,12 @@ func dataSourceWizSubscriptionResourceGroups() *schema.Resource {
 				Default:  "CONTAINS",
 				Description: fmt.Sprintf("Relationship type, will default to `CONTAINS` if not specified.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.GraphRelationshipType,
+						wiz.GraphRelationshipType,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.GraphRelationshipType,
+						wiz.GraphRelationshipType,
 						false,
 					),
 				),
@@ -141,11 +141,11 @@ func dataSourceWizSubscriptionResourceGroupsRead(ctx context.Context, d *schema.
 	vars.First = d.Get("first").(int)
 
 	// declare main graph query
-	resourceGroupQuery := &vendor.GraphEntityQueryInput{}
+	resourceGroupQuery := &wiz.GraphEntityQueryInput{}
 	resourceGroupQuery.Type = []string{"RESOURCE_GROUP"}
 
 	// set the relationship type
-	relationshipDirectedType := &vendor.GraphDirectedRelationshipTypeInput{}
+	relationshipDirectedType := &wiz.GraphDirectedRelationshipTypeInput{}
 	a, b = d.GetOk("relationship_type")
 	if b {
 		relationshipDirectedType.Type = a.(string)
@@ -154,10 +154,10 @@ func dataSourceWizSubscriptionResourceGroupsRead(ctx context.Context, d *schema.
 	reverse := true
 	relationshipDirectedType.Reverse = &reverse
 
-	var directedRelationshipQueryInput = []vendor.GraphDirectedRelationshipTypeInput{}
+	var directedRelationshipQueryInput = []wiz.GraphDirectedRelationshipTypeInput{}
 	directedRelationshipQueryInput = append(directedRelationshipQueryInput, *relationshipDirectedType)
 
-	entityInput := &vendor.GraphEntityQueryInput{}
+	entityInput := &wiz.GraphEntityQueryInput{}
 	entityInput.Type = []string{"SUBSCRIPTION"}
 
 	// set the where predicate for the query to the subscription id
@@ -171,11 +171,11 @@ func dataSourceWizSubscriptionResourceGroupsRead(ctx context.Context, d *schema.
 		entityInput.Where = wherePredicate
 	}
 
-	var relationshipQueryInput = &vendor.GraphRelationshipQueryInput{
+	var relationshipQueryInput = &wiz.GraphRelationshipQueryInput{
 		With: *entityInput,
 		Type: directedRelationshipQueryInput,
 	}
-	var relationships = []*vendor.GraphRelationshipQueryInput{}
+	var relationships = []*wiz.GraphRelationshipQueryInput{}
 	relationships = append(relationships, relationshipQueryInput)
 	resourceGroupQuery.Relationships = relationships
 
@@ -200,7 +200,7 @@ func dataSourceWizSubscriptionResourceGroupsRead(ctx context.Context, d *schema.
 
 }
 
-func flattenResourceGroups(ctx context.Context, resgroups *[]*vendor.GraphSearchResult) []interface{} {
+func flattenResourceGroups(ctx context.Context, resgroups *[]*wiz.GraphSearchResult) []interface{} {
 	tflog.Info(ctx, "flattenResourceGroups called...")
 	tflog.Debug(ctx, fmt.Sprintf("resourceGroups: %s", utils.PrettyPrint(resgroups)))
 

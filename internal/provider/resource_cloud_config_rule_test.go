@@ -2,32 +2,30 @@ package provider
 
 import (
 	"context"
-	//"encoding/json"
 	"reflect"
 	"sort"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	//"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestGetIACMatchers(t *testing.T) {
 	ctx := context.Background()
 
-	var expected1 = &vendor.CreateCloudConfigurationRuleMatcherInput{
+	var expected1 = &wiz.CreateCloudConfigurationRuleMatcherInput{
 		Type:     "668e943b-84d4-4bcd-b255-58b4bc6f8587",
 		RegoCode: "060231e4-31a5-47a0-a1ec-2fe166c939fd",
 	}
 
-	var expected2 = &vendor.CreateCloudConfigurationRuleMatcherInput{
+	var expected2 = &wiz.CreateCloudConfigurationRuleMatcherInput{
 		Type:     "c92208fc-c9c5-45fe-9f09-6aa074bc0fd0",
 		RegoCode: "7f8b8994-aa4d-42ca-bda2-159a8602d4e0",
 	}
 
-	var expected = []*vendor.CreateCloudConfigurationRuleMatcherInput{}
+	var expected = []*wiz.CreateCloudConfigurationRuleMatcherInput{}
 	expected = append(expected, expected1)
 	expected = append(expected, expected2)
 
@@ -71,16 +69,16 @@ func TestFlattenSecuritySubCategoriesID(t *testing.T) {
 		"09f38436-80ac-493a-b554-e000e4f9cbd1",
 		"70f8c07e-aa05-4354-b589-e67605c72d44",
 	}
-	var expanded1 = &vendor.SecuritySubCategory{
+	var expanded1 = &wiz.SecuritySubCategory{
 		ID: "c14e688d-62ca-42f0-bf27-01195288d4ec",
 	}
-	var expanded2 = &vendor.SecuritySubCategory{
+	var expanded2 = &wiz.SecuritySubCategory{
 		ID: "09f38436-80ac-493a-b554-e000e4f9cbd1",
 	}
-	var expanded3 = &vendor.SecuritySubCategory{
+	var expanded3 = &wiz.SecuritySubCategory{
 		ID: "70f8c07e-aa05-4354-b589-e67605c72d44",
 	}
-	var expanded = []*vendor.SecuritySubCategory{}
+	var expanded = []*wiz.SecuritySubCategory{}
 	expanded = append(expanded, expanded1)
 	expanded = append(expanded, expanded2)
 	expanded = append(expanded, expanded3)
@@ -103,16 +101,16 @@ func TestFattenScopeAccountIDs(t *testing.T) {
 		"09f38436-80ac-493a-b554-e000e4f9cbd1",
 		"70f8c07e-aa05-4354-b589-e67605c72d44",
 	}
-	var expanded1 = &vendor.CloudAccount{
+	var expanded1 = &wiz.CloudAccount{
 		ID: "c14e688d-62ca-42f0-bf27-01195288d4ec",
 	}
-	var expanded2 = &vendor.CloudAccount{
+	var expanded2 = &wiz.CloudAccount{
 		ID: "09f38436-80ac-493a-b554-e000e4f9cbd1",
 	}
-	var expanded3 = &vendor.CloudAccount{
+	var expanded3 = &wiz.CloudAccount{
 		ID: "70f8c07e-aa05-4354-b589-e67605c72d44",
 	}
-	var expanded = []*vendor.CloudAccount{}
+	var expanded = []*wiz.CloudAccount{}
 	expanded = append(expanded, expanded1)
 	expanded = append(expanded, expanded2)
 	expanded = append(expanded, expanded3)
@@ -144,19 +142,19 @@ func TestFlattenIACMatchers(t *testing.T) {
 			"rego_code": "fa637c75-889a-4e85-9017-5cb16b36cc7c",
 		},
 	}
-	var expanded1 = &vendor.CloudConfigurationRuleMatcher{
+	var expanded1 = &wiz.CloudConfigurationRuleMatcher{
 		Type:     "484e96e0-8bac-4b86-ab9f-e43dd950ec05",
 		RegoCode: "6f8344d7-6252-4672-980f-86ed9f19b883",
 	}
-	var expanded2 = &vendor.CloudConfigurationRuleMatcher{
+	var expanded2 = &wiz.CloudConfigurationRuleMatcher{
 		Type:     "87a7f4a1-a789-4fae-9bbc-3fe6d8f16218",
 		RegoCode: "c1ebfd5c-a483-4559-95e7-ce6b87f9a0fe",
 	}
-	var expanded3 = &vendor.CloudConfigurationRuleMatcher{
+	var expanded3 = &wiz.CloudConfigurationRuleMatcher{
 		Type:     "d53bafe7-d821-4bbd-86f9-9634bb6f9b14",
 		RegoCode: "fa637c75-889a-4e85-9017-5cb16b36cc7c",
 	}
-	var expanded = []*vendor.CloudConfigurationRuleMatcher{}
+	var expanded = []*wiz.CloudConfigurationRuleMatcher{}
 	expanded = append(expanded, expanded1)
 	expanded = append(expanded, expanded2)
 	expanded = append(expanded, expanded3)

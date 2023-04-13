@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func TestFlattenRoleScopes(t *testing.T) {
@@ -85,17 +85,17 @@ func TestFlattenIdpUsers(t *testing.T) {
 		},
 	}
 
-	var users = &[]*vendor.User{
+	var users = &[]*wiz.User{
 		{
 			ID:                   "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
 			Email:                "john.doe@w.com",
 			Name:                 "John Doe",
 			IsSuspended:          false,
 			IdentityProviderType: "SAML",
-			IdentityProvider: vendor.SAMLIdentityProvider{
+			IdentityProvider: wiz.SAMLIdentityProvider{
 				Name: "myIdp",
 			},
-			EffectiveRole: vendor.UserRole{
+			EffectiveRole: wiz.UserRole{
 				ID:   "GLOBAL_READER",
 				Name: "GlobalReader",
 				Scopes: []string{
@@ -110,10 +110,10 @@ func TestFlattenIdpUsers(t *testing.T) {
 			Name:                 "Jane Doe",
 			IsSuspended:          true,
 			IdentityProviderType: "SAML",
-			IdentityProvider: vendor.SAMLIdentityProvider{
+			IdentityProvider: wiz.SAMLIdentityProvider{
 				Name: "myIdp",
 			},
-			EffectiveRole: vendor.UserRole{
+			EffectiveRole: wiz.UserRole{
 				ID:   "GLOBAL_READER",
 				Name: "GlobalReader",
 				Scopes: []string{
@@ -175,17 +175,17 @@ func TestFlattenLocalUsers(t *testing.T) {
 		},
 	}
 
-	var users = &[]*vendor.User{
+	var users = &[]*wiz.User{
 		{
 			ID:                   "auth0|6328329c6914d76a4ff0d209",
 			Email:                "john.doe@w.com",
 			Name:                 "John Doe",
 			IsSuspended:          false,
 			IdentityProviderType: "WIZ",
-			IdentityProvider: vendor.SAMLIdentityProvider{
+			IdentityProvider: wiz.SAMLIdentityProvider{
 				Name: "",
 			},
-			EffectiveRole: vendor.UserRole{
+			EffectiveRole: wiz.UserRole{
 				ID:   "GLOBAL_ADMIN",
 				Name: "GlobalAdmin",
 				Scopes: []string{

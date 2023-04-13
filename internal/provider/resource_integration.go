@@ -7,27 +7,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 // CreateIntegration struct
 type CreateIntegration struct {
-	CreateIntegration vendor.CreateIntegrationPayload `json:"createIntegration"`
+	CreateIntegration wiz.CreateIntegrationPayload `json:"createIntegration"`
 }
 
 // ReadIntegrationPayload struct
 type ReadIntegrationPayload struct {
-	Integration vendor.Integration `json:"integration"`
+	Integration wiz.Integration `json:"integration"`
 }
 
 // UpdateIntegration struct
 type UpdateIntegration struct {
-	UpdateIntegration vendor.UpdateIntegrationPayload `json:"updateIntegration"`
+	UpdateIntegration wiz.UpdateIntegrationPayload `json:"updateIntegration"`
 }
 
 // DeleteIntegration struct
 type DeleteIntegration struct {
-	DeleteIntegration vendor.DeleteIntegrationPayload `json:"deleteIntegration"`
+	DeleteIntegration wiz.DeleteIntegrationPayload `json:"deleteIntegration"`
 }
 
 // resourceWizIntegrationDelete deletes a Wiz integration resource
@@ -51,7 +51,7 @@ func resourceWizIntegrationDelete(ctx context.Context, d *schema.ResourceData, m
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.DeleteIntegrationInput{}
+	vars := &wiz.DeleteIntegrationInput{}
 	vars.ID = d.Id()
 
 	// process the request

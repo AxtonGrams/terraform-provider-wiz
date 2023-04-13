@@ -12,7 +12,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizIntegrationAwsSNS() *schema.Resource {
@@ -69,12 +69,12 @@ func resourceWizIntegrationAwsSNS() *schema.Resource {
 				Description: fmt.Sprintf(
 					"The access method this integration should use. \n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						vendor.AwsSNSIntegrationAccessMethodType,
+						wiz.AwsSNSIntegrationAccessMethodType,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						vendor.AwsSNSIntegrationAccessMethodType,
+						wiz.AwsSNSIntegrationAccessMethodType,
 						false,
 					),
 				),
@@ -120,12 +120,12 @@ func resourceWizIntegrationAwsSNSCreate(ctx context.Context, d *schema.ResourceD
 	  }
 	}`
 
-	vars := &vendor.CreateIntegrationInput{}
+	vars := &wiz.CreateIntegrationInput{}
 	vars.Name = d.Get("name").(string)
 	vars.Type = "AWS_SNS"
 	vars.ProjectID = d.Get("project_id").(string)
 	vars.IsAccessibleToAllProjects = convertIntegrationScopeToBool(d.Get("scope").(string))
-	vars.Params.AwsSNS = &vendor.CreateAwsSNSIntegrationParamsInput{}
+	vars.Params.AwsSNS = &wiz.CreateAwsSNSIntegrationParamsInput{}
 	vars.Params.AwsSNS.TopicARN = d.Get("aws_sns_topic_arn").(string)
 	vars.Params.AwsSNS.AccessMethod.Type = d.Get("aws_sns_access_method").(string)
 	vars.Params.AwsSNS.AccessMethod.AccessConnectorID = d.Get("aws_sns_connector_id").(string)
@@ -194,7 +194,7 @@ func resourceWizIntegrationAwsSNSRead(ctx context.Context, d *schema.ResourceDat
 
 	// process the request
 	data := &ReadIntegrationPayload{}
-	params := &vendor.AwsSNSIntegrationParams{}
+	params := &wiz.AwsSNSIntegrationParams{}
 	data.Integration.Params = params
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "integration_aws_sns", "read")
 	diags = append(diags, requestDiags...)
@@ -263,10 +263,10 @@ func resourceWizIntegrationAwsSNSUpdate(ctx context.Context, d *schema.ResourceD
 	}`
 
 	// populate the graphql variables
-	vars := &vendor.UpdateIntegrationInput{}
+	vars := &wiz.UpdateIntegrationInput{}
 	vars.ID = d.Id()
 	vars.Patch.Name = d.Get("name").(string)
-	vars.Patch.Params.AwsSNS = &vendor.UpdateAwsSNSIntegrationParamsInput{}
+	vars.Patch.Params.AwsSNS = &wiz.UpdateAwsSNSIntegrationParamsInput{}
 	vars.Patch.Params.AwsSNS.TopicARN = d.Get("aws_sns_topic_arn").(string)
 	vars.Patch.Params.AwsSNS.AccessMethod.Type = d.Get("aws_sns_access_method").(string)
 	vars.Patch.Params.AwsSNS.AccessMethod.AccessConnectorID = d.Get("aws_sns_connector_id").(string)

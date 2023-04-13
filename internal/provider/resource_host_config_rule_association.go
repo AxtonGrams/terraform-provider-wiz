@@ -11,7 +11,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/client"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
-	"wiz.io/hashicorp/terraform-provider-wiz/internal/vendor"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
 func resourceWizHostConfigRuleAssociations() *schema.Resource {
@@ -94,7 +94,7 @@ func validateHostConfigRulesExist(ctx context.Context, m interface{}, hostConfig
 
 // UpdateHostConfigurationRules struct
 type UpdateHostConfigurationRules struct {
-	UpdateHostConfigurationRules vendor.UpdateHostConfigurationRulesPayload `json:"updateHostConfigurationRules"`
+	UpdateHostConfigurationRules wiz.UpdateHostConfigurationRulesPayload `json:"updateHostConfigurationRules"`
 }
 
 func resourceWizHostConfigRuleAssociationsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -136,7 +136,7 @@ func resourceWizHostConfigRuleAssociationsCreate(ctx context.Context, d *schema.
 	}`
 
 	// populate the graphql variables
-	mvars := &vendor.UpdateHostConfigurationRulesInput{}
+	mvars := &wiz.UpdateHostConfigurationRulesInput{}
 	mvars.IDs = utils.ConvertListToString(d.Get("host_config_rule_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToAdd = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
@@ -283,7 +283,7 @@ func resourceWizHostConfigRuleAssociationsDelete(ctx context.Context, d *schema.
 	}`
 
 	// populate the graphql variables
-	mvars := &vendor.UpdateHostConfigurationRulesInput{}
+	mvars := &wiz.UpdateHostConfigurationRulesInput{}
 	mvars.IDs = utils.ConvertListToString(d.Get("host_config_rule_ids").([]interface{}))
 	mvars.SecuritySubCategoriesToRemove = utils.ConvertListToString(d.Get("security_sub_category_ids").([]interface{}))
 
