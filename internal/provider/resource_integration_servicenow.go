@@ -164,6 +164,21 @@ func resourceWizIntegrationAwsServiceNowRead(ctx context.Context, d *schema.Reso
 	    params {
 	      ... on ServiceNowIntegrationParams {
 	        url
+	        authorizationType: authorization {
+	          type: __typename
+	        }
+	        authorization {
+	          ... on ServiceNowIntegrationBasicAuthorization {
+	            password
+	            username
+	          }
+	          ... on ServiceNowIntegrationOAuthAuthorization {
+	            password
+	            username
+	            clientId
+	            clientSecret
+	          }
+	        }
 	      }
 	    }
 	  }
@@ -175,7 +190,7 @@ func resourceWizIntegrationAwsServiceNowRead(ctx context.Context, d *schema.Reso
 
 	// process the request
 	data := &ReadIntegrationPayload{}
-	params := &wiz.AwsSNSIntegrationParams{}
+	params := &wiz.ServiceNowIntegrationParams{}
 	data.Integration.Params = params
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "integration_servicenow", "read")
 	diags = append(diags, requestDiags...)
@@ -204,23 +219,26 @@ func resourceWizIntegrationAwsServiceNowRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("aws_sns_topic_arn", params.TopicARN)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("aws_sns_access_method", params.AccessMethod)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("aws_sns_connector_id", params.AccessConnector.ID)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("aws_sns_customer_role_arn", params.CustomerRoleARN)
+	err = d.Set("servicenow_url", params.URL)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
+	// todo: determine credentials type and populate resource data
+	/*
+		switch params.AuthorizationType {
+		case "ServiceNowIntegrationBasicAuthorization":
+			err = d.Set("servicenow_username", params.Authorization.Username)
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		case "ServiceNowIntegrationOAuthAuthorization":
+			err = d.Set("servicenow_username", params.Authorization.Username)
+			if err != nil {
+				return append(diags, diag.FromErr(err)...)
+			}
+		}
+	*/
 	return diags
 }
 
