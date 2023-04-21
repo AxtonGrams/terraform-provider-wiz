@@ -16,7 +16,7 @@ func TestAccResourceWizSAMLIdp_basic(t *testing.T) {
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceWizSAMLIdp_basic(rName),
+				Config: TestAccResourceWizSAMLIdp_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"wiz_saml_idp.test",
@@ -54,7 +54,7 @@ func TestAccResourceWizSAMLIdp_basic(t *testing.T) {
 	})
 }
 
-func testAccResourceWizSAMLIdp_basic(rName string) string {
+func TestAccResourceWizSAMLIdp_basic(rName string) string {
 	return fmt.Sprintf(`
 resource "wiz_saml_idp" "test" {
   name                         = "%s"
