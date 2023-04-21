@@ -18,7 +18,7 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 ### Required
 
 - `name` (String) The name of the integration.
-- `servicenow_password` (String)
+- `servicenow_password` (String, Sensitive)
 - `servicenow_url` (String) ServiceNow URL.
 - `servicenow_username` (String) Email of a ServiceNow user with permissions to create tickets
 
