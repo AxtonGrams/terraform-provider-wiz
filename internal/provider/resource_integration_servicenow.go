@@ -69,8 +69,9 @@ func resourceWizIntegrationServiceNow() *schema.Resource {
 				Description: "Email of a ServiceNow user with permissions to create tickets",
 			},
 			"servicenow_password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"servicenow_client_id": {
 				Type:     schema.TypeString,
