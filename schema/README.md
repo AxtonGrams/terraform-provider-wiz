@@ -1,6 +1,13 @@
-This directory contains the GraphQL schema for Wiz.
+# Wiz Schema
 
-The JSON representation of the schema was retrieved using reflection from the Wiz API using the following query.
+This directory contains informatoin on obtainign the GraphQL schema from Wiz to use for development purposes.
+Retrieval of this schema requires Wiz credentials.
+
+The schema rendered usign these steps assists with the development of the wiz package.
+
+## User Reflection to Obtain the Schema
+
+Retrieve the JSON representation of the schema using reflection from the Wiz API using the following query.
 
 ```
 fragment FullType on __Type {
@@ -93,7 +100,7 @@ query IntrospectionQuery {
 }
 ```
 
-The JSON representation was converted to GraphQL SDL using graphql-json-to-sdl.
-See https://github.com/CDThomas/graphql-json-to-sdl
+## Convert the JSON schema to GraphQAL SDL
 
-The resulting representation is stored in wiz.graphql
+Conver the JSON representation to GraphQL SDL using graphql-json-to-sdl.
+See https://github.com/CDThomas/graphql-json-to-sdl
