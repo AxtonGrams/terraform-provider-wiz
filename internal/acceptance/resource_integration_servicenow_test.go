@@ -22,17 +22,22 @@ func TestAccResourceWizIntegrationServiceNow_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"wiz_integration_servicenow.foo",
 						"name",
-						"test-acc-WizIntegrationServiceNow_basic",
-					),
-					resource.TestCheckResourceAttr(
-						"wiz_integration_servicenow.foo",
-						"servicenow_url",
-						os.Getenv("WIZ_AUTH_CLIENT_ID"),
+						rName,
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_integration_servicenow.foo",
 						"servicenow_url",
 						os.Getenv("WIZ_INTEGRATION_SERVICENOW_URL"),
+					),
+					resource.TestCheckResourceAttr(
+						"wiz_integration_servicenow.foo",
+						"servicenow_username",
+						os.Getenv("WIZ_INTEGRATION_SERVICENOW_USERNAME"),
+					),
+					resource.TestCheckResourceAttr(
+						"wiz_integration_servicenow.foo",
+						"scope",
+						"All Resources, Restrict this Integration to global roles only",
 					),
 				),
 			},
@@ -42,7 +47,7 @@ func TestAccResourceWizIntegrationServiceNow_basic(t *testing.T) {
 
 func testResourceWizIntegrationServiceNowBasic(rName string) string {
 	return fmt.Sprintf(`
-resource "wiz_integration_servicenow" "test" {
+resource "wiz_integration_servicenow" "foo" {
   name  = "%s"
   scope = "All Resources, Restrict this Integration to global roles only"
 }
