@@ -155,3 +155,8 @@ var IntegrationScope = []string{
 	"All Resources",
 	"All Resources, Restrict this Integration to global roles only",
 }
+
+// ProviderServiceNowAuthorizationType is used to infer the type of Authorization struct used in wiz.ServiceNowIntegrationParams
+type ProviderServiceNowAuthorizationType struct {
+	Type string `json:"type"`
+}
