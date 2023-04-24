@@ -61,25 +61,49 @@ func resourceWizIntegrationServiceNow() *schema.Resource {
 			"servicenow_url": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "ServiceNow URL.",
+				Description: "ServiceNow URL. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_URL)",
+				DefaultFunc: schema.EnvDefaultFunc(
+					"WIZ_INTEGRATION_SERVICENOW_URL",
+					nil,
+				),
 			},
 			"servicenow_username": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Email of a ServiceNow user with permissions to create tickets",
+				Description: "Email of a ServiceNow user with permissions to create tickets. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_USERNAME)",
+				DefaultFunc: schema.EnvDefaultFunc(
+					"WIZ_INTEGRATION_SERVICENOW_USERNAME",
+					nil,
+				),
 			},
 			"servicenow_password": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "ServiceNow password. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_PASSWORD)",
+				DefaultFunc: schema.EnvDefaultFunc(
+					"WIZ_INTEGRATION_SERVICENOW_PASSWORD",
+					nil,
+				),
 			},
 			"servicenow_client_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "ServiceNow OAuth Client ID. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_CLIENT_ID)",
+				DefaultFunc: schema.EnvDefaultFunc(
+					"WIZ_INTEGRATION_SERVICENOW_CLIENT_ID",
+					nil,
+				),
 			},
 			"servicenow_client_secret": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "ServiceNow OAuth Client Secret. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_CLIENT_SECRET)",
+				DefaultFunc: schema.EnvDefaultFunc(
+					"WIZ_INTEGRATION_SERVICENOW_CLIENT_SECRET",
+					nil,
+				),
 			},
 		},
 		CreateContext: resourceWizIntegrationAwsServiceNowCreate,
@@ -224,22 +248,30 @@ func resourceWizIntegrationAwsServiceNowRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("servicenow_username", params.Authorization.(map[string]interface{})["username"])
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("servicenow_password", d.Get("servicenow_password").(string))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
-	// todo: determine credentials type and populate resource data
-	/*
-		switch params.AuthorizationType {
-		case "ServiceNowIntegrationBasicAuthorization":
-			err = d.Set("servicenow_username", params.Authorization.Username)
-			if err != nil {
-				return append(diags, diag.FromErr(err)...)
-			}
-		case "ServiceNowIntegrationOAuthAuthorization":
-			err = d.Set("servicenow_username", params.Authorization.Username)
-			if err != nil {
-				return append(diags, diag.FromErr(err)...)
-			}
+	// determine credentials type and populate resource data
+	tflog.Debug(ctx, fmt.Sprintf("params.AuthorizationType.Type %s (%T)", params.AuthorizationType.Type, params.Authorization))
+
+	switch params.AuthorizationType.Type {
+	case "ServiceNowIntegrationOAuthAuthorization":
+		err = d.Set("servicenow_client_id", params.Authorization.(map[string]interface{})["servicenow_client_id"])
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
 		}
-	*/
+		err = d.Set("servicenow_client_secret", d.Get("servicenow_client_secret").(string))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	return diags
 }
 
@@ -266,11 +298,12 @@ func resourceWizIntegrationAwsServiceNowUpdate(ctx context.Context, d *schema.Re
 	vars := &wiz.UpdateIntegrationInput{}
 	vars.ID = d.Id()
 	vars.Patch.Name = d.Get("name").(string)
-	vars.Patch.Params.AwsSNS = &wiz.UpdateAwsSNSIntegrationParamsInput{}
-	vars.Patch.Params.AwsSNS.TopicARN = d.Get("aws_sns_topic_arn").(string)
-	vars.Patch.Params.AwsSNS.AccessMethod.Type = d.Get("aws_sns_access_method").(string)
-	vars.Patch.Params.AwsSNS.AccessMethod.AccessConnectorID = d.Get("aws_sns_connector_id").(string)
-	vars.Patch.Params.AwsSNS.AccessMethod.CustomerRoleARN = d.Get("aws_sns_customer_role_arn").(string)
+	vars.Patch.Params.ServiceNow = &wiz.UpdateServiceNowIntegrationParamsInput{}
+	vars.Patch.Params.ServiceNow.URL = d.Get("servicenow_url").(string)
+	vars.Patch.Params.ServiceNow.Authorization.ClientID = d.Get("servicenow_client_id").(string)
+	vars.Patch.Params.ServiceNow.Authorization.ClientSecret = d.Get("servicenow_client_secret").(string)
+	vars.Patch.Params.ServiceNow.Authorization.Username = d.Get("servicenow_username").(string)
+	vars.Patch.Params.ServiceNow.Authorization.Password = d.Get("servicenow_password").(string)
 
 	// process the request
 	data := &UpdateIntegration{}

@@ -1851,9 +1851,9 @@ type PagerDutyIntegrationParams struct {
 // ServiceNowIntegrationParams struct
 // AuthorizationType is a provider defined field used to determine how to handle the response
 type ServiceNowIntegrationParams struct {
-	Authorization     interface{} `json:"authorization"`
-	AuthorizationType string      `json:"authorizationType"`
-	URL               string      `json:"url"`
+	Authorization     interface{}                                  `json:"authorization"`
+	AuthorizationType internal.ProviderServiceNowAuthorizationType `json:"authorizationType"`
+	URL               string                                       `json:"url"`
 }
 
 // WebhookIntegrationParams struct

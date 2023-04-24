@@ -38,3 +38,27 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("WIZ_AUTH_CLIENT_SECRET must be set for acceptance tests")
 	}
 }
+
+func testAccPreCheckIntegrationServiceNow(t *testing.T) {
+	// You can add code here to run prior to any test case execution, for example assertions
+	// about the appropriate environment variables being set are common to see in a pre-check
+	// function.
+	if v := os.Getenv("WIZ_URL"); v == "" {
+		t.Fatal("WIZ_URL must be set for acceptance tests")
+	}
+	if v := os.Getenv("WIZ_AUTH_CLIENT_ID"); v == "" {
+		t.Fatal("WIZ_AUTH_CLIENT_ID must be set for acceptance tests")
+	}
+	if v := os.Getenv("WIZ_AUTH_CLIENT_SECRET"); v == "" {
+		t.Fatal("WIZ_AUTH_CLIENT_SECRET must be set for acceptance tests")
+	}
+	if v := os.Getenv("WIZ_INTEGRATION_SERVICENOW_URL"); v == "" {
+		t.Fatal("WIZ_INTEGRATION_SERVICENOW_URL must be set for wiz_integration_servicenow acceptance tests")
+	}
+	if v := os.Getenv("WIZ_INTEGRATION_SERVICENOW_USERNAME"); v == "" {
+		t.Fatal("WIZ_INTEGRATION_SERVICENOW_USERNAME must be set for wiz_integration_servicenow acceptance tests")
+	}
+	if v := os.Getenv("WIZ_INTEGRATION_SERVICENOW_PASSWORD"); v == "" {
+		t.Fatal("WIZ_INTEGRATION_SERVICENOW_PASSWORD must be set for wiz_integration_servicenow acceptance tests")
+	}
+}
