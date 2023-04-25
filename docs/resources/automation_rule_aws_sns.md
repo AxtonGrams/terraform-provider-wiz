@@ -67,6 +67,7 @@ resource "wiz_automation_rule_aws_sns" "example" {
         - ISSUES
         - CLOUD_EVENTS
         - CONTROL
+        - CONFIGURATION_FINDING
 - `trigger_type` (List of String) Trigger type.
     - Allowed values: 
         - CREATED

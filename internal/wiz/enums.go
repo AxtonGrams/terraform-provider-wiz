@@ -155,6 +155,7 @@ var AutomationRuleTriggerSource = []string{
 	"ISSUES",
 	"CLOUD_EVENTS",
 	"CONTROL",
+	"CONFIGURATION_FINDING",
 }
 
 // AutomationRuleTriggerType enum
