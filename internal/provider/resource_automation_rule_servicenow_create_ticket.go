@@ -107,29 +107,50 @@ func resourceWizAutomationRuleServiceNowCreateTicket() *schema.Resource {
 			},
 			"servicenow_table_name": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "",
+				Optional:    true,
+				Default:     "incident",
+				Description: "Table name to which new tickets will be added to, e.g: 'incident'.",
 			},
 			"servicenow_custom_fields": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "",
+				Description: "Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Must be valid JSON.",
+                                ValidateDiagFunc: validation.ToDiagFunc(
+                                        validation.StringIsJSON,
+                                ),
 			},
 			"servicenow_summary": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "",
+				Optional:    true,
+				Default:     "Wiz Issue: {{issue.control.name}}",
+				Description: "Ticket summary",
 			},
 			"servicenow_description": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "",
+				Optional:    true,
+				Description: "Ticket description",
+				Default: `Description:  {{issue.description}}
+Status:       {{issue.status}}
+Created:      {{issue.createdAt}}
+Severity:     {{issue.severity}}
+Project:      {{#issue.projects}}{{name}}, {{/issue.projects}}
+
+---
+Resource:	            {{issue.entitySnapshot.name}}
+Type:	                {{issue.entitySnapshot.nativeType}}
+Cloud Platform:	        {{issue.entitySnapshot.cloudPlatform}}
+Cloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}
+Subscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})
+Region:	                {{issue.entitySnapshot.region}}
+Please click the following link to proceed to investigate the issue:
+https://{{wizDomain}}/issues#~(issue~'{{issue.id}})
+Source Automation Rule: {{ruleName}}`,
 			},
 			"servicenow_attach_evidence_csv": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: "",
+				Description: "Upload issue evidence CSV as attachment?",
 			},
 		},
 		CreateContext: resourceWizAutomationRuleServiceNowCreateTicketCreate,
@@ -170,8 +191,8 @@ func resourceWizAutomationRuleServiceNowCreateTicketCreate(ctx context.Context, 
 
 	// populate the actions parameter
 	serviceNowCreateTicketFields := wiz.CreateServiceNowFieldsInput{
-		TableName: d.Get("servicenow_table_name").(string),
-		//CustomFields: d.Get("servicenow_custom_fields").(string),
+		TableName:         d.Get("servicenow_table_name").(string),
+		CustomFields:      json.RawMessage(d.Get("servicenow_custom_fields").(string)),
 		Summary:           d.Get("servicenow_summary").(string),
 		Description:       d.Get("servicenow_description").(string),
 		AttachEvidenceCSV: d.Get("servicenow_attach_evidence_csv").(bool),
@@ -321,6 +342,22 @@ func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("servicenow_custom_fields", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["customFields"])
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("servicenow_summary", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["summary"])
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("servicenow_description", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["description"])
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("servicenow_attach_evidence_csv", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["attachEvidenceCSV"])
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
@@ -332,56 +369,62 @@ func resourceWizAutomationRuleServiceNowCreateTicketUpdate(ctx context.Context, 
 	if d.Id() == "" {
 		return nil
 	}
-	/*
-		// define the graphql query
-		query := `mutation updateAutomationRule($input: UpdateAutomationRuleInput!) {
-		  updateAutomationRule(
-		    input: $input
-		  ) {
-		    automationRule {
-		      id
-		    }
-		  }
-		}`
 
-		// populate the graphql variables
-		vars := &wiz.UpdateAutomationRuleInput{}
-		vars.ID = d.Id()
-		vars.Patch.Name = d.Get("name").(string)
-		vars.Patch.Description = d.Get("description").(string)
-		vars.Patch.TriggerSource = d.Get("trigger_source").(string)
-		triggerTypes := make([]string, 0, 0)
-		for _, j := range d.Get("trigger_type").([]interface{}) {
-			triggerTypes = append(triggerTypes, j.(string))
-		}
-		vars.Patch.TriggerType = triggerTypes
-		vars.Patch.Filters = json.RawMessage(d.Get("filters").(string))
-		vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
+	// define the graphql query
+	query := `mutation updateAutomationRule($input: UpdateAutomationRuleInput!) {
+	  updateAutomationRule(
+	    input: $input
+	  ) {
+	    automationRule {
+	      id
+	    }
+	  }
+	}`
 
-		actions := []wiz.AutomationRuleActionInput{}
-		awsSNS := &wiz.AwsSNSActionTemplateParamsInput{
-			Body: d.Get("aws_sns_body").(string),
-		}
+	// populate the graphql variables
+	vars := &wiz.UpdateAutomationRuleInput{}
+	vars.ID = d.Id()
+	vars.Patch.Name = d.Get("name").(string)
+	vars.Patch.Description = d.Get("description").(string)
+	vars.Patch.TriggerSource = d.Get("trigger_source").(string)
+	triggerTypes := make([]string, 0, 0)
+	for _, j := range d.Get("trigger_type").([]interface{}) {
+		triggerTypes = append(triggerTypes, j.(string))
+	}
+	vars.Patch.TriggerType = triggerTypes
+	vars.Patch.Filters = json.RawMessage(d.Get("filters").(string))
+	vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
 
-		actionTemplateParams := wiz.ActionTemplateParamsInput{
-			AwsSNS: awsSNS,
-		}
-		action := wiz.AutomationRuleActionInput{
-			IntegrationID:        d.Get("integration_id").(string),
-			ActionTemplateType:   "AWS_SNS",
-			ActionTemplateParams: actionTemplateParams,
-		}
-		actions = append(actions, action)
+	actions := []wiz.AutomationRuleActionInput{}
+	serviceNowFields := wiz.CreateServiceNowFieldsInput{
+		TableName:         d.Get("servicenow_table_name").(string),
+		CustomFields:      json.RawMessage(d.Get("servicenow_custom_fields").(string)),
+		Summary:           d.Get("servicenow_summary").(string),
+		Description:       d.Get("servicenow_description").(string),
+		AttachEvidenceCSV: d.Get("servicenow_attach_evidence_csv").(bool),
+	}
+	serviceNowCreateTicket := &wiz.ServiceNowActionCreateTicketTemplateParamsInput{
+		Fields: serviceNowFields,
+	}
 
-		vars.Patch.Actions = actions
+	actionTemplateParams := wiz.ActionTemplateParamsInput{
+		ServiceNowCreateTicket: serviceNowCreateTicket,
+	}
+	action := wiz.AutomationRuleActionInput{
+		IntegrationID:        d.Get("integration_id").(string),
+		ActionTemplateType:   "SERVICE_NOW_CREATE_TICKET",
+		ActionTemplateParams: actionTemplateParams,
+	}
+	actions = append(actions, action)
+	vars.Patch.Actions = actions
 
-		// process the request
-		data := &UpdateAutomationRule{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule", "update")
-		diags = append(diags, requestDiags...)
-		if len(diags) > 0 {
-			return diags
-		}
-	*/
+	// process the request
+	data := &UpdateAutomationRule{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "update")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
+	}
+
 	return resourceWizAutomationRuleServiceNowCreateTicketRead(ctx, d, m)
 }

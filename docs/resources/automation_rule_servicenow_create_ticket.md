@@ -67,9 +67,6 @@ EOT
 - `filters` (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
 - `integration_id` (String) Wiz identifier for the Integration to leverage for this action. Must be resource type integration_aws_sns.
 - `name` (String) Name of the automation rule
-- `servicenow_description` (String)
-- `servicenow_summary` (String)
-- `servicenow_table_name` (String)
 - `trigger_source` (String) Trigger source.
     - Allowed values: 
         - ISSUES
@@ -88,8 +85,30 @@ EOT
 - `enabled` (Boolean) Enabled?
     - Defaults to `true`.
 - `project_id` (String) Wiz internal ID for a project.
-- `servicenow_attach_evidence_csv` (Boolean) - Defaults to `false`.
-- `servicenow_custom_fields` (String)
+- `servicenow_attach_evidence_csv` (Boolean) Upload issue evidence CSV as attachment?
+    - Defaults to `false`.
+- `servicenow_custom_fields` (String) Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Must be valid JSON.
+- `servicenow_description` (String) Ticket description
+    - Defaults to `Description:  {{issue.description}}
+Status:       {{issue.status}}
+Created:      {{issue.createdAt}}
+Severity:     {{issue.severity}}
+Project:      {{#issue.projects}}{{name}}, {{/issue.projects}}
+
+---
+Resource:	            {{issue.entitySnapshot.name}}
+Type:	                {{issue.entitySnapshot.nativeType}}
+Cloud Platform:	        {{issue.entitySnapshot.cloudPlatform}}
+Cloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}
+Subscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})
+Region:	                {{issue.entitySnapshot.region}}
+Please click the following link to proceed to investigate the issue:
+https://{{wizDomain}}/issues#~(issue~'{{issue.id}})
+Source Automation Rule: {{ruleName}}`.
+- `servicenow_summary` (String) Ticket summary
+    - Defaults to `Wiz Issue: {{issue.control.name}}`.
+- `servicenow_table_name` (String) Table name to which new tickets will be added to, e.g: 'incident'.
+    - Defaults to `incident`.
 
 ### Read-Only
 

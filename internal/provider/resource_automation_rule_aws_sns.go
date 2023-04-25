@@ -343,7 +343,7 @@ func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.Resour
 
 	// process the request
 	data := &UpdateAutomationRule{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule", "update")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_aws_sns", "update")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags

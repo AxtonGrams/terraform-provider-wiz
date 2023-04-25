@@ -288,9 +288,37 @@ func init() {
 	// to the exported descriptions if present.
 	schema.SchemaDescriptionBuilder = func(s *schema.Schema) string {
 		desc := s.Description
+
+		switch v := s.Default.(type) {
+		case string:
+			_ = v
+			if s.Default != nil {
+                	        desc += fmt.Sprintf(
+					"\n    - Defaults to `%s`.",
+					strings.Replace(
+						(
+							strings.Replace(
+								s.Default.(string),
+								"{{",
+								"{{`{{",
+								-1,
+							)),
+                                                "}}",
+                                                "}}`}}",
+						-1,
+					),
+				)
+                	}
+		default:
+                        if s.Default != nil {
+                                desc += fmt.Sprintf("\n    - Defaults to `%v`.", s.Default)
+                        }
+		}
+/*
 		if s.Default != nil {
 			desc += fmt.Sprintf("\n    - Defaults to `%v`.", s.Default)
 		}
+*/
 		if s.ConflictsWith != nil {
 			desc += fmt.Sprintf("\n    - Conflicts with `%v`.", s.ConflictsWith)
 		}
