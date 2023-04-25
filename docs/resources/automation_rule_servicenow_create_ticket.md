@@ -89,7 +89,7 @@ EOT
     - Defaults to `false`.
 - `servicenow_custom_fields` (String) Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Must be valid JSON.
 - `servicenow_description` (String) Ticket description
-    - Defaults to `Description:  {{issue.description}}
+    - Defaults to ```Description:  {{issue.description}}
 Status:       {{issue.status}}
 Created:      {{issue.createdAt}}
 Severity:     {{issue.severity}}
@@ -104,7 +104,7 @@ Subscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entit
 Region:	                {{issue.entitySnapshot.region}}
 Please click the following link to proceed to investigate the issue:
 https://{{wizDomain}}/issues#~(issue~'{{issue.id}})
-Source Automation Rule: {{ruleName}}`.
+Source Automation Rule: {{ruleName}}```.
 - `servicenow_summary` (String) Ticket summary
     - Defaults to `Wiz Issue: {{issue.control.name}}`.
 - `servicenow_table_name` (String) Table name to which new tickets will be added to, e.g: 'incident'.
