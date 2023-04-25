@@ -417,12 +417,13 @@ type CreateJiraTicketFieldsInput struct {
 }
 
 // CreateServiceNowFieldsInput struct -- updates
+// Deviation for AttachEvidenceCSV; make required instead of vendor defined optional
 type CreateServiceNowFieldsInput struct {
 	TableName         string          `json:"tableName"`
 	CustomFields      json.RawMessage `json:"customFields,omitempty"`
 	Summary           string          `json:"summary"`
 	Description       string          `json:"description"`
-	AttachEvidenceCSV *bool           `json:"attachEvidenceCSV,omitempty"`
+	AttachEvidenceCSV bool            `json:"attachEvidenceCSV"`
 }
 
 // AutomationAction struct -- updates; this is incomplete.  missing usedByRules. added paramsType

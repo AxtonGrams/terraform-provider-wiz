@@ -143,7 +143,7 @@ func resourceWizAutomationRuleServiceNowCreateTicket() *schema.Resource {
 }
 
 func resourceWizAutomationRuleServiceNowCreateTicketCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleCreate called...")
+	tflog.Info(ctx, "resourceWizAutomationRuleServiceNowCreateTicketCreate called...")
 
 	// define the graphql query
 	query := `mutation CreateAutomationRule (
@@ -169,24 +169,31 @@ func resourceWizAutomationRuleServiceNowCreateTicketCreate(ctx context.Context, 
 	vars.TriggerSource = d.Get("trigger_source").(string)
 
 	// populate the actions parameter
-	awsSNSParams := &wiz.AwsSNSActionTemplateParamsInput{
-		Body: d.Get("aws_sns_body").(string),
+	serviceNowCreateTicketFields := wiz.CreateServiceNowFieldsInput{
+		TableName: d.Get("servicenow_table_name").(string),
+		//CustomFields: d.Get("servicenow_custom_fields").(string),
+		Summary:           d.Get("servicenow_summary").(string),
+		Description:       d.Get("servicenow_description").(string),
+		AttachEvidenceCSV: d.Get("servicenow_attach_evidence_csv").(bool),
+	}
+	serviceNowCreateTicketParams := &wiz.ServiceNowActionCreateTicketTemplateParamsInput{
+		Fields: serviceNowCreateTicketFields,
 	}
 	actionTemplateParams := wiz.ActionTemplateParamsInput{
-		AwsSNS: awsSNSParams,
+		ServiceNowCreateTicket: serviceNowCreateTicketParams,
 	}
 	actions := []wiz.AutomationRuleActionInput{}
 	action := wiz.AutomationRuleActionInput{
 		IntegrationID:        d.Get("integration_id").(string),
 		ActionTemplateParams: actionTemplateParams,
-		ActionTemplateType:   "AWS_SNS",
+		ActionTemplateType:   "SERVICE_NOW_CREATE_TICKET",
 	}
 	actions = append(actions, action)
 	vars.Actions = actions
 
 	// process the request
 	data := &CreateAutomationRule{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create", "create")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "create")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
@@ -231,8 +238,14 @@ func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d 
 	        id
 	      }
 	      actionTemplateParams {
-	        ... on AwsSnsActionTemplateParams {
-	          body
+	        ... on ServiceNowActionCreateTicketTemplateParams {
+	          fields {
+	            tableName
+	            customFields
+	            summary
+	            description
+	            attachEvidenceCSV
+	          }
 	        }
 	      }
 	    }
@@ -245,7 +258,7 @@ func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d 
 
 	// process the request
 	data := &ReadAutomationRulePayload{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create", "read")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "read")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		tflog.Info(ctx, "Error from API call, checking if resource was deleted outside Terraform.")
@@ -304,7 +317,7 @@ func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("aws_sns_body", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["body"])
+	err = d.Set("servicenow_table_name", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["tableName"])
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -319,56 +332,56 @@ func resourceWizAutomationRuleServiceNowCreateTicketUpdate(ctx context.Context, 
 	if d.Id() == "" {
 		return nil
 	}
+	/*
+		// define the graphql query
+		query := `mutation updateAutomationRule($input: UpdateAutomationRuleInput!) {
+		  updateAutomationRule(
+		    input: $input
+		  ) {
+		    automationRule {
+		      id
+		    }
+		  }
+		}`
 
-	// define the graphql query
-	query := `mutation updateAutomationRule($input: UpdateAutomationRuleInput!) {
-	  updateAutomationRule(
-	    input: $input
-	  ) {
-	    automationRule {
-	      id
-	    }
-	  }
-	}`
+		// populate the graphql variables
+		vars := &wiz.UpdateAutomationRuleInput{}
+		vars.ID = d.Id()
+		vars.Patch.Name = d.Get("name").(string)
+		vars.Patch.Description = d.Get("description").(string)
+		vars.Patch.TriggerSource = d.Get("trigger_source").(string)
+		triggerTypes := make([]string, 0, 0)
+		for _, j := range d.Get("trigger_type").([]interface{}) {
+			triggerTypes = append(triggerTypes, j.(string))
+		}
+		vars.Patch.TriggerType = triggerTypes
+		vars.Patch.Filters = json.RawMessage(d.Get("filters").(string))
+		vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
 
-	// populate the graphql variables
-	vars := &wiz.UpdateAutomationRuleInput{}
-	vars.ID = d.Id()
-	vars.Patch.Name = d.Get("name").(string)
-	vars.Patch.Description = d.Get("description").(string)
-	vars.Patch.TriggerSource = d.Get("trigger_source").(string)
-	triggerTypes := make([]string, 0, 0)
-	for _, j := range d.Get("trigger_type").([]interface{}) {
-		triggerTypes = append(triggerTypes, j.(string))
-	}
-	vars.Patch.TriggerType = triggerTypes
-	vars.Patch.Filters = json.RawMessage(d.Get("filters").(string))
-	vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
+		actions := []wiz.AutomationRuleActionInput{}
+		awsSNS := &wiz.AwsSNSActionTemplateParamsInput{
+			Body: d.Get("aws_sns_body").(string),
+		}
 
-	actions := []wiz.AutomationRuleActionInput{}
-	awsSNS := &wiz.AwsSNSActionTemplateParamsInput{
-		Body: d.Get("aws_sns_body").(string),
-	}
+		actionTemplateParams := wiz.ActionTemplateParamsInput{
+			AwsSNS: awsSNS,
+		}
+		action := wiz.AutomationRuleActionInput{
+			IntegrationID:        d.Get("integration_id").(string),
+			ActionTemplateType:   "AWS_SNS",
+			ActionTemplateParams: actionTemplateParams,
+		}
+		actions = append(actions, action)
 
-	actionTemplateParams := wiz.ActionTemplateParamsInput{
-		AwsSNS: awsSNS,
-	}
-	action := wiz.AutomationRuleActionInput{
-		IntegrationID:        d.Get("integration_id").(string),
-		ActionTemplateType:   "AWS_SNS",
-		ActionTemplateParams: actionTemplateParams,
-	}
-	actions = append(actions, action)
+		vars.Patch.Actions = actions
 
-	vars.Patch.Actions = actions
-
-	// process the request
-	data := &UpdateAutomationRule{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule", "update")
-	diags = append(diags, requestDiags...)
-	if len(diags) > 0 {
-		return diags
-	}
-
+		// process the request
+		data := &UpdateAutomationRule{}
+		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule", "update")
+		diags = append(diags, requestDiags...)
+		if len(diags) > 0 {
+			return diags
+		}
+	*/
 	return resourceWizAutomationRuleServiceNowCreateTicketRead(ctx, d, m)
 }
