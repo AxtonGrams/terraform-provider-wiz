@@ -73,7 +73,7 @@ EOT
         - CLOUD_EVENTS
         - CONTROL
         - CONFIGURATION_FINDING
-- `trigger_type` (List of String) Trigger type.
+- `trigger_type` (List of String) Trigger type. Must be set to `CREATED` for wiz_automation_rule_servicenow_create.
     - Allowed values: 
         - CREATED
         - UPDATED
