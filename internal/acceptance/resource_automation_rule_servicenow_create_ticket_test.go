@@ -125,9 +125,6 @@ EOT
 `, rName, rName)
 }
 
-
-
-
 const testAccResourceWizAutomationRuleAwsSNSBasic = `
 resource "wiz_integration_servicenow" "foo" {
   name                      = "test-acc-WizAutomationRuleAwsSNS_basic"

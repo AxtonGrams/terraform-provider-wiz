@@ -115,9 +115,9 @@ func resourceWizAutomationRuleServiceNowCreateTicket() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Must be valid JSON.",
-                                ValidateDiagFunc: validation.ToDiagFunc(
-                                        validation.StringIsJSON,
-                                ),
+				ValidateDiagFunc: validation.ToDiagFunc(
+					validation.StringIsJSON,
+				),
 			},
 			"servicenow_summary": {
 				Type:        schema.TypeString,
@@ -129,7 +129,7 @@ func resourceWizAutomationRuleServiceNowCreateTicket() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Ticket description",
-				Default: `Description:  {{issue.description}}\nStatus:       {{issue.status}}\nCreated:      {{issue.createdAt}}\nSeverity:     {{issue.severity}}\nProject:      {{#issue.projects}}{{name}}, {{/issue.projects}}\n\n---\nResource:\t            {{issue.entitySnapshot.name}}\nType:\t                {{issue.entitySnapshot.nativeType}}\nCloud Platform:\t        {{issue.entitySnapshot.cloudPlatform}}\nCloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}\nSubscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})\nRegion:\t                {{issue.entitySnapshot.region}}\nPlease click the following link to proceed to investigate the issue:\nhttps://{{wizDomain}}/issues#~(issue~'{{issue.id}})\nSource Automation Rule: {{ruleName}}`,
+				Default:     `Description:  {{issue.description}}\nStatus:       {{issue.status}}\nCreated:      {{issue.createdAt}}\nSeverity:     {{issue.severity}}\nProject:      {{#issue.projects}}{{name}}, {{/issue.projects}}\n\n---\nResource:\t            {{issue.entitySnapshot.name}}\nType:\t                {{issue.entitySnapshot.nativeType}}\nCloud Platform:\t        {{issue.entitySnapshot.cloudPlatform}}\nCloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}\nSubscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})\nRegion:\t                {{issue.entitySnapshot.region}}\nPlease click the following link to proceed to investigate the issue:\nhttps://{{wizDomain}}/issues#~(issue~'{{issue.id}})\nSource Automation Rule: {{ruleName}}`,
 			},
 			"servicenow_attach_evidence_csv": {
 				Type:        schema.TypeBool,
