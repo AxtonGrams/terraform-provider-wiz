@@ -89,7 +89,8 @@ EOT
     - Defaults to `false`.
 - `servicenow_custom_fields` (String) Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Must be valid JSON.
 - `servicenow_description` (String) Ticket description
-    - Defaults to ```
+    - Defaults to 
+```
 Description:  {{issue.description}}
 Status:       {{issue.status}}
 Created:      {{issue.createdAt}}
