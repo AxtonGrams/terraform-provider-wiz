@@ -22,5 +22,22 @@ resource "wiz_automation_rule_servicenow_create_ticket" "example" {
   })
   servicenow_table_name  = "incident"
   servicenow_summary     = "Wiz Issue: {{issue.control.name}}"
-  servicenow_description = "Description:  {{issue.description}}\nStatus:       {{issue.status}}\nCreated:      {{issue.createdAt}}\nSeverity:     {{issue.severity}}\nProject:      {{#issue.projects}}{{name}}, {{/issue.projects}}\n\n---\nResource:\t            {{issue.entitySnapshot.name}}\nType:\t                {{issue.entitySnapshot.nativeType}}\nCloud Platform:\t        {{issue.entitySnapshot.cloudPlatform}}\nCloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}\nSubscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})\nRegion:\t                {{issue.entitySnapshot.region}}\nPlease click the following link to proceed to investigate the issue:\nhttps://{{wizDomain}}/issues#~(issue~'{{issue.id}})\nSource Automation Rule: {{ruleName}}"
+  servicenow_description = <<EOT
+Description:  {{issue.description}}
+Status:       {{issue.status}}
+Created:      {{issue.createdAt}}
+Severity:     {{issue.severity}}
+Project:      {{#issue.projects}}{{name}}, {{/issue.projects}}
+
+---
+Resource:	            {{issue.entitySnapshot.name}}
+Type:	                {{issue.entitySnapshot.nativeType}}
+Cloud Platform:	        {{issue.entitySnapshot.cloudPlatform}}
+Cloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}
+Subscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})
+Region:	                {{issue.entitySnapshot.region}}
+Please click the following link to proceed to investigate the issue:
+https://{{wizDomain}}/issues#~(issue~'{{issue.id}})
+Source Automation Rule: {{ruleName}}
+EOT
 }

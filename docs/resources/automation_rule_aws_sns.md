@@ -33,7 +33,42 @@ resource "wiz_automation_rule_aws_sns" "example" {
     "CREATED",
     "REOPENED",
   ]
-  aws_sns_body = "{\n  \"trigger\": {\n    \"source\": \"{{triggerSource}}\",\n    \"type\": \"{{triggerType}}\",\n    \"ruleId\": \"{{ruleId}}\",\n    \"ruleName\": \"{{ruleName}}\"\n  },\n  \"issue\": {\n    \"id\": \"{{issue.id}}\",\n    \"status\": \"{{issue.status}}\",\n    \"severity\": \"{{issue.severity}}\",\n    \"created\": \"{{issue.createdAt}}\",\n    \"projects\": \"{{#issue.projects}}{{name}}, {{/issue.projects}}\"\n  },\n  \"resource\": {\n    \"id\": \"{{issue.entitySnapshot.providerId}}\",\n    \"name\": \"{{issue.entitySnapshot.name}}\",\n    \"type\": \"{{issue.entitySnapshot.nativeType}}\",\n    \"cloudPlatform\": \"{{issue.entitySnapshot.cloudPlatform}}\",\n    \"subscriptionId\": \"{{issue.entitySnapshot.subscriptionExternalId}}\",\n    \"subscriptionName\": \"{{issue.entitySnapshot.subscriptionName}}\",\n    \"region\": \"{{issue.entitySnapshot.region}}\",\n    \"status\": \"{{issue.entitySnapshot.status}}\",\n    \"cloudProviderURL\": \"{{issue.entitySnapshot.cloudProviderURL}}\"\n  },\n  \"control\": {\n    \"id\": \"{{issue.control.id}}\",\n    \"name\": \"{{issue.control.name}}\",\n    \"description\": \"{{issue.control.description}}\",\n    \"severity\": \"{{issue.control.severity}}\",\n    \"sourceCloudConfigurationRuleId\": \"{{issue.control.sourceCloudConfigurationRule.shortId}}\",\n    \"sourceCloudConfigurationRuleName\": \"{{issue.control.sourceCloudConfigurationRule.name}}\"\n  }\n}"
+  aws_sns_body = <<EOT
+{
+  "trigger": {
+    "source": "{{triggerSource}}",
+    "type": "{{triggerType}}",
+    "ruleId": "{{ruleId}}",
+    "ruleName": "{{ruleName}}"
+  },
+  "issue": {
+    "id": "{{issue.id}}",
+    "status": "{{issue.status}}",
+    "severity": "{{issue.severity}}",
+    "created": "{{issue.createdAt}}",
+    "projects": "{{#issue.projects}}{{name}}, {{/issue.projects}}"
+  },
+  "resource": {
+    "id": "{{issue.entitySnapshot.providerId}}",
+    "name": "{{issue.entitySnapshot.name}}",
+    "type": "{{issue.entitySnapshot.nativeType}}",
+    "cloudPlatform": "{{issue.entitySnapshot.cloudPlatform}}",
+    "subscriptionId": "{{issue.entitySnapshot.subscriptionExternalId}}",
+    "subscriptionName": "{{issue.entitySnapshot.subscriptionName}}",
+    "region": "{{issue.entitySnapshot.region}}",
+    "status": "{{issue.entitySnapshot.status}}",
+    "cloudProviderURL": "{{issue.entitySnapshot.cloudProviderURL}}"
+  },
+  "control": {
+    "id": "{{issue.control.id}}",
+    "name": "{{issue.control.name}}",
+    "description": "{{issue.control.description}}",
+    "severity": "{{issue.control.severity}}",
+    "sourceCloudConfigurationRuleId": "{{issue.control.sourceCloudConfigurationRule.shortId}}",
+    "sourceCloudConfigurationRuleName": "{{issue.control.sourceCloudConfigurationRule.name}}"
+  }
+}
+EOT
   filters = jsonencode({
     "project" : [],
     "relatedEntity" : {
