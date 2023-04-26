@@ -60,7 +60,7 @@ func resourceWizAutomationRuleServiceNowCreateTicket() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Description: fmt.Sprintf(
-					"Trigger type. Must be set to `CREATED` for wiz_automation_rule_servicenow_create.\n    - Allowed values: %s",
+					"Trigger type. Must be set to `CREATED` for wiz_automation_rule_servicenow_create_ticket.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
 						wiz.AutomationRuleTriggerType,
 					),
