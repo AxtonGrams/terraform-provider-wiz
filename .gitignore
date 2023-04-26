@@ -15,3 +15,6 @@
 /vendor
 
 terraform-provider-wiz
+
+schema/wiz.graphql
+schema/wiz.json
