@@ -122,7 +122,7 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 }
 
 func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleCreate called...")
+	tflog.Info(ctx, "resourceWizAutomationRuleAwsSNSCreate called...")
 
 	// define the graphql query
 	query := `mutation CreateAutomationRule (
@@ -178,7 +178,7 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 }
 
 func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleRead called...")
+	tflog.Info(ctx, "resourceWizAutomationRuleAwsSNSRead called...")
 
 	// check the id
 	if d.Id() == "" {
@@ -292,7 +292,7 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 }
 
 func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleUpdate called...")
+	tflog.Info(ctx, "resourceWizAutomationRuleAwsSNSUpdate called...")
 
 	// check the id
 	if d.Id() == "" {

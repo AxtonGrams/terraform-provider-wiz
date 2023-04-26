@@ -1782,10 +1782,11 @@ type ServiceNowActionCreateTicketTemplateParamsInput struct {
 }
 
 // ServiceNowActionUpdateTicketTemplateParamsInput struct
+// Deviation on AttachIssuesReport; changed from optional to required
 type ServiceNowActionUpdateTicketTemplateParamsInput struct {
 	TableName          string          `json:"tableName"`
 	Fields             json.RawMessage `json:"fields,omitempty"`
-	AttachIssuesReport *bool           `json:"attachIssuesReport,omitempty"`
+	AttachIssuesReport bool            `json:"attachIssuesReport"`
 }
 
 // OpsgenieCreateAlertTemplateParamsInput struct

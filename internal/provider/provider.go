@@ -260,6 +260,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 			ResourcesMap: map[string]*schema.Resource{
 				"wiz_automation_rule_aws_sns":                  resourceWizAutomationRuleAwsSns(),
 				"wiz_automation_rule_servicenow_create_ticket": resourceWizAutomationRuleServiceNowCreateTicket(),
+				"wiz_automation_rule_servicenow_update_ticket": resourceWizAutomationRuleServiceNowUpdateTicket(),
 				"wiz_cicd_scan_policy":                         resourceWizCICDScanPolicy(),
 				"wiz_cloud_config_rule":                        resourceWizCloudConfigurationRule(),
 				"wiz_cloud_config_rule_associations":           resourceWizCloudConfigRuleAssociations(),
