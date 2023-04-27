@@ -295,7 +295,7 @@ func init() {
 		case string:
 			_ = v
 			if s.Default != nil {
-				desc += fmt.Sprintf("\n    - Defaults to `%s`.", strings.Replace((strings.Replace(s.Default.(string), "{{", "{{`{{", -1)), "}}", "}}`}}", -1))
+				desc += fmt.Sprintf("\n    - Defaults to `{{`%s`}}`.", s.Default.(string))
 			}
 		default:
 			if s.Default != nil {
