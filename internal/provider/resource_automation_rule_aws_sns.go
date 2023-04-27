@@ -223,7 +223,17 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	vars.ID = d.Id()
 
 	// process the request
-	data := &ReadAutomationRulePayload{}
+	automationRuleActions := make([]*wiz.AutomationRuleAction, 0)
+	automationRuleAction := &wiz.AutomationRuleAction{
+		ActionTemplateParams: &wiz.AwsSNSActionTemplateParamsInput{},
+	}
+	automationRuleActions = append(automationRuleActions, automationRuleAction)
+	data := &ReadAutomationRulePayload{
+		AutomationRule: wiz.AutomationRule{
+			Actions: automationRuleActions,
+		},
+	}
+
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_aws_sns", "read")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
@@ -283,7 +293,7 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("aws_sns_body", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["body"])
+	err = d.Set("aws_sns_body", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.AwsSNSActionTemplateParamsInput).Body)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

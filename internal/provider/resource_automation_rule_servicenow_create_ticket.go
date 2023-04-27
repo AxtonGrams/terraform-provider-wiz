@@ -263,7 +263,17 @@ func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d 
 	vars.ID = d.Id()
 
 	// process the request
-	data := &ReadAutomationRulePayload{}
+	automationRuleActions := make([]*wiz.AutomationRuleAction, 0)
+	automationRuleAction := &wiz.AutomationRuleAction{
+		ActionTemplateParams: &wiz.ServiceNowActionCreateTicketTemplateParams{},
+	}
+	automationRuleActions = append(automationRuleActions, automationRuleAction)
+	data := &ReadAutomationRulePayload{
+		AutomationRule: wiz.AutomationRule{
+			Actions: automationRuleActions,
+		},
+	}
+
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "read")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
@@ -323,23 +333,26 @@ func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("servicenow_table_name", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["tableName"])
+	err = d.Set("servicenow_table_name", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.TableName)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("servicenow_custom_fields", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["customFields"])
+	// since we convert this to a string from a []byte (json.RawMessage), the literal 'null' is returned; we have to not set the schema if null is returned
+	if string(data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.CustomFields) != "null" {
+		err = d.Set("servicenow_custom_fields", string(data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.CustomFields))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	err = d.Set("servicenow_summary", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.Summary)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("servicenow_summary", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["summary"])
+	err = d.Set("servicenow_description", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.Description)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("servicenow_description", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["description"])
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("servicenow_attach_evidence_csv", data.AutomationRule.Actions[0].ActionTemplateParams.(map[string]interface{})["fields"].(map[string]interface{})["attachEvidenceCSV"])
+	err = d.Set("servicenow_attach_evidence_csv", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.AttachEvidenceCSV)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}

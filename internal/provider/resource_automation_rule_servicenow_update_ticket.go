@@ -241,14 +241,14 @@ func resourceWizAutomationRuleServiceNowUpdateTicketRead(ctx context.Context, d 
 	vars.ID = d.Id()
 
 	// process the request
-	tmp := make([]*wiz.AutomationRuleAction, 0)
-	tmp2 := &wiz.AutomationRuleAction{
+	automationRuleActions := make([]*wiz.AutomationRuleAction, 0)
+	automationRuleAction := &wiz.AutomationRuleAction{
 		ActionTemplateParams: &wiz.ServiceNowActionUpdateTicketTemplateParams{},
 	}
-	tmp = append(tmp, tmp2)
+	automationRuleActions = append(automationRuleActions, automationRuleAction)
 	data := &ReadAutomationRulePayload{
 		AutomationRule: wiz.AutomationRule{
-			Actions: tmp,
+			Actions: automationRuleActions,
 		},
 	}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_update_ticket", "read")
