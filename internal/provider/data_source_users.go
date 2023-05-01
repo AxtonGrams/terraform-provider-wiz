@@ -37,12 +37,18 @@ func dataSourceWizUsers() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     50,
-				Description: "How many matches to return.",
+				Description: "How many matches to return, maximum is `100` is per page.",
+			},
+			"max_pages": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "How many pages to return. 0 means all pages.",
 			},
 			"search": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Free text search.",
+				Description: "Free text search. Specify empty string to return all users.",
 			},
 			"authentication_source": {
 				Type:     schema.TypeString,
@@ -80,7 +86,7 @@ func dataSourceWizUsers() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "User email address.",
+							Description: "User name.",
 						},
 						"is_suspended": {
 							Type:        schema.TypeBool,
@@ -176,6 +182,10 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	if b {
 		identifier.WriteString(utils.PrettyPrint(a))
 	}
+	a, b = d.GetOk("max_pages")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(a))
+	}
 	h := sha1.New()
 	h.Write([]byte(identifier.String()))
 	hashID := hex.EncodeToString(h.Sum(nil))
@@ -187,10 +197,12 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	query := `query users(
 	  $first: Int
 	  $filterBy: UserFilters
+	  $after: String
 	){
 	  users(
 	    first: $first,
-	    filterBy: $filterBy
+	    filterBy: $filterBy,
+	    after: $after
 	  ) {
 	      nodes {
 	        id
@@ -253,14 +265,36 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	// process the request
 	data := &ReadUsers{}
+	// create a slice to hold the results
+	wizUsers := []*wiz.User{}
+
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "users", "read")
 
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
 	}
+	wizUsers = append(wizUsers, mapToWizUsers(ctx, data.Users.Nodes)...)
 
-	users := flattenUsers(ctx, &data.Users.Nodes)
+	maxPages := d.Get("max_pages").(int)
+	currentPage := 1
+	// loop through the pages, while there are more pages to process
+	// maxPages of 0 fetches all pages, there is an OR grouping for the third sub-condition
+	for data.Users.PageInfo.HasNextPage && maxPages >= 0 && (currentPage < maxPages || maxPages == 0) {
+		tflog.Debug(ctx, fmt.Sprintf("Processing page: %d", currentPage))
+		currentPage++
+		vars.After = data.Users.PageInfo.EndCursor
+		// process the request
+		requestDiags = client.ProcessRequest(ctx, m, vars, data, query, "users", "read")
+
+		diags = append(diags, requestDiags...)
+		if len(diags) > 0 {
+			return diags
+		}
+		wizUsers = append(wizUsers, mapToWizUsers(ctx, data.Users.Nodes)...)
+	}
+
+	users := flattenUsers(ctx, &wizUsers)
 	if err := d.Set("users", users); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -268,6 +302,26 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
+// mapToWizUsers maps/copies the graphql response to the wiz.User struct
+func mapToWizUsers(ctx context.Context, users []*wiz.User) []*wiz.User {
+	tflog.Info(ctx, "mapToWizUsers called...")
+	wizUsers := []*wiz.User{}
+	for _, node := range users {
+		user := &wiz.User{
+			ID:                   node.ID,
+			Email:                node.Email,
+			Name:                 node.Name,
+			IsSuspended:          node.IsSuspended,
+			IdentityProviderType: node.IdentityProviderType,
+			IdentityProvider:     wiz.SAMLIdentityProvider{Name: node.IdentityProvider.Name},
+			EffectiveRole:        wiz.UserRole{Name: node.EffectiveRole.Name, ID: node.EffectiveRole.ID, Scopes: node.EffectiveRole.Scopes},
+		}
+		wizUsers = append(wizUsers, user)
+	}
+	return wizUsers
+}
+
+// flattenUsers flattens the wiz.User struct into a list of maps
 func flattenUsers(ctx context.Context, users *[]*wiz.User) []interface{} {
 	tflog.Info(ctx, "flattenUsers called...")
 	tflog.Debug(ctx, fmt.Sprintf("Users: %s", utils.PrettyPrint(users)))

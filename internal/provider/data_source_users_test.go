@@ -205,12 +205,36 @@ func TestFlattenLocalUsers(t *testing.T) {
 			"users": flattenUsers(ctx, users),
 		},
 	}
-
 	if !reflect.DeepEqual(flattened, expected) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
 			flattened,
 			expected,
 		)
+	}
+}
+
+func TestMapToWizUsers(t *testing.T) {
+	ctx := context.Background()
+	nodes := []*wiz.User{
+		{Name: "Alice", Email: "alice@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d141", IsSuspended: false, IdentityProviderType: "SAML",
+			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider"}},
+		{Name: "Bob", Email: "bob@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d142", IsSuspended: true, IdentityProviderType: "SAML",
+			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider 2"}},
+	}
+	expectedWizUsers := []*wiz.User{
+		{Name: "Alice", Email: "alice@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d141", IsSuspended: false, IdentityProviderType: "SAML",
+			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider"}},
+		{Name: "Bob", Email: "bob@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d142", IsSuspended: true, IdentityProviderType: "SAML",
+			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider 2"}},
+	}
+
+	actualWizUsers := mapToWizUsers(ctx, nodes)
+
+	if !reflect.DeepEqual(actualWizUsers, expectedWizUsers) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			actualWizUsers,
+			expectedWizUsers)
 	}
 }
