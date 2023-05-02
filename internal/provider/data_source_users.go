@@ -86,7 +86,7 @@ func dataSourceWizUsers() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "User name.",
+							Description: "User email name.",
 						},
 						"is_suspended": {
 							Type:        schema.TypeBool,
@@ -182,9 +182,9 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	if b {
 		identifier.WriteString(utils.PrettyPrint(a))
 	}
-	a, b = d.GetOk("max_pages")
+	maxPages, b := d.GetOk("max_pages")
 	if b {
-		identifier.WriteString(utils.PrettyPrint(a))
+		identifier.WriteString(utils.PrettyPrint(maxPages))
 	}
 	h := sha1.New()
 	h.Write([]byte(identifier.String()))
@@ -265,95 +265,51 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	// process the request
 	data := &ReadUsers{}
-	// create a slice to hold the results
-	wizUsers := []*wiz.User{}
-
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "users", "read")
+	requestDiags, allData := client.ProcessPagedRequest(ctx, m, vars, data, query, "users", "read", maxPages.(int))
+	tflog.Debug(ctx, fmt.Sprintf("allData: %s", utils.PrettyPrint(allData)))
 
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
 	}
-	wizUsers = append(wizUsers, mapToWizUsers(ctx, data.Users.Nodes)...)
 
-	maxPages := d.Get("max_pages").(int)
-	currentPage := 1
-	// loop through the pages, while there are more pages to process
-	// maxPages of 0 fetches all pages, there is an OR grouping for the third sub-condition
-	for data.Users.PageInfo.HasNextPage && maxPages >= 0 && (currentPage < maxPages || maxPages == 0) {
-		tflog.Debug(ctx, fmt.Sprintf("Processing page: %d", currentPage))
-		currentPage++
-		vars.After = data.Users.PageInfo.EndCursor
-		// process the request
-		requestDiags = client.ProcessRequest(ctx, m, vars, data, query, "users", "read")
-
-		diags = append(diags, requestDiags...)
-		if len(diags) > 0 {
-			return diags
-		}
-		wizUsers = append(wizUsers, mapToWizUsers(ctx, data.Users.Nodes)...)
-	}
-
-	users := flattenUsers(ctx, &wizUsers)
+	users := flattenUsers(ctx, allData)
 	if err := d.Set("users", users); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-
 	return diags
 }
 
-// mapToWizUsers maps/copies the graphql response to the wiz.User struct
-func mapToWizUsers(ctx context.Context, users []*wiz.User) []*wiz.User {
-	tflog.Info(ctx, "mapToWizUsers called...")
-	wizUsers := []*wiz.User{}
-	for _, node := range users {
-		user := &wiz.User{
-			ID:                   node.ID,
-			Email:                node.Email,
-			Name:                 node.Name,
-			IsSuspended:          node.IsSuspended,
-			IdentityProviderType: node.IdentityProviderType,
-			IdentityProvider:     wiz.SAMLIdentityProvider{Name: node.IdentityProvider.Name},
-			EffectiveRole:        wiz.UserRole{Name: node.EffectiveRole.Name, ID: node.EffectiveRole.ID, Scopes: node.EffectiveRole.Scopes},
-		}
-		wizUsers = append(wizUsers, user)
-	}
-	return wizUsers
-}
-
-// flattenUsers flattens the wiz.User struct into a list of maps
-func flattenUsers(ctx context.Context, users *[]*wiz.User) []interface{} {
+func flattenUsers(ctx context.Context, users []interface{}) interface{} {
 	tflog.Info(ctx, "flattenUsers called...")
 	tflog.Debug(ctx, fmt.Sprintf("Users: %s", utils.PrettyPrint(users)))
 
 	// walk the slice and construct the list
-	var output = make([]interface{}, 0, 0)
-	for _, b := range *users {
-		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
-		userMap := make(map[string]interface{})
-		userMap["id"] = b.ID
-		userMap["email"] = b.Email
-		userMap["name"] = b.Name
-		userMap["is_suspended"] = b.IsSuspended
-		userMap["identity_provider_type"] = b.IdentityProviderType
+	var output = make([]interface{}, 0)
+	for _, u := range users {
+		readUsers := u.(*ReadUsers)
+		for _, c := range readUsers.Users.Nodes {
+			tflog.Debug(ctx, fmt.Sprintf("c: %T %s", c, utils.PrettyPrint(c)))
+			userMap := make(map[string]interface{})
+			userMap["id"] = c.ID
+			userMap["email"] = c.Email
+			userMap["name"] = c.Name
+			userMap["is_suspended"] = c.IsSuspended
+			userMap["identity_provider_type"] = c.IdentityProviderType
 
-		idpMap := make(map[string]interface{})
-		idpMap["name"] = b.IdentityProvider.Name
-		identityProviderMap := make([]interface{}, 0, 0)
-		identityProviderMap = append(identityProviderMap, idpMap)
-		userMap["identity_provider"] = identityProviderMap
+			idpMap := make(map[string]interface{})
+			idpMap["name"] = c.IdentityProvider.Name
+			userMap["identity_provider"] = []interface{}{idpMap}
 
-		rMap := make(map[string]interface{})
-		rMap["id"] = b.EffectiveRole.ID
-		rMap["name"] = b.EffectiveRole.Name
-		rMap["scopes"] = utils.ConvertSliceToGenericArray(b.EffectiveRole.Scopes)
-		roleMap := make([]interface{}, 0, 0)
-		roleMap = append(roleMap, rMap)
-		userMap["effective_role"] = roleMap
+			roleMap := make(map[string]interface{})
+			roleMap["id"] = c.EffectiveRole.ID
+			roleMap["name"] = c.EffectiveRole.Name
+			roleMap["scopes"] = c.EffectiveRole.Scopes
+			userMap["effective_role"] = []interface{}{roleMap}
 
-		output = append(output, userMap)
+			output = append(output, userMap)
+		}
+
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("flattenUsers output: %s", utils.PrettyPrint(output)))
 	return output
 }

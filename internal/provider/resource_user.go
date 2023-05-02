@@ -31,7 +31,7 @@ func resourceWizUser() *schema.Resource {
 			},
 			"email": {
 				Type:        schema.TypeString,
-				Description: "The Wiz role.",
+				Description: "The user email address.",
 				Required:    true,
 			},
 			"role": {

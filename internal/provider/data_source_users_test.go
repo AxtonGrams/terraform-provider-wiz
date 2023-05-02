@@ -30,144 +30,160 @@ func TestFlattenRoleScopes(t *testing.T) {
 		)
 	}
 }
-
 func TestFlattenIdpUsers(t *testing.T) {
 	ctx := context.Background()
+
 	expected := []interface{}{
 		map[string]interface{}{
-			"id": "71ef857e9018809bff5c7a5666f4f3eba2f8d141",
-			"users": []interface{}{
+			"id":                     "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
+			"email":                  "john.doe@w.com",
+			"name":                   "John Doe",
+			"is_suspended":           false,
+			"identity_provider_type": "SAML",
+			"identity_provider": []interface{}{
 				map[string]interface{}{
-					"id":                     "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
-					"email":                  "john.doe@w.com",
-					"name":                   "John Doe",
-					"is_suspended":           false,
-					"identity_provider_type": "SAML",
-					"identity_provider": []interface{}{
-						map[string]interface{}{
-							"name": "myIdp",
-						},
-					},
-					"effective_role": []interface{}{
-						map[string]interface{}{
-							"id":   "GLOBAL_READER",
-							"name": "GlobalReader",
-							"scopes": []interface{}{
-								"read:all",
-								"create:reports",
-							},
-						},
-					},
+					"name": "myIdp",
 				},
+			},
+			"effective_role": []interface{}{
 				map[string]interface{}{
-					"id":                     "1480a8dc-68e1-5835-82d2-0d9a9eac7cac",
-					"email":                  "jane.doe@w.com",
-					"name":                   "Jane Doe",
-					"is_suspended":           true,
-					"identity_provider_type": "SAML",
-					"identity_provider": []interface{}{
-						map[string]interface{}{
-							"name": "myIdp",
-						},
-					},
-					"effective_role": []interface{}{
-						map[string]interface{}{
-							"id":   "GLOBAL_READER",
-							"name": "GlobalReader",
-							"scopes": []interface{}{
-								"read:all",
-								"create:reports",
-							},
-						},
-					},
+					"id":     "GLOBAL_READER",
+					"name":   "GlobalReader",
+					"scopes": []string{"read:all", "create:reports"},
 				},
 			},
 		},
-	}
-
-	var users = &[]*wiz.User{
-		{
-			ID:                   "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
-			Email:                "john.doe@w.com",
-			Name:                 "John Doe",
-			IsSuspended:          false,
-			IdentityProviderType: "SAML",
-			IdentityProvider: wiz.SAMLIdentityProvider{
-				Name: "myIdp",
-			},
-			EffectiveRole: wiz.UserRole{
-				ID:   "GLOBAL_READER",
-				Name: "GlobalReader",
-				Scopes: []string{
-					"read:all",
-					"create:reports",
-				},
-			},
-		},
-		{
-			ID:                   "1480a8dc-68e1-5835-82d2-0d9a9eac7cac",
-			Email:                "jane.doe@w.com",
-			Name:                 "Jane Doe",
-			IsSuspended:          true,
-			IdentityProviderType: "SAML",
-			IdentityProvider: wiz.SAMLIdentityProvider{
-				Name: "myIdp",
-			},
-			EffectiveRole: wiz.UserRole{
-				ID:   "GLOBAL_READER",
-				Name: "GlobalReader",
-				Scopes: []string{
-					"read:all",
-					"create:reports",
-				},
-			},
-		},
-	}
-
-	flattened := []interface{}{
 		map[string]interface{}{
-			"id":    "71ef857e9018809bff5c7a5666f4f3eba2f8d141",
-			"users": flattenUsers(ctx, users),
+			"id":                     "1480a8dc-68e1-5835-82d2-0d9a9eac7cac",
+			"email":                  "jane.doe@w.com",
+			"name":                   "Jane Doe",
+			"is_suspended":           true,
+			"identity_provider_type": "SAML",
+			"identity_provider": []interface{}{
+				map[string]interface{}{
+					"name": "myIdp",
+				},
+			},
+			"effective_role": []interface{}{
+				map[string]interface{}{
+					"id":     "GLOBAL_READER",
+					"name":   "GlobalReader",
+					"scopes": []string{"read:all", "create:reports"},
+				},
+			},
 		},
 	}
 
-	if !reflect.DeepEqual(flattened, expected) {
-		t.Fatalf(
-			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			flattened,
-			expected,
-		)
+	readUsers1 := ReadUsers{
+		Users: wiz.UserConnection{
+			Nodes: []*wiz.User{
+				{
+					ID:                   "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
+					Email:                "john.doe@w.com",
+					Name:                 "John Doe",
+					IsSuspended:          false,
+					IdentityProviderType: "SAML",
+					IdentityProvider:     wiz.SAMLIdentityProvider{Name: "myIdp"},
+					EffectiveRole: wiz.UserRole{
+						ID:   "GLOBAL_READER",
+						Name: "GlobalReader",
+						Scopes: []string{
+							"read:all",
+							"create:reports",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	readUsers2 := &ReadUsers{
+		Users: wiz.UserConnection{
+			Nodes: []*wiz.User{
+				{
+					ID:                   "1480a8dc-68e1-5835-82d2-0d9a9eac7cac",
+					Email:                "jane.doe@w.com",
+					Name:                 "Jane Doe",
+					IsSuspended:          true,
+					IdentityProviderType: "SAML",
+					IdentityProvider: wiz.SAMLIdentityProvider{
+						Name: "myIdp",
+					},
+					EffectiveRole: wiz.UserRole{
+						ID:   "GLOBAL_READER",
+						Name: "GlobalReader",
+						Scopes: []string{
+							"read:all",
+							"create:reports",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Convert users to the correct type ([]interface{})
+	users := make([]interface{}, 0)
+	users = append(users, &readUsers1)
+	users = append(users, readUsers2)
+
+	result := flattenUsers(ctx, users)
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Unexpected result. Expected: %v, but got: %v", expected, result)
 	}
 }
 
 func TestFlattenLocalUsers(t *testing.T) {
 	ctx := context.Background()
+
 	expected := []interface{}{
 		map[string]interface{}{
-			"id": "71ef857e9018809bff5c7a5666f4f3eba2f8d141",
-			"users": []interface{}{
+			"id":                     "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
+			"email":                  "john.doe@w.com",
+			"name":                   "John Doe",
+			"is_suspended":           false,
+			"identity_provider_type": "WIZ",
+			"identity_provider": []interface{}{
 				map[string]interface{}{
-					"id":                     "auth0|6328329c6914d76a4ff0d209",
-					"email":                  "john.doe@w.com",
-					"name":                   "John Doe",
-					"is_suspended":           false,
-					"identity_provider_type": "WIZ",
-					"identity_provider": []interface{}{
-						map[string]interface{}{
-							"name": "",
-						},
+					"name": "",
+				},
+			},
+			"effective_role": []interface{}{
+				map[string]interface{}{
+					"id":   "GLOBAL_ADMIN",
+					"name": "GlobalAdmin",
+					"scopes": []string{
+						"admin:all",
+						"create:all",
+						"delete:all",
+						"read:all",
+						"update:all",
 					},
-					"effective_role": []interface{}{
-						map[string]interface{}{
-							"id":   "GLOBAL_ADMIN",
-							"name": "GlobalAdmin",
-							"scopes": []interface{}{
-								"admin:all",
-								"create:all",
-								"delete:all",
-								"read:all",
-								"update:all",
-							},
+				},
+			},
+		},
+	}
+
+	readUsers := ReadUsers{
+		Users: wiz.UserConnection{
+			Nodes: []*wiz.User{
+				{
+					ID:                   "5480a8dc-68e1-5835-82d2-0d9a9eac7caf",
+					Email:                "john.doe@w.com",
+					Name:                 "John Doe",
+					IsSuspended:          false,
+					IdentityProviderType: "WIZ",
+					IdentityProvider:     wiz.SAMLIdentityProvider{Name: ""},
+					EffectiveRole: wiz.UserRole{
+						ID:   "GLOBAL_ADMIN",
+						Name: "GlobalAdmin",
+						Scopes: []string{
+							"admin:all",
+							"create:all",
+							"delete:all",
+							"read:all",
+							"update:all",
 						},
 					},
 				},
@@ -175,66 +191,13 @@ func TestFlattenLocalUsers(t *testing.T) {
 		},
 	}
 
-	var users = &[]*wiz.User{
-		{
-			ID:                   "auth0|6328329c6914d76a4ff0d209",
-			Email:                "john.doe@w.com",
-			Name:                 "John Doe",
-			IsSuspended:          false,
-			IdentityProviderType: "WIZ",
-			IdentityProvider: wiz.SAMLIdentityProvider{
-				Name: "",
-			},
-			EffectiveRole: wiz.UserRole{
-				ID:   "GLOBAL_ADMIN",
-				Name: "GlobalAdmin",
-				Scopes: []string{
-					"admin:all",
-					"create:all",
-					"delete:all",
-					"read:all",
-					"update:all",
-				},
-			},
-		},
-	}
+	// Convert users to the correct type ([]interface{})
+	users := make([]interface{}, 0)
+	users = append(users, &readUsers)
 
-	flattened := []interface{}{
-		map[string]interface{}{
-			"id":    "71ef857e9018809bff5c7a5666f4f3eba2f8d141",
-			"users": flattenUsers(ctx, users),
-		},
-	}
-	if !reflect.DeepEqual(flattened, expected) {
-		t.Fatalf(
-			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			flattened,
-			expected,
-		)
-	}
-}
+	result := flattenUsers(ctx, users)
 
-func TestMapToWizUsers(t *testing.T) {
-	ctx := context.Background()
-	nodes := []*wiz.User{
-		{Name: "Alice", Email: "alice@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d141", IsSuspended: false, IdentityProviderType: "SAML",
-			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider"}},
-		{Name: "Bob", Email: "bob@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d142", IsSuspended: true, IdentityProviderType: "SAML",
-			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider 2"}},
-	}
-	expectedWizUsers := []*wiz.User{
-		{Name: "Alice", Email: "alice@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d141", IsSuspended: false, IdentityProviderType: "SAML",
-			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider"}},
-		{Name: "Bob", Email: "bob@example.com", ID: "71ef857e9018809bff5c7a5666f4f3eba2f8d142", IsSuspended: true, IdentityProviderType: "SAML",
-			IdentityProvider: wiz.SAMLIdentityProvider{Name: "Test Provider 2"}},
-	}
-
-	actualWizUsers := mapToWizUsers(ctx, nodes)
-
-	if !reflect.DeepEqual(actualWizUsers, expectedWizUsers) {
-		t.Fatalf(
-			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			actualWizUsers,
-			expectedWizUsers)
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Unexpected result. Expected: %v, but got: %v", expected, result)
 	}
 }
