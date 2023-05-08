@@ -16,7 +16,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
-func resourceWizAutomationRuleAwsSns() *schema.Resource {
+func resourceWizAutomationRuleServiceNowCreateTicket() *schema.Resource {
 	return &schema.Resource{
 		Description: "Automation Rules define associations between actions and findings.",
 		Schema: map[string]*schema.Schema{
@@ -60,7 +60,7 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Description: fmt.Sprintf(
-					"Trigger type.\n    - Allowed values: %s",
+					"Trigger type. Must be set to `CREATED` for wiz_automation_rule_servicenow_create_ticket.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
 						wiz.AutomationRuleTriggerType,
 					),
@@ -105,15 +105,42 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 				Required:    true,
 				Description: "Wiz identifier for the Integration to leverage for this action. Must be resource type integration_aws_sns.",
 			},
-			"aws_sns_body": {
+			"servicenow_table_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "AWS SNS body.",
+				Default:     "incident",
+				Description: "Table name to which new tickets will be added to, e.g: 'incident'.",
+			},
+			"servicenow_custom_fields": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Custom configuration fields as specified in Service Now. Make sure you add the fields that are configured as required in Service Now Project, otherwise ticket creation will fail. Must be valid JSON.",
+				ValidateDiagFunc: validation.ToDiagFunc(
+					validation.StringIsJSON,
+				),
+			},
+			"servicenow_summary": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Wiz Issue: {{issue.control.name}}",
+				Description: "Ticket summary",
+			},
+			"servicenow_description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Ticket description",
+				Default:     `Description:  {{issue.description}}\nStatus:       {{issue.status}}\nCreated:      {{issue.createdAt}}\nSeverity:     {{issue.severity}}\nProject:      {{#issue.projects}}{{name}}, {{/issue.projects}}\n\n---\nResource:\t            {{issue.entitySnapshot.name}}\nType:\t                {{issue.entitySnapshot.nativeType}}\nCloud Platform:\t        {{issue.entitySnapshot.cloudPlatform}}\nCloud Resource URL:     {{issue.entitySnapshot.cloudProviderURL}}\nSubscription Name (ID): {{issue.entitySnapshot.subscriptionName}} ({{issue.entitySnapshot.subscriptionExternalId}})\nRegion:\t                {{issue.entitySnapshot.region}}\nPlease click the following link to proceed to investigate the issue:\nhttps://{{wizDomain}}/issues#~(issue~'{{issue.id}})\nSource Automation Rule: {{ruleName}}`,
+			},
+			"servicenow_attach_evidence_csv": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Upload issue evidence CSV as attachment?",
 			},
 		},
-		CreateContext: resourceWizAutomationRuleAwsSNSCreate,
-		ReadContext:   resourceWizAutomationRuleAwsSNSRead,
-		UpdateContext: resourceWizAutomationRuleAwsSNSUpdate,
+		CreateContext: resourceWizAutomationRuleServiceNowCreateTicketCreate,
+		ReadContext:   resourceWizAutomationRuleServiceNowCreateTicketRead,
+		UpdateContext: resourceWizAutomationRuleServiceNowCreateTicketUpdate,
 		DeleteContext: resourceWizAutomationRuleDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -121,8 +148,8 @@ func resourceWizAutomationRuleAwsSns() *schema.Resource {
 	}
 }
 
-func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleAwsSNSCreate called...")
+func resourceWizAutomationRuleServiceNowCreateTicketCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizAutomationRuleServiceNowCreateTicketCreate called...")
 
 	// define the graphql query
 	query := `mutation CreateAutomationRule (
@@ -148,24 +175,31 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 	vars.TriggerSource = d.Get("trigger_source").(string)
 
 	// populate the actions parameter
-	awsSNSParams := &wiz.AwsSNSActionTemplateParamsInput{
-		Body: d.Get("aws_sns_body").(string),
+	serviceNowCreateTicketFields := wiz.CreateServiceNowFieldsInput{
+		TableName:         d.Get("servicenow_table_name").(string),
+		CustomFields:      json.RawMessage(d.Get("servicenow_custom_fields").(string)),
+		Summary:           d.Get("servicenow_summary").(string),
+		Description:       d.Get("servicenow_description").(string),
+		AttachEvidenceCSV: d.Get("servicenow_attach_evidence_csv").(bool),
+	}
+	serviceNowCreateTicketParams := &wiz.ServiceNowActionCreateTicketTemplateParamsInput{
+		Fields: serviceNowCreateTicketFields,
 	}
 	actionTemplateParams := wiz.ActionTemplateParamsInput{
-		AwsSNS: awsSNSParams,
+		ServiceNowCreateTicket: serviceNowCreateTicketParams,
 	}
 	actions := []wiz.AutomationRuleActionInput{}
 	action := wiz.AutomationRuleActionInput{
 		IntegrationID:        d.Get("integration_id").(string),
 		ActionTemplateParams: actionTemplateParams,
-		ActionTemplateType:   "AWS_SNS",
+		ActionTemplateType:   "SERVICE_NOW_CREATE_TICKET",
 	}
 	actions = append(actions, action)
 	vars.Actions = actions
 
 	// process the request
 	data := &CreateAutomationRule{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_aws_sns", "create")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "create")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
@@ -174,11 +208,11 @@ func resourceWizAutomationRuleAwsSNSCreate(ctx context.Context, d *schema.Resour
 	// set the id and computed values
 	d.SetId(data.CreateAutomationRule.AutomationRule.ID)
 
-	return resourceWizAutomationRuleAwsSNSRead(ctx, d, m)
+	return resourceWizAutomationRuleServiceNowCreateTicketRead(ctx, d, m)
 }
 
-func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleAwsSNSRead called...")
+func resourceWizAutomationRuleServiceNowCreateTicketRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizAutomationRuleServiceNowCreateTicketRead called...")
 
 	// check the id
 	if d.Id() == "" {
@@ -210,8 +244,14 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	        id
 	      }
 	      actionTemplateParams {
-	        ... on AwsSnsActionTemplateParams {
-	          body
+	        ... on ServiceNowActionCreateTicketTemplateParams {
+	          fields {
+	            tableName
+	            customFields
+	            summary
+	            description
+	            attachEvidenceCSV
+	          }
 	        }
 	      }
 	    }
@@ -225,7 +265,7 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	// process the request
 	automationRuleActions := make([]*wiz.AutomationRuleAction, 0)
 	automationRuleAction := &wiz.AutomationRuleAction{
-		ActionTemplateParams: &wiz.AwsSNSActionTemplateParamsInput{},
+		ActionTemplateParams: &wiz.ServiceNowActionCreateTicketTemplateParams{},
 	}
 	automationRuleActions = append(automationRuleActions, automationRuleAction)
 	data := &ReadAutomationRulePayload{
@@ -234,7 +274,7 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 		},
 	}
 
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_aws_sns", "read")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "read")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		tflog.Info(ctx, "Error from API call, checking if resource was deleted outside Terraform.")
@@ -293,7 +333,26 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("aws_sns_body", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.AwsSNSActionTemplateParamsInput).Body)
+	err = d.Set("servicenow_table_name", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.TableName)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	// since we convert this to a string from a []byte (json.RawMessage), the literal 'null' is returned; we have to not set the schema if null is returned
+	if string(data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.CustomFields) != "null" {
+		err = d.Set("servicenow_custom_fields", string(data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.CustomFields))
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+	err = d.Set("servicenow_summary", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.Summary)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("servicenow_description", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.Description)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("servicenow_attach_evidence_csv", data.AutomationRule.Actions[0].ActionTemplateParams.(*wiz.ServiceNowActionCreateTicketTemplateParams).Fields.AttachEvidenceCSV)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -301,8 +360,8 @@ func resourceWizAutomationRuleAwsSNSRead(ctx context.Context, d *schema.Resource
 	return diags
 }
 
-func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizAutomationRuleAwsSNSUpdate called...")
+func resourceWizAutomationRuleServiceNowCreateTicketUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizAutomationRuleServiceNowCreateTicketUpdate called...")
 
 	// check the id
 	if d.Id() == "" {
@@ -335,29 +394,35 @@ func resourceWizAutomationRuleAwsSNSUpdate(ctx context.Context, d *schema.Resour
 	vars.Patch.Enabled = utils.ConvertBoolToPointer(d.Get("enabled").(bool))
 
 	actions := []wiz.AutomationRuleActionInput{}
-	awsSNS := &wiz.AwsSNSActionTemplateParamsInput{
-		Body: d.Get("aws_sns_body").(string),
+	serviceNowFields := wiz.CreateServiceNowFieldsInput{
+		TableName:         d.Get("servicenow_table_name").(string),
+		CustomFields:      json.RawMessage(d.Get("servicenow_custom_fields").(string)),
+		Summary:           d.Get("servicenow_summary").(string),
+		Description:       d.Get("servicenow_description").(string),
+		AttachEvidenceCSV: d.Get("servicenow_attach_evidence_csv").(bool),
+	}
+	serviceNowCreateTicket := &wiz.ServiceNowActionCreateTicketTemplateParamsInput{
+		Fields: serviceNowFields,
 	}
 
 	actionTemplateParams := wiz.ActionTemplateParamsInput{
-		AwsSNS: awsSNS,
+		ServiceNowCreateTicket: serviceNowCreateTicket,
 	}
 	action := wiz.AutomationRuleActionInput{
 		IntegrationID:        d.Get("integration_id").(string),
-		ActionTemplateType:   "AWS_SNS",
+		ActionTemplateType:   "SERVICE_NOW_CREATE_TICKET",
 		ActionTemplateParams: actionTemplateParams,
 	}
 	actions = append(actions, action)
-
 	vars.Patch.Actions = actions
 
 	// process the request
 	data := &UpdateAutomationRule{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_aws_sns", "update")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "automation_rule_servicenow_create_ticket", "update")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
 	}
 
-	return resourceWizAutomationRuleAwsSNSRead(ctx, d, m)
+	return resourceWizAutomationRuleServiceNowCreateTicketRead(ctx, d, m)
 }

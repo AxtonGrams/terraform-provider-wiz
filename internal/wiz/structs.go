@@ -417,12 +417,13 @@ type CreateJiraTicketFieldsInput struct {
 }
 
 // CreateServiceNowFieldsInput struct -- updates
+// Deviation for AttachEvidenceCSV; make required instead of vendor defined optional
 type CreateServiceNowFieldsInput struct {
 	TableName         string          `json:"tableName"`
 	CustomFields      json.RawMessage `json:"customFields,omitempty"`
 	Summary           string          `json:"summary"`
 	Description       string          `json:"description"`
-	AttachEvidenceCSV *bool           `json:"attachEvidenceCSV,omitempty"`
+	AttachEvidenceCSV bool            `json:"attachEvidenceCSV"`
 }
 
 // AutomationAction struct -- updates; this is incomplete.  missing usedByRules. added paramsType
@@ -1781,10 +1782,11 @@ type ServiceNowActionCreateTicketTemplateParamsInput struct {
 }
 
 // ServiceNowActionUpdateTicketTemplateParamsInput struct
+// Deviation on AttachIssuesReport; changed from optional to required
 type ServiceNowActionUpdateTicketTemplateParamsInput struct {
 	TableName          string          `json:"tableName"`
 	Fields             json.RawMessage `json:"fields,omitempty"`
-	AttachIssuesReport *bool           `json:"attachIssuesReport,omitempty"`
+	AttachIssuesReport bool            `json:"attachIssuesReport"`
 }
 
 // OpsgenieCreateAlertTemplateParamsInput struct

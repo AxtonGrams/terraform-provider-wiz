@@ -27,7 +27,7 @@ test: fmtcheck
 	$(GO_VER) test $(TEST) -v $(TESTARGS) -timeout=5m
 
 testacc: fmtcheck
-	TF_ACC=1 $(GO_VER) test ./${PKG_NAME}/provider_test/... -v -count $(TEST_COUNT) -parallel $(ACCTEST_PARALLELISM) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT)
+	TF_ACC=1 $(GO_VER) test ./${PKG_NAME}/acceptance/... -v -count $(TEST_COUNT) -parallel $(ACCTEST_PARALLELISM) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT)
 
 vet:
 	@echo "go vet ."

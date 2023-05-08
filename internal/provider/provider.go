@@ -258,20 +258,22 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_users":                        dataSourceWizUsers(),
 			},
 			ResourcesMap: map[string]*schema.Resource{
-				"wiz_automation_rule_aws_sns":        resourceWizAutomationRuleAwsSns(),
-				"wiz_cicd_scan_policy":               resourceWizCICDScanPolicy(),
-				"wiz_cloud_config_rule":              resourceWizCloudConfigurationRule(),
-				"wiz_cloud_config_rule_associations": resourceWizCloudConfigRuleAssociations(),
-				"wiz_control":                        resourceWizControl(),
-				"wiz_control_associations":           resourceWizControlAssociations(),
-				"wiz_host_config_rule_associations":  resourceWizHostConfigRuleAssociations(),
-				"wiz_integration_aws_sns":            resourceWizIntegrationAwsSNS(),
-				"wiz_integration_servicenow":         resourceWizIntegrationServiceNow(),
-				"wiz_project":                        resourceWizProject(),
-				"wiz_saml_idp":                       resourceWizSAMLIdP(),
-				"wiz_security_framework":             resourceWizSecurityFramework(),
-				"wiz_service_account":                resourceWizServiceAccount(),
-				"wiz_user":                           resourceWizUser(),
+				"wiz_automation_rule_aws_sns":                  resourceWizAutomationRuleAwsSns(),
+				"wiz_automation_rule_servicenow_create_ticket": resourceWizAutomationRuleServiceNowCreateTicket(),
+				"wiz_automation_rule_servicenow_update_ticket": resourceWizAutomationRuleServiceNowUpdateTicket(),
+				"wiz_cicd_scan_policy":                         resourceWizCICDScanPolicy(),
+				"wiz_cloud_config_rule":                        resourceWizCloudConfigurationRule(),
+				"wiz_cloud_config_rule_associations":           resourceWizCloudConfigRuleAssociations(),
+				"wiz_control":                                  resourceWizControl(),
+				"wiz_control_associations":                     resourceWizControlAssociations(),
+				"wiz_host_config_rule_associations":            resourceWizHostConfigRuleAssociations(),
+				"wiz_integration_aws_sns":                      resourceWizIntegrationAwsSNS(),
+				"wiz_integration_servicenow":                   resourceWizIntegrationServiceNow(),
+				"wiz_project":                                  resourceWizProject(),
+				"wiz_saml_idp":                                 resourceWizSAMLIdP(),
+				"wiz_security_framework":                       resourceWizSecurityFramework(),
+				"wiz_service_account":                          resourceWizServiceAccount(),
+				"wiz_user":                                     resourceWizUser(),
 			},
 		}
 		p.ConfigureContextFunc = configure(version, p)
@@ -287,8 +289,18 @@ func init() {
 	// to the exported descriptions if present.
 	schema.SchemaDescriptionBuilder = func(s *schema.Schema) string {
 		desc := s.Description
-		if s.Default != nil {
-			desc += fmt.Sprintf("\n    - Defaults to `%v`.", s.Default)
+
+		// We have to do some magic here since some default values include golang text/template markers, which confuses tfplugindocs
+		switch v := s.Default.(type) {
+		case string:
+			_ = v
+			if s.Default != nil {
+				desc += fmt.Sprintf("\n    - Defaults to `{{`%s`}}`.", s.Default.(string))
+			}
+		default:
+			if s.Default != nil {
+				desc += fmt.Sprintf("\n    - Defaults to `%v`.", s.Default)
+			}
 		}
 		if s.ConflictsWith != nil {
 			desc += fmt.Sprintf("\n    - Conflicts with `%v`.", s.ConflictsWith)
