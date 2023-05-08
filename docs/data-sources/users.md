@@ -36,10 +36,12 @@ data "wiz_users" "by_role" {
         - MODERN
 
     - Defaults to `MODERN`.
-- `first` (Number) How many matches to return.
+- `first` (Number) How many matches to return, maximum is `100` is per page.
     - Defaults to `50`.
+- `max_pages` (Number) How many pages to return. 0 means all pages.
+    - Defaults to `0`.
 - `roles` (List of String) List of roles to filter by.
-- `search` (String) Free text search.
+- `search` (String) Free text search. Specify empty string to return all users.
 - `users` (Block Set) The returned wiz users. (see [below for nested schema](#nestedblock--users))
 
 ### Read-Only
@@ -57,7 +59,7 @@ Optional:
 - `identity_provider` (Block Set) The identity provider details. (see [below for nested schema](#nestedblock--users--identity_provider))
 - `identity_provider_type` (String) Identity Provider Type.
 - `is_suspended` (Boolean) If user is suspended.
-- `name` (String) User email address.
+- `name` (String) User email name.
 
 <a id="nestedblock--users--effective_role"></a>
 ### Nested Schema for `users.effective_role`

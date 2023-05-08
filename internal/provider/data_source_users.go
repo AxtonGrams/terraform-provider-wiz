@@ -37,12 +37,18 @@ func dataSourceWizUsers() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     50,
-				Description: "How many matches to return.",
+				Description: "How many matches to return, maximum is `100` is per page.",
+			},
+			"max_pages": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "How many pages to return. 0 means all pages.",
 			},
 			"search": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Free text search.",
+				Description: "Free text search. Specify empty string to return all users.",
 			},
 			"authentication_source": {
 				Type:     schema.TypeString,
@@ -80,7 +86,7 @@ func dataSourceWizUsers() *schema.Resource {
 						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "User email address.",
+							Description: "User email name.",
 						},
 						"is_suspended": {
 							Type:        schema.TypeBool,
@@ -176,6 +182,10 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	if b {
 		identifier.WriteString(utils.PrettyPrint(a))
 	}
+	maxPages, b := d.GetOk("max_pages")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(maxPages))
+	}
 	h := sha1.New()
 	h.Write([]byte(identifier.String()))
 	hashID := hex.EncodeToString(h.Sum(nil))
@@ -187,10 +197,12 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 	query := `query users(
 	  $first: Int
 	  $filterBy: UserFilters
+	  $after: String
 	){
 	  users(
 	    first: $first,
-	    filterBy: $filterBy
+	    filterBy: $filterBy,
+	    after: $after
 	  ) {
 	      nodes {
 	        id
@@ -253,53 +265,51 @@ func dataSourceWizUsersRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	// process the request
 	data := &ReadUsers{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "users", "read")
+	requestDiags, allData := client.ProcessPagedRequest(ctx, m, vars, data, query, "users", "read", maxPages.(int))
+	tflog.Debug(ctx, fmt.Sprintf("allData: %s", utils.PrettyPrint(allData)))
 
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
 	}
 
-	users := flattenUsers(ctx, &data.Users.Nodes)
+	users := flattenUsers(ctx, allData)
 	if err := d.Set("users", users); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-
 	return diags
 }
 
-func flattenUsers(ctx context.Context, users *[]*wiz.User) []interface{} {
+func flattenUsers(ctx context.Context, users []interface{}) interface{} {
 	tflog.Info(ctx, "flattenUsers called...")
 	tflog.Debug(ctx, fmt.Sprintf("Users: %s", utils.PrettyPrint(users)))
 
 	// walk the slice and construct the list
-	var output = make([]interface{}, 0, 0)
-	for _, b := range *users {
-		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
-		userMap := make(map[string]interface{})
-		userMap["id"] = b.ID
-		userMap["email"] = b.Email
-		userMap["name"] = b.Name
-		userMap["is_suspended"] = b.IsSuspended
-		userMap["identity_provider_type"] = b.IdentityProviderType
+	var output = make([]interface{}, 0)
+	for _, u := range users {
+		readUsers := u.(*ReadUsers)
+		for _, c := range readUsers.Users.Nodes {
+			tflog.Debug(ctx, fmt.Sprintf("c: %T %s", c, utils.PrettyPrint(c)))
+			userMap := make(map[string]interface{})
+			userMap["id"] = c.ID
+			userMap["email"] = c.Email
+			userMap["name"] = c.Name
+			userMap["is_suspended"] = c.IsSuspended
+			userMap["identity_provider_type"] = c.IdentityProviderType
 
-		idpMap := make(map[string]interface{})
-		idpMap["name"] = b.IdentityProvider.Name
-		identityProviderMap := make([]interface{}, 0, 0)
-		identityProviderMap = append(identityProviderMap, idpMap)
-		userMap["identity_provider"] = identityProviderMap
+			idpMap := make(map[string]interface{})
+			idpMap["name"] = c.IdentityProvider.Name
+			userMap["identity_provider"] = []interface{}{idpMap}
 
-		rMap := make(map[string]interface{})
-		rMap["id"] = b.EffectiveRole.ID
-		rMap["name"] = b.EffectiveRole.Name
-		rMap["scopes"] = utils.ConvertSliceToGenericArray(b.EffectiveRole.Scopes)
-		roleMap := make([]interface{}, 0, 0)
-		roleMap = append(roleMap, rMap)
-		userMap["effective_role"] = roleMap
+			roleMap := make(map[string]interface{})
+			roleMap["id"] = c.EffectiveRole.ID
+			roleMap["name"] = c.EffectiveRole.Name
+			roleMap["scopes"] = c.EffectiveRole.Scopes
+			userMap["effective_role"] = []interface{}{roleMap}
 
-		output = append(output, userMap)
+			output = append(output, userMap)
+		}
+
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("flattenUsers output: %s", utils.PrettyPrint(output)))
 	return output
 }
