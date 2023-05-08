@@ -74,7 +74,7 @@ func ProcessRequest(ctx context.Context, m interface{}, vars, data interface{}, 
 	}
 
 	// create the http request, set the user agent, setup the authentication token, log the request
-	request, error, diags := CreateRequest(m, b, diags, ctx, resourceType, operation)
+	request, error, diags := CreateRequest(ctx, m, b, diags, resourceType, operation)
 	if error {
 		return diags
 	}
@@ -159,7 +159,7 @@ func ProcessPagedRequest(ctx context.Context, m interface{}, vars interface{}, d
 	}
 
 	// create the http request, set the user agent, setup the authentication token, log the request
-	request, error, diags := CreateRequest(m, b, diags, ctx, resourceType, operation)
+	request, error, diags := CreateRequest(ctx, m, b, diags, resourceType, operation)
 	if error {
 		return diags, nil
 	}
@@ -187,12 +187,12 @@ func ProcessPagedRequest(ctx context.Context, m interface{}, vars interface{}, d
 			}
 
 			// create the http request, set the user agent, setup the authentication token, log the request
-			request, error, diags := CreateRequest(m, b, diags, ctx, resourceType, operation)
+			request, error, diags := CreateRequest(ctx, m, b, diags, resourceType, operation)
 			if error {
 				return diags, nil
 			}
 			// make the request and handle the response
-			error, diags, continuePaging, newEndCursor := RequestDo(client, request, diags, ctx, resourceType, operation, data, &allData)
+			error, diags, continuePaging, newEndCursor := RequestDo(ctx, client, request, diags, resourceType, operation, data, &allData)
 			if error {
 				return diags, nil
 			}
@@ -202,7 +202,7 @@ func ProcessPagedRequest(ctx context.Context, m interface{}, vars interface{}, d
 			paginate = continuePaging
 		} else {
 			// make the initial request without `endCursor`
-			error, diags, continuePaging, newEndCursor := RequestDo(client, request, diags, ctx, resourceType, operation, data, &allData)
+			error, diags, continuePaging, newEndCursor := RequestDo(ctx, client, request, diags, resourceType, operation, data, &allData)
 			if error {
 				return diags, nil
 			}
@@ -220,7 +220,7 @@ func ProcessPagedRequest(ctx context.Context, m interface{}, vars interface{}, d
 }
 
 // CreateRequest func - create the http request
-func CreateRequest(m interface{}, b *bytes.Buffer, diags diag.Diagnostics, ctx context.Context, resourceType string, operation string) (*http.Request, bool, diag.Diagnostics) {
+func CreateRequest(ctx context.Context, m interface{}, b *bytes.Buffer, diags diag.Diagnostics, resourceType string, operation string) (*http.Request, bool, diag.Diagnostics) {
 	request, err := http.NewRequest("POST", m.(*config.ProviderConf).Settings.WizURL, b)
 	if err != nil {
 		return nil, true, append(diags, diag.FromErr(err)...)
@@ -241,7 +241,7 @@ func CreateRequest(m interface{}, b *bytes.Buffer, diags diag.Diagnostics, ctx c
 }
 
 // RequestDo func - make the http request and handle the response
-func RequestDo(client *http.Client, request *http.Request, diags diag.Diagnostics, ctx context.Context, resourceType string, operation string, data interface{}, alldata *[]interface{}) (error bool, diagnostics diag.Diagnostics, haspages bool, cursor string) {
+func RequestDo(ctx context.Context, client *http.Client, request *http.Request, diags diag.Diagnostics, resourceType string, operation string, data interface{}, alldata *[]interface{}) (error bool, diagnostics diag.Diagnostics, haspages bool, cursor string) {
 
 	// call the api
 	resp, err := client.Do(request)
