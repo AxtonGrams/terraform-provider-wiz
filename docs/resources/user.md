@@ -26,7 +26,7 @@ resource "wiz_user" "psm" {
 
 ### Required
 
-- `email` (String) The Wiz role.
+- `email` (String) The user email address.
 - `name` (String) The user name.
 - `role` (String) Whether the project is archived/inactive
 

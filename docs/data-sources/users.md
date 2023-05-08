@@ -59,7 +59,7 @@ Optional:
 - `identity_provider` (Block Set) The identity provider details. (see [below for nested schema](#nestedblock--users--identity_provider))
 - `identity_provider_type` (String) Identity Provider Type.
 - `is_suspended` (Boolean) If user is suspended.
-- `name` (String) User name.
+- `name` (String) User email name.
 
 <a id="nestedblock--users--effective_role"></a>
 ### Nested Schema for `users.effective_role`
