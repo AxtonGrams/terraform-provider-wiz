@@ -23,7 +23,7 @@ func TestAccDatasourceWizUsers_basic(t *testing.T) {
 						// check that the first user has an id that matches the UUID regex
 						"data.wiz_users.foo",
 						"users.0.id",
-						regexp.MustCompile(uuidPattern),
+						regexp.MustCompile(UUIDPattern),
 					),
 				),
 			},
@@ -34,15 +34,13 @@ func TestAccDatasourceWizUsers_basic(t *testing.T) {
 						// check that the second user has an id that matches the UUID regex
 						"data.wiz_users.foo",
 						"users.1.id",
-						regexp.MustCompile(uuidPattern),
+						regexp.MustCompile(UUIDPattern),
 					),
 				),
 			},
 		},
 	})
 }
-
-const uuidPattern = `^[A-Fa-f0-9]{8}\-[A-Fa-f0-9]{4}\-[A-Fa-f0-9]{4}\-[A-Fa-f0-9]{4}\-[A-Fa-f0-9]{12}`
 
 func testAccDatasourceWizUsersBasic(maxPages int) string {
 	return fmt.Sprintf(`

@@ -52,12 +52,14 @@ data "wiz_cloud_accounts" "multiple_connectors" {
         - Kubernetes
 - `connector_id` (List of String) Query cloud accounts by specific connector ID.
 - `connector_issue_id` (List of String) Query cloud accounts by specific connector issue ID.
-- `first` (Number) How many results to return
+- `first` (Number) How many results to return, maximum is `500` is per page.
     - Defaults to `500`.
 - `has_multiple_connector_sources` (Boolean) QueryQuery cloud accounts by project assignment state.
 - `ids` (List of String) Get specific Cloud Accounts by their IDs.
+- `max_pages` (Number) How many pages to return. 0 means all pages.
+    - Defaults to `0`.
 - `project_id` (String) Query cloud accounts of a specific linked project, given its id.
-- `search` (List of String) Free text search on cloud account name or tags or external-id.
+- `search` (List of String) Free text search on cloud account name or tags or external-id. Specify list of empty string to return all cloud acocunts.
 - `status` (List of String) Query cloud accounts by status.
     - Allowed values: 
         - CONNECTED

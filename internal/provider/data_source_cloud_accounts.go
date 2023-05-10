@@ -32,7 +32,13 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     500,
-				Description: "How many results to return",
+				Description: "How many results to return, maximum is `500` is per page.",
+			},
+			"max_pages": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "How many pages to return. 0 means all pages.",
 			},
 			"ids": {
 				Type:        schema.TypeList,
@@ -45,7 +51,7 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 			"search": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Free text search on cloud account name or tags or external-id.",
+				Description: "Free text search on cloud account name or tags or external-id. Specify list of empty string to return all cloud acocunts.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -223,6 +229,10 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	if b {
 		identifier.WriteString(utils.PrettyPrint(a))
 	}
+	maxPages, b := d.GetOk("max_pages")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(maxPages))
+	}
 
 	h := sha1.New()
 	h.Write([]byte(identifier.String()))
@@ -355,13 +365,14 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 
 	// process the request
 	data := &ReadCloudAccounts{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "cloud_accounts", "read")
+	requestDiags, allData := client.ProcessPagedRequest(ctx, m, vars, data, query, "cloud_accounts", "read", maxPages.(int))
+
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
 	}
 
-	cloudAccounts := flattenCloudAccounts(ctx, &data.CloudAccounts.Nodes)
+	cloudAccounts := flattenCloudAccounts(ctx, allData)
 	if err := d.Set("cloud_accounts", cloudAccounts); err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -369,32 +380,34 @@ func dataSourceWizCloudAccountsRead(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func flattenCloudAccounts(ctx context.Context, nodes *[]*wiz.CloudAccount) []interface{} {
+func flattenCloudAccounts(ctx context.Context, cloudAccounts []interface{}) []interface{} {
 	tflog.Info(ctx, "flattenCloudAccounts called...")
-	tflog.Debug(ctx, fmt.Sprintf("Nodes: %s", utils.PrettyPrint(nodes)))
+	tflog.Debug(ctx, fmt.Sprintf("cloudAccounts: %s", utils.PrettyPrint(cloudAccounts)))
 
 	// walk the slice and construct the map
-	var output = make([]interface{}, 0, 0)
-	for _, b := range *nodes {
-		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
-		accountMap := make(map[string]interface{})
-		accountMap["id"] = b.ID
-		accountMap["external_id"] = b.ExternalID
-		accountMap["name"] = b.Name
-		accountMap["cloud_provider"] = b.CloudProvider
-		accountMap["status"] = b.Status
-		accountMap["linked_project_ids"] = flattenProjectIDs(ctx, &b.LinkedProjects)
-		accountMap["source_connector_ids"] = flattenSourceConnectorIDs(ctx, &b.SourceConnectors)
-		output = append(output, accountMap)
+	var output = make([]interface{}, 0)
+	for _, cldacc := range cloudAccounts {
+		ca := cldacc.(*ReadCloudAccounts)
+		for _, c := range ca.CloudAccounts.Nodes {
+			tflog.Debug(ctx, fmt.Sprintf("c: %T %s", c, utils.PrettyPrint(c)))
+			accountMap := make(map[string]interface{})
+			accountMap["id"] = c.ID
+			accountMap["external_id"] = c.ExternalID
+			accountMap["name"] = c.Name
+			accountMap["cloud_provider"] = c.CloudProvider
+			accountMap["status"] = c.Status
+			accountMap["linked_project_ids"] = flattenProjectIDs(ctx, &c.LinkedProjects)
+			accountMap["source_connector_ids"] = flattenSourceConnectorIDs(ctx, &c.SourceConnectors)
+			output = append(output, accountMap)
+
+		}
+		// sort the return slice to avoid unwanted diffs
+		sort.Slice(output, func(i, j int) bool {
+			return output[i].(map[string]interface{})["id"].(string) < output[j].(map[string]interface{})["id"].(string)
+		})
+		tflog.Debug(ctx, fmt.Sprintf("flattenCloudAccounts output: %s", utils.PrettyPrint(output)))
+
 	}
-
-	// sort the return slice to avoid unwanted diffs
-	sort.Slice(output, func(i, j int) bool {
-		return output[i].(map[string]interface{})["id"].(string) < output[j].(map[string]interface{})["id"].(string)
-	})
-
-	tflog.Debug(ctx, fmt.Sprintf("flattenCloudAccounts output: %s", utils.PrettyPrint(output)))
-
 	return output
 }
 
@@ -403,7 +416,7 @@ func flattenProjectIDs(ctx context.Context, projects *[]*wiz.Project) []interfac
 	tflog.Debug(ctx, fmt.Sprintf("Projects: %s", utils.PrettyPrint(projects)))
 
 	// walk the slice and construct the list
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 	for _, b := range *projects {
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
 		output = append(output, b.ID)
@@ -424,7 +437,7 @@ func flattenSourceConnectorIDs(ctx context.Context, connectors *[]wiz.Connector)
 	tflog.Debug(ctx, fmt.Sprintf("Projects: %s", utils.PrettyPrint(connectors)))
 
 	// walk the slice and construct the list
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 	for _, b := range *connectors {
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
 		output = append(output, b.ID)
