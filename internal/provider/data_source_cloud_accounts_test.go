@@ -28,41 +28,44 @@ func TestFlattenCloudAccounts(t *testing.T) {
 		},
 	}
 
-	var cloudAccounts = &[]*wiz.CloudAccount{
-		{
-			ID:            "3bc53af8-6661-4a57-a2ee-69a4f2853bba",
-			ExternalID:    "04b1b4a5-755f-41a9-94ab-6e12173c9b3c",
-			Name:          "a6250069-ef06-46ff-bdfe-aea00557f41d",
-			CloudProvider: "0767b7a3-d540-4b9c-8afd-a018aa7da0fb",
-			Status:        "9b6e7ae9-e0f6-4748-8171-a6b7a8f385ec",
-			LinkedProjects: []*wiz.Project{
+	// Create sample data
+	accs := &ReadCloudAccounts{
+		CloudAccounts: wiz.CloudAccountConnection{
+			Nodes: []*wiz.CloudAccount{
 				{
-					ID: "55e9138d-e48f-4155-a2ac-364eb00005db",
+					ID:            "3bc53af8-6661-4a57-a2ee-69a4f2853bba",
+					ExternalID:    "04b1b4a5-755f-41a9-94ab-6e12173c9b3c",
+					Name:          "a6250069-ef06-46ff-bdfe-aea00557f41d",
+					CloudProvider: "0767b7a3-d540-4b9c-8afd-a018aa7da0fb",
+					Status:        "9b6e7ae9-e0f6-4748-8171-a6b7a8f385ec",
+					LinkedProjects: []*wiz.Project{
+						{
+							ID: "55e9138d-e48f-4155-a2ac-364eb00005db",
+						},
+						{
+							ID: "3d9ef88a-84f9-4a84-9a67-e5cdd28ad35f",
+						},
+					},
+					SourceConnectors: []wiz.Connector{
+						{
+							ID: "7ac2f620-3882-4c35-91f0-7631eef430c6",
+						},
+						{
+							ID: "dc303b7d-d03d-47f5-9d40-cf16906fb542",
+						},
+					},
 				},
-				{
-					ID: "3d9ef88a-84f9-4a84-9a67-e5cdd28ad35f",
-				},
-			},
-			SourceConnectors: []wiz.Connector{
-				{
-					ID: "7ac2f620-3882-4c35-91f0-7631eef430c6",
-				},
-				{
-					ID: "dc303b7d-d03d-47f5-9d40-cf16906fb542",
-				},
-			},
-		},
+			}},
 	}
+	cloudAccounts := make([]interface{}, 0)
+	cloudAccounts = append(cloudAccounts, accs)
 
 	flattened := flattenCloudAccounts(ctx, cloudAccounts)
 
 	if !reflect.DeepEqual(flattened, expected) {
-		t.Fatalf(
-			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
-			flattened,
-			expected,
-		)
+		t.Errorf("Unexpected result. Expected: %v, but got: %v", expected, flattened)
 	}
+
 }
 
 func TestFlattenProjectIDs(t *testing.T) {
