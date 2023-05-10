@@ -16,6 +16,7 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
+// mockRoundTripper struct
 type mockRoundTripper struct {
 	RoundTripFunc func(req *http.Request) (*http.Response, error)
 }
