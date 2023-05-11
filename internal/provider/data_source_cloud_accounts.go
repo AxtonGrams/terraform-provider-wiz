@@ -51,7 +51,7 @@ func dataSourceWizCloudAccounts() *schema.Resource {
 			"search": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Free text search on cloud account name or tags or external-id. Specify list of empty string to return all cloud acocunts.",
+				Description: "Free text search on cloud account name or tags or external-id. Specify list of empty string to return all cloud accounts.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

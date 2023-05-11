@@ -59,7 +59,7 @@ data "wiz_cloud_accounts" "multiple_connectors" {
 - `max_pages` (Number) How many pages to return. 0 means all pages.
     - Defaults to `0`.
 - `project_id` (String) Query cloud accounts of a specific linked project, given its id.
-- `search` (List of String) Free text search on cloud account name or tags or external-id. Specify list of empty string to return all cloud acocunts.
+- `search` (List of String) Free text search on cloud account name or tags or external-id. Specify list of empty string to return all cloud accounts.
 - `status` (List of String) Query cloud accounts by status.
     - Allowed values: 
         - CONNECTED
