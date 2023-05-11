@@ -41,7 +41,7 @@ data "wiz_kubernetes_clusters" "myclusters" {
         - OpenShift
         - Kubernetes
 - `external_ids` (List of String) The ID(s) to search by. i.e `Azure Subscription ID` or `AWS account number`.
-- `first` (Number) How many matches to return.
+- `first` (Number) How many matches to return, maximum is `500` per page.
     - Defaults to `50`.
 - `kind` (List of String) Query Kubernetes Cluster of specific kind(s) or cloud provider(s).
     - Allowed values: 
@@ -51,7 +51,9 @@ data "wiz_kubernetes_clusters" "myclusters" {
         - OKE
         - OPEN_SHIFT
         - SELF_HOSTED
-- `search` (String) Free text search.
+- `max_pages` (Number) How many pages to return. 0 means all pages.
+    - Defaults to `0`.
+- `search` (String) Free text search. Specify empty string to return all kubernetes clusters
 
 ### Read-Only
 

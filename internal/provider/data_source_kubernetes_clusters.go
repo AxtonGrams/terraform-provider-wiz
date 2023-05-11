@@ -36,12 +36,18 @@ func dataSourceWizKubernetesClusters() *schema.Resource {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     50,
-				Description: "How many matches to return.",
+				Description: "How many matches to return, maximum is `500` per page.",
+			},
+			"max_pages": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "How many pages to return. 0 means all pages.",
 			},
 			"search": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Free text search.",
+				Description: "Free text search. Specify empty string to return all kubernetes clusters",
 			},
 			"external_ids": {
 				Type:        schema.TypeList,
@@ -164,6 +170,10 @@ func dataSourceWizKubernetesClustersRead(ctx context.Context, d *schema.Resource
 	if b {
 		identifier.WriteString(utils.PrettyPrint(a))
 	}
+	maxPages, b := d.GetOk("max_pages")
+	if b {
+		identifier.WriteString(utils.PrettyPrint(maxPages))
+	}
 	h := sha1.New()
 	h.Write([]byte(identifier.String()))
 	hashID := hex.EncodeToString(h.Sum(nil))
@@ -240,14 +250,15 @@ func dataSourceWizKubernetesClustersRead(ctx context.Context, d *schema.Resource
 
 	// process the request
 	data := &ReadKubernetesClusters{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "kubernetesClusters", "read")
+	requestDiags, allData := client.ProcessPagedRequest(ctx, m, vars, data, query, "kubernetesClusters", "read", maxPages.(int))
+	tflog.Debug(ctx, fmt.Sprintf("allData: %s", utils.PrettyPrint(allData)))
 
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
 	}
 
-	clusters := flattenClusters(ctx, &data.KubernetesClusters.Nodes)
+	clusters := flattenClusters(ctx, allData)
 
 	if err := d.Set("kubernetes_clusters", clusters); err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -257,28 +268,33 @@ func dataSourceWizKubernetesClustersRead(ctx context.Context, d *schema.Resource
 
 }
 
-func flattenClusters(ctx context.Context, clusters *[]*wiz.KubernetesCluster) []interface{} {
+func flattenClusters(ctx context.Context, clusters []interface{}) []interface{} {
 	tflog.Info(ctx, "flattenClusters called...")
 	tflog.Debug(ctx, fmt.Sprintf("Clusters: %s", utils.PrettyPrint(clusters)))
 
 	// walk the slice and construct the list
-	var output = make([]interface{}, 0, 0)
-	for _, b := range *clusters {
-		clusterMap := make(map[string]interface{})
-		clusterMap["id"] = b.ID
-		clusterMap["name"] = b.Name
+	var output = make([]interface{}, 0)
+	for _, b := range clusters {
+		readClusters := b.(*ReadKubernetesClusters)
+		for _, cluster := range readClusters.KubernetesClusters.Nodes {
+			tflog.Debug(ctx, fmt.Sprintf("cluster: %s", utils.PrettyPrint(cluster)))
+			rootMap := make(map[string]interface{})
+			rootMap["id"] = cluster.ID
+			rootMap["name"] = cluster.Name
 
-		accMap := make(map[string]interface{})
-		accMap["cloud_provider"] = b.CloudAccount.CloudProvider
-		accMap["external_id"] = b.CloudAccount.ExternalID
-		accMap["id"] = b.CloudAccount.ID
-		accMap["name"] = b.CloudAccount.Name
+			clusterMap := make(map[string]interface{})
+			clusterMap["cloud_provider"] = cluster.CloudAccount.CloudProvider
+			clusterMap["external_id"] = cluster.CloudAccount.ExternalID
+			clusterMap["id"] = cluster.CloudAccount.ID
+			clusterMap["name"] = cluster.CloudAccount.Name
 
-		cloudAccountMap := make([]interface{}, 0, 0)
-		cloudAccountMap = append(cloudAccountMap, accMap)
-		clusterMap["cloud_account"] = cloudAccountMap
+			cloudAccountMap := make([]interface{}, 0)
+			cloudAccountMap = append(cloudAccountMap, clusterMap)
+			rootMap["cloud_account"] = cloudAccountMap
 
-		output = append(output, clusterMap)
+			output = append(output, rootMap)
+
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("flattenClusters output: %s", utils.PrettyPrint(output)))
