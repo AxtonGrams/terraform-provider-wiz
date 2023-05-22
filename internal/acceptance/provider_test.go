@@ -39,6 +39,24 @@ func testAccPreCheck(t *testing.T) {
 	}
 }
 
+func testAccPreCheckUser(t *testing.T) {
+	// You can add code here to run prior to any test case execution, for example assertions
+	// about the appropriate environment variables being set are common to see in a pre-check
+	// function.
+	if v := os.Getenv("WIZ_URL"); v == "" {
+		t.Fatal("WIZ_URL must be set for acceptance tests")
+	}
+	if v := os.Getenv("WIZ_AUTH_CLIENT_ID"); v == "" {
+		t.Fatal("WIZ_AUTH_CLIENT_ID must be set for acceptance tests")
+	}
+	if v := os.Getenv("WIZ_AUTH_CLIENT_SECRET"); v == "" {
+		t.Fatal("WIZ_AUTH_CLIENT_SECRET must be set for acceptance tests")
+	}
+	if v := os.Getenv("WIZ_SMTP_DOMAIN"); v == "" {
+		t.Fatal("WIZ_SMTP_DOMAIN must be set for wiz_user acceptance tests")
+	}
+}
+
 func testAccPreCheckIntegrationServiceNow(t *testing.T) {
 	// You can add code here to run prior to any test case execution, for example assertions
 	// about the appropriate environment variables being set are common to see in a pre-check
