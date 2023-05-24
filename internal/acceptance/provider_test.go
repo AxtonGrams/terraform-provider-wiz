@@ -1,13 +1,17 @@
 package acceptance
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/provider"
 )
+
+// required/common environment variables for acceptance tests
+var commonEnvVars = []string{"WIZ_URL", "WIZ_AUTH_CLIENT_ID", "WIZ_AUTH_CLIENT_SECRET"}
 
 // providerFactories are used to instantiate a provider during acceptance testing.
 // The factory function will be invoked for every Terraform CLI command executed
@@ -24,59 +28,44 @@ func TestProvider(t *testing.T) {
 	}
 }
 
-func testAccPreCheck(t *testing.T) {
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
-	if v := os.Getenv("WIZ_URL"); v == "" {
-		t.Fatal("WIZ_URL must be set for acceptance tests")
+func testAccPreCheck(t *testing.T, tc TestCase) {
+	var envVars []string
+	switch tc {
+	case TcCommon:
+		envVars = commonEnvVars
+	case TcUser:
+		envVars = append(commonEnvVars, "WIZ_SMTP_DOMAIN")
+	case TcServiceNow:
+		envVars = append(commonEnvVars, "WIZ_INTEGRATION_SERVICENOW_URL", "WIZ_INTEGRATION_SERVICENOW_USERNAME", "WIZ_INTEGRATION_SERVICENOW_PASSWORD")
+	case TcSubscriptionResourceGroups:
+		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
+	default:
+		t.Fatalf("unknown testCase: %s", tc)
 	}
-	if v := os.Getenv("WIZ_AUTH_CLIENT_ID"); v == "" {
-		t.Fatal("WIZ_AUTH_CLIENT_ID must be set for acceptance tests")
-	}
-	if v := os.Getenv("WIZ_AUTH_CLIENT_SECRET"); v == "" {
-		t.Fatal("WIZ_AUTH_CLIENT_SECRET must be set for acceptance tests")
+
+	if err := checkEnvVars(t, envVars); err != nil {
+		t.Fatal(err)
 	}
 }
 
-func testAccPreCheckUser(t *testing.T) {
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
-	if v := os.Getenv("WIZ_URL"); v == "" {
-		t.Fatal("WIZ_URL must be set for acceptance tests")
+// checkEnvVars checks that the given environment variables are set and returns the error as appropriate
+func checkEnvVars(t *testing.T, names []string) error {
+	var unsetVars []string
+	term := os.Getenv("TERM")
+	supportsColor := term == "xterm" || term == "xterm-256color" || term == "screen" || term == "screen-256color"
+	for _, name := range names {
+		if v := os.Getenv(name); v == "" {
+			unsetVars = append(unsetVars, name)
+		}
 	}
-	if v := os.Getenv("WIZ_AUTH_CLIENT_ID"); v == "" {
-		t.Fatal("WIZ_AUTH_CLIENT_ID must be set for acceptance tests")
+	if len(unsetVars) > 0 {
+		var errMsg string
+		if supportsColor {
+			errMsg = fmt.Sprintf("\033[31m%s\033[0m must be set for acceptance tests", strings.Join(unsetVars, ", "))
+		} else {
+			errMsg = fmt.Sprintf("%s must be set for acceptance tests", strings.Join(unsetVars, ", "))
+		}
+		return fmt.Errorf(errMsg)
 	}
-	if v := os.Getenv("WIZ_AUTH_CLIENT_SECRET"); v == "" {
-		t.Fatal("WIZ_AUTH_CLIENT_SECRET must be set for acceptance tests")
-	}
-	if v := os.Getenv("WIZ_SMTP_DOMAIN"); v == "" {
-		t.Fatal("WIZ_SMTP_DOMAIN must be set for wiz_user acceptance tests")
-	}
-}
-
-func testAccPreCheckIntegrationServiceNow(t *testing.T) {
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
-	if v := os.Getenv("WIZ_URL"); v == "" {
-		t.Fatal("WIZ_URL must be set for acceptance tests")
-	}
-	if v := os.Getenv("WIZ_AUTH_CLIENT_ID"); v == "" {
-		t.Fatal("WIZ_AUTH_CLIENT_ID must be set for acceptance tests")
-	}
-	if v := os.Getenv("WIZ_AUTH_CLIENT_SECRET"); v == "" {
-		t.Fatal("WIZ_AUTH_CLIENT_SECRET must be set for acceptance tests")
-	}
-	if v := os.Getenv("WIZ_INTEGRATION_SERVICENOW_URL"); v == "" {
-		t.Fatal("WIZ_INTEGRATION_SERVICENOW_URL must be set for wiz_integration_servicenow acceptance tests")
-	}
-	if v := os.Getenv("WIZ_INTEGRATION_SERVICENOW_USERNAME"); v == "" {
-		t.Fatal("WIZ_INTEGRATION_SERVICENOW_USERNAME must be set for wiz_integration_servicenow acceptance tests")
-	}
-	if v := os.Getenv("WIZ_INTEGRATION_SERVICENOW_PASSWORD"); v == "" {
-		t.Fatal("WIZ_INTEGRATION_SERVICENOW_PASSWORD must be set for wiz_integration_servicenow acceptance tests")
-	}
+	return nil
 }

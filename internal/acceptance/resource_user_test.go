@@ -13,8 +13,9 @@ import (
 func TestAccResourceWizUser_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix(ResourcePrefix)
 	smtpDomain := os.Getenv("WIZ_SMTP_DOMAIN")
+
 	resource.UnitTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckUser(t) },
+		PreCheck:          func() { testAccPreCheck(t, TestCase(TcUser)) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
