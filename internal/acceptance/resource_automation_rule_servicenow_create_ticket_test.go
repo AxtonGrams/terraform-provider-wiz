@@ -12,7 +12,7 @@ func TestAccResourceWizAutomationRuleServiceNowCreateTicket_basic(t *testing.T) 
 	rName := acctest.RandomWithPrefix(ResourcePrefix)
 
 	resource.UnitTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheckIntegrationServiceNow(t) },
+		PreCheck:          func() { testAccPreCheck(t, TestCase(TcServiceNow)) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
