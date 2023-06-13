@@ -38,7 +38,7 @@ func testAccPreCheck(t *testing.T, tc TestCase) {
 	case TcServiceNow:
 		envVars = append(commonEnvVars, "WIZ_INTEGRATION_SERVICENOW_URL", "WIZ_INTEGRATION_SERVICENOW_USERNAME", "WIZ_INTEGRATION_SERVICENOW_PASSWORD")
 	case TcJira:
-		envVars = append(commonEnvVars, "WIZ_INTEGRATION_JIRA_URL", "WIZ_INTEGRATION_JIRA_USERNAME", "WIZ_INTEGRATION_JIRA_PASSWORD")
+		envVars = append(commonEnvVars, "WIZ_INTEGRATION_JIRA_URL", "WIZ_INTEGRATION_JIRA_USERNAME", "WIZ_INTEGRATION_JIRA_PASSWORD", "WIZ_INTEGRATION_JIRA_PROJECT")
 	case TcSubscriptionResourceGroups:
 		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
 	default:

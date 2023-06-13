@@ -79,6 +79,22 @@ func resourceWizIntegrationJira() *schema.Resource {
 				Description: "Whether Jira instance is on prem",
 				Default: false,
 			},
+			"jira_allow_insecure_tls": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Jira integration TLS setting",
+			},
+			"jira_server_ca": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Jira server CA",
+			},
+			"jira_client_certificate_and_private_key": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Jira PEM with client certificate and private key",
+			},
 			"jira_username": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -133,6 +149,9 @@ func resourceWizIntegrationJiraCreate(ctx context.Context, d *schema.ResourceDat
 	vars.Params.Jira.ServerURL = d.Get("jira_url").(string)
 	vars.Params.Jira.ServerType = d.Get("jira_server_type").(string)
 	vars.Params.Jira.IsOnPrem = d.Get("jira_is_on_prem").(bool)
+	vars.Params.Jira.TLSConfig.AllowInsecureTLS = utils.ConvertBoolToPointer(d.Get("jira_allow_insecure_tls").(bool))
+	vars.Params.Jira.TLSConfig.ClientCertificateAndPrivateKey = d.Get("jira_client_certificate_and_private_key").(string)
+	vars.Params.Jira.TLSConfig.ServerCA = d.Get("jira_server_ca").(string)
 	vars.Params.Jira.Authorization.Username = d.Get("jira_username").(string)
 	vars.Params.Jira.Authorization.Password = d.Get("jira_password").(string)
 
@@ -186,6 +205,11 @@ func resourceWizIntegrationJiraRead(ctx context.Context, d *schema.ResourceData,
 			serverType
 			onPremConfig {
 				isOnPrem
+			}
+			tlsConfig {
+				allowInsecureTLS
+				serverCA
+				clientCertificateAndPrivateKey
 			}
 	        authorization {
 	          ... on JiraIntegrationBasicAuthorization {
@@ -245,6 +269,18 @@ func resourceWizIntegrationJiraRead(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("jira_allow_insecure_tls", params.TLSConfig.AllowInsecureTLS)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("jira_server_ca", params.TLSConfig.ServerCA)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("jira_client_certificate_and_private_key", params.TLSConfig.ClientCertificateAndPrivateKey)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 	err = d.Set("jira_username", params.Authorization.(map[string]interface{})["username"])
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -283,7 +319,10 @@ func resourceWizIntegrationJiraUpdate(ctx context.Context, d *schema.ResourceDat
 	vars.Patch.Params.Jira = &wiz.UpdateJiraIntegrationParamsInput{}
 	vars.Patch.Params.Jira.ServerURL = d.Get("jira_url").(string)
 	vars.Patch.Params.Jira.ServerType = d.Get("jira_server_type").(string)
-	vars.Patch.Params.Jira.IsOnPrem = d.Get("jira_is_on_prem").(*bool)
+	vars.Patch.Params.Jira.IsOnPrem = utils.ConvertBoolToPointer(d.Get("jira_is_on_prem").(bool))
+	vars.Patch.Params.Jira.TLSConfig.AllowInsecureTLS = utils.ConvertBoolToPointer(d.Get("jira_allow_insecure_tls").(bool))
+	vars.Patch.Params.Jira.TLSConfig.ServerCA = d.Get("jira_server_ca").(string)
+	vars.Patch.Params.Jira.TLSConfig.ClientCertificateAndPrivateKey = d.Get("jira_client_certificate_and_private_key").(string)
 	vars.Patch.Params.Jira.Authorization.Username = d.Get("jira_username").(string)
 	vars.Patch.Params.Jira.Authorization.Password = d.Get("jira_password").(string)
 
