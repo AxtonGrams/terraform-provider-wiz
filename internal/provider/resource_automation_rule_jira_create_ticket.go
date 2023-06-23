@@ -108,7 +108,7 @@ func resourceWizAutomationRuleJiraCreateTicket() *schema.Resource {
 			"jira_summary": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "Wiz Issue: {{issue.control.name}}",
+				Default:     "Wiz Issue: {{control.name}}",
 				Description: "Issue summary",
 			},
 			"jira_description": {
