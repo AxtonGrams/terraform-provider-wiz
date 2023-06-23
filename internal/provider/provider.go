@@ -263,6 +263,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_automation_rule_servicenow_update_ticket": resourceWizAutomationRuleServiceNowUpdateTicket(),
 				"wiz_automation_rule_jira_create_ticket": 		resourceWizAutomationRuleJiraCreateTicket(),
 				"wiz_automation_rule_jira_transition_ticket":   resourceWizAutomationRuleJiraTransitionTicket(),
+				"wiz_automation_rule_jira_add_comment": 		resourceWizAutomationRuleJiraAddComment(),
 				"wiz_cicd_scan_policy":                         resourceWizCICDScanPolicy(),
 				"wiz_cloud_config_rule":                        resourceWizCloudConfigurationRule(),
 				"wiz_cloud_config_rule_associations":           resourceWizCloudConfigRuleAssociations(),
