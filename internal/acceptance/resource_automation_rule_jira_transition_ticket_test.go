@@ -70,7 +70,7 @@ func TestAccResourceWizAutomationRuleJiraTransitionTicket_basic(t *testing.T) {
 						"wiz_integration_jira.foo",
 						"jira_transition_id",
 						"wiz_automation_rule_jira_transition_ticket.foo",
-						"transition_id",
+						"Resolved",
 					),
 					resource.TestCheckResourceAttrPair(
 						"wiz_integration_jira.foo",
@@ -123,11 +123,14 @@ resource "wiz_automation_rule_jira_transition_ticket" "foo" {
         "CRITICAL"
       ]
     })
-  servicenow_table_name  = "incident"
-  servicenow_fields = jsonencode({
-    "state" : "Closed"
+  jira_project = "%s"
+  jira_transition_id = "Resolved"
+  jira_advanced_fields = jsonencode({
+    "resolution" : "Done"
   })
-  servicenow_attach_issues_report = false
+  jira_comment = "Resolved via Wiz Automation"
+  jira_comment_on_transition = true
+  jira_attach_evidence_csv = false
 }
-`, rName, rName)
+`, rName, rName, os.Getenv("WIZ_INTEGRATION_JIRA_PROJECT"))
 }
