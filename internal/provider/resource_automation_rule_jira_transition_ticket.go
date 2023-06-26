@@ -178,10 +178,10 @@ func resourceWizAutomationRuleJiraTransitionTicketCreate(ctx context.Context, d 
 
 	// populate the actions parameter
 	jiraTransitionTicketParams := &wiz.JiraActionTransitionTicketTemplateParamsInput{
-		Project:          	 d.Get("jira_project").(string),
-		TransitionID:     	 d.Get("jira_transition_id").(string),
-		AdvancedFields:	  	 json.RawMessage(d.Get("jira_advanced_fields").(string)),
-		Comment:		  	 d.Get("jira_comment").(string),
+		Project:             d.Get("jira_project").(string),
+		TransitionID:        d.Get("jira_transition_id").(string),
+		AdvancedFields:      json.RawMessage(d.Get("jira_advanced_fields").(string)),
+		Comment:             d.Get("jira_comment").(string),
 		CommentOnTransition: utils.ConvertBoolToPointer(d.Get("jira_comment_on_transition").(bool)),
 		AttachEvidenceCSV:   utils.ConvertBoolToPointer(d.Get("jira_attach_evidence_csv").(bool)),
 	}
@@ -394,10 +394,10 @@ func resourceWizAutomationRuleJiraTransitionTicketUpdate(ctx context.Context, d 
 
 	actions := []wiz.AutomationRuleActionInput{}
 	jiraTransitionTicket := &wiz.JiraActionTransitionTicketTemplateParamsInput{
-		Project:          	 d.Get("jira_project").(string),
-		TransitionID:     	 d.Get("jira_transition_id").(string),
-		AdvancedFields:	  	 json.RawMessage(d.Get("jira_advanced_fields").(string)),
-		Comment:		  	 d.Get("jira_comment").(string),
+		Project:             d.Get("jira_project").(string),
+		TransitionID:        d.Get("jira_transition_id").(string),
+		AdvancedFields:      json.RawMessage(d.Get("jira_advanced_fields").(string)),
+		Comment:             d.Get("jira_comment").(string),
 		CommentOnTransition: utils.ConvertBoolToPointer(d.Get("jira_comment_on_transition").(bool)),
 		AttachEvidenceCSV:   utils.ConvertBoolToPointer(d.Get("jira_attach_evidence_csv").(bool)),
 	}

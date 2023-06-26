@@ -71,13 +71,13 @@ func resourceWizIntegrationJira() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Jira server type",
-				Default: "CLOUD",
+				Default:     "CLOUD",
 			},
 			"jira_is_on_prem": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Whether Jira instance is on prem",
-				Default: false,
+				Default:     false,
 			},
 			"jira_allow_insecure_tls": {
 				Type:        schema.TypeBool,
