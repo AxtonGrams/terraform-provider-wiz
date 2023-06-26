@@ -266,6 +266,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_cloud_config_rule_associations":           resourceWizCloudConfigRuleAssociations(),
 				"wiz_control":                                  resourceWizControl(),
 				"wiz_control_associations":                     resourceWizControlAssociations(),
+				"wiz_connector_aws":                            resourceWizConnectorAws(),
 				"wiz_host_config_rule_associations":            resourceWizHostConfigRuleAssociations(),
 				"wiz_integration_aws_sns":                      resourceWizIntegrationAwsSNS(),
 				"wiz_integration_servicenow":                   resourceWizIntegrationServiceNow(),

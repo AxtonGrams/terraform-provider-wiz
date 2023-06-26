@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 // PrettyPrint prints a struct in formatted json
@@ -77,4 +78,26 @@ func ConvertSliceToGenericArray(s []string) []interface{} {
 		output = append(output, b)
 	}
 	return output
+}
+
+// RemoveNullAndEmptyValues removes null and empty values from a nested map[string]interface{}.
+// The recursive function traverses the map recursively up to the specified depth, and removes any key-value pairs where the value is nil or an empty string.
+// If the depth parameter is set to 0, the function does not traverse the map at all.
+func RemoveNullAndEmptyValues(m map[string]interface{}, depth int) {
+	if depth == 0 {
+		return
+	}
+	for k, v := range m {
+		if v == nil || (reflect.TypeOf(v).Kind() == reflect.String && v.(string) == "") {
+			delete(m, k)
+		} else if childMap, ok := v.(map[string]interface{}); ok {
+			RemoveNullAndEmptyValues(childMap, depth-1)
+		} else if childSlice, ok := v.([]interface{}); ok {
+			for _, child := range childSlice {
+				if childMap, ok := child.(map[string]interface{}); ok {
+					RemoveNullAndEmptyValues(childMap, depth-1)
+				}
+			}
+		}
+	}
 }
