@@ -67,7 +67,7 @@ EOT
 
 - `description` (String) Description of the automation rule
 - `filters` (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
-- `integration_id` (String) Wiz identifier for the Integration to leverage for this action. Must be resource type integration_aws_sns.
+- `integration_id` (String) Wiz identifier for the Integration to leverage for this action. Must be resource type integration_jira.
 - `name` (String) Name of the automation rule
 - `trigger_source` (String) Trigger source.
     - Allowed values: 

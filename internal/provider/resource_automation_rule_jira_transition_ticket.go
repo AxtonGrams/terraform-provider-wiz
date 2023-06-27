@@ -37,7 +37,7 @@ func resourceWizAutomationRuleJiraTransitionTicket() *schema.Resource {
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Description of the automation rule",
 			},
 			"trigger_source": {
@@ -103,7 +103,7 @@ func resourceWizAutomationRuleJiraTransitionTicket() *schema.Resource {
 			"integration_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Wiz identifier for the Integration to leverage for this action. Must be resource type integration_aws_sns.",
+				Description: "Wiz identifier for the Integration to leverage for this action. Must be resource type integration_jira.",
 			},
 			"jira_project": {
 				Type:        schema.TypeString,
