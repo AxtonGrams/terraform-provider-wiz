@@ -52,5 +52,3 @@ Read-Only:
 - `security_sub_category_ids` (List of String)
 - `short_name` (String)
 - `target_platform_ids` (List of String)
-
-
