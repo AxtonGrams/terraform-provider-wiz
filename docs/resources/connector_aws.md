@@ -92,7 +92,6 @@ resource "wiz_connector_aws" "example" {
 - `external_id_nonce` (String) The AWS external ID / nonce, this will be used for IAM-related dependencies (`sts:ExternalId` conditional trust policies).
 - `id` (String) Wiz internal identifier for the connector.
 - `opted_in_regions` (List of String) The AWS regions opted in for the connector.
-- `outpost_role_arn` (String) If using Outpost, the arn of the orchestrator role that Wiz will assume.
 - `region` (String) The AWS region for the connector.
 - `skip_organization_scan` (Boolean) Whether to skip the organization scan (account-scoped only).
 
@@ -115,6 +114,7 @@ Import is supported using the following syntax:
 terraform import wiz_connector_aws.import_example "7be792ba-bfd1-46d0-9fba-5f6bc19df4a8"
 
 # Optional - this is to set auth_params in state.
+#
 # If not run post-import, the next `terraform apply` will take care of it.
 # Note any speculative changes to `auth_params` are for setting state for the one-time import only, any further changes would require a resource recreation as normal.
 terraform apply --target=wiz_connector_aws.import_example

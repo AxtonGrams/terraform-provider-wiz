@@ -91,11 +91,6 @@ func resourceWizConnectorAws() *schema.Resource {
 				Description: "The AWS region for the connector.",
 				Computed:    true,
 			},
-			"outpost_role_arn": {
-				Type:        schema.TypeString,
-				Description: "If using Outpost, the arn of the orchestrator role that Wiz will assume.",
-				Computed:    true,
-			},
 			"events_cloudtrail_bucket_name": {
 				Type:        schema.TypeString,
 				Description: "If using Wiz Cloud Events, the CloudTrail bucket name.",
@@ -213,23 +208,6 @@ func resourceWizConnectorRead(ctx context.Context, d *schema.ResourceData, m int
 	      enabled
 	      authParams
 	      extraConfig
-	      outpost {
-	        id
-	        name
-	        status
-	        config {
-	          ... on OutpostAWSConfig{
-	            roleARN
-	            externalID
-	            accessKey
-	            secretKey
-	            stateBucketName
-	            resultsBucketName
-	            settingsRegion
-	            disableNatGateway
-	            }
-	        }
-	    }
 	      config {
 	        ... on ConnectorConfigAWS {
 	          region
@@ -297,22 +275,22 @@ func resourceWizConnectorRead(ctx context.Context, d *schema.ResourceData, m int
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	var extraConfig map[string]interface{}
-	err = json.Unmarshal(data.Connector.ExtraConfig, &extraConfig)
+	var mapExtraConfig map[string]interface{}
+	err = json.Unmarshal(data.Connector.ExtraConfig, &mapExtraConfig)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	// When certain fields are deprecated, vendor returns a null or empty string (i.e. cloudTrailConfig)
+	// When certain fields are deprecated, vendor returns null and/or empty string (i.e. cloudTrailConfig)
 	// We need to handle to avoid unwanted diffs, below traverses the map to a maximum depth of 5 levels
-	utils.RemoveNullAndEmptyValues(extraConfig, 5)
+	utils.RemoveNullAndEmptyValues(mapExtraConfig, 5)
 
-	extraConfigStr, err := json.Marshal(extraConfig)
+	extraConfig, err := json.Marshal(mapExtraConfig)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	err = d.Set("extra_config", string(extraConfigStr))
+	err = d.Set("extra_config", string(extraConfig))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -326,22 +304,6 @@ func resourceWizConnectorRead(ctx context.Context, d *schema.ResourceData, m int
 		return append(diags, diag.Errorf("unable to unmarshal ConnectorConfigAWS: %v", err)...)
 	}
 
-	outpostConfigBytes, err := json.Marshal(data.Connector.Outpost)
-	if err != nil {
-		return append(diags, diag.Errorf("unable to marshal OutpostAWSConfig: %v", err)...)
-	}
-
-	var outpostConfig wiz.OutpostAWSConfig
-	if err := json.Unmarshal(outpostConfigBytes, &struct {
-		Config *wiz.OutpostAWSConfig `json:"config"`
-	}{Config: &outpostConfig}); err != nil {
-		return append(diags, diag.Errorf("unable to unmarshal OutpostAWSConfig: %v", err)...)
-	}
-
-	err = d.Set("outpost_role_arn", outpostConfig.RoleARN)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
 	err = d.Set("events_cloudtrail_bucket_name", connectorConfig.CloudTrailConfig.BucketName)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -414,9 +376,6 @@ func resourceWizConnectorUpdate(ctx context.Context, d *schema.ResourceData, m i
 	        id
 	        name
 	        enabled
-	        status
-	        enabled
-	        lastActivity
 	        extraConfig
 	      }
 	    }

@@ -563,12 +563,11 @@ type AzureServiceBusAutomationActionParams struct {
 }
 
 // Connector struct -- updates.  this resource is incomplete
-// not all ConnectorConfigs are defined, missing ConnectorModules TenantIdentityClient
+// not all ConnectorConfigs are defined, missing ConnectorModules TenantIdentityClient, Outpost
 type Connector struct {
 	AddedBy           User            `json:"addedBy"` // this has been deprecated and should be replaced by CreatedBy
-	AuthParams        interface{}     `json:"authParams"`
-	Config            interface{}     `json:"config,omitempty"`  // type assertion i.e. ConnectorConfigAWS
-	Outpost           interface{}     `json:"outpost,omitempty"` // type assertion i.e. OutpostAWSConfig
+	AuthParams        json.RawMessage `json:"authParams"`
+	Config            interface{}     `json:"config,omitempty"` // union ConnectorConfigs
 	CloudAccountCount int             `json:"cloudAccountCount"`
 	CreatedAt         string          `json:"createdAt"`
 	Enabled           bool            `json:"enabled"`

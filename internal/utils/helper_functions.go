@@ -80,9 +80,7 @@ func ConvertSliceToGenericArray(s []string) []interface{} {
 	return output
 }
 
-// RemoveNullAndEmptyValues removes null and empty values from a nested map[string]interface{}.
-// The recursive function traverses the map recursively up to the specified depth, and removes any key-value pairs where the value is nil or an empty string.
-// If the depth parameter is set to 0, the function does not traverse the map at all.
+// RemoveNullAndEmptyValues removes null and empty values from a nested map limited in depth traversal
 func RemoveNullAndEmptyValues(m map[string]interface{}, depth int) {
 	if depth == 0 {
 		return
