@@ -39,5 +39,3 @@ resource "wiz_user" "psm" {
 ### Read-Only
 
 - `id` (String) Unique identifier for the user
-
-

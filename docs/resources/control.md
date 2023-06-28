@@ -82,5 +82,3 @@ resource "wiz_control" "test" {
 
 - `id` (String) Internal identifier for the Control
 - `security_sub_categories` (List of String) List of security sub-categories IDs.
-
-

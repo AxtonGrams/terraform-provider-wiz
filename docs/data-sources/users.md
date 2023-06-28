@@ -77,5 +77,3 @@ Optional:
 Optional:
 
 - `name` (String) The identity provider name.
-
-

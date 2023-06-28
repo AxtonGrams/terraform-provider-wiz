@@ -87,5 +87,3 @@ Read-Only:
 - `name` (String)
 - `source_connector_ids` (List of String)
 - `status` (String)
-
-
