@@ -157,5 +157,3 @@ Optional:
 
 - `ignore_all_rules` (Boolean)
 - `rule_ids` (List of String)
-
-

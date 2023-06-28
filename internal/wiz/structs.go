@@ -562,10 +562,12 @@ type AzureServiceBusAutomationActionParams struct {
 	QueueURL                string    `json:"queueUrl"`
 }
 
-// Connector struct -- updates.  this resource is incomplete.  missing ConnectorConfigs ConnectorModules TenantIdentityClient
+// Connector struct -- updates.  this resource is incomplete
+// not all ConnectorConfigs are defined, missing ConnectorModules TenantIdentityClient, Outpost
 type Connector struct {
-	AddedBy           User            `json:"addedBy"`
+	AddedBy           User            `json:"addedBy"` // this has been deprecated and should be replaced by CreatedBy
 	AuthParams        json.RawMessage `json:"authParams"`
+	Config            interface{}     `json:"config,omitempty"` // union ConnectorConfigs
 	CloudAccountCount int             `json:"cloudAccountCount"`
 	CreatedAt         string          `json:"createdAt"`
 	Enabled           bool            `json:"enabled"`
@@ -573,6 +575,53 @@ type Connector struct {
 	ID                string          `json:"id"`
 	Name              string          `json:"name"`
 	Status            string          `json:"status"` // enum ConnectorStatus
+}
+
+// OutpostAWSConfig struct -- updates
+type OutpostAWSConfig struct {
+	RoleARN           string `json:"roleARN"`
+	ExternalID        string `json:"externalID"`
+	AccessKey         string `json:"accessKey"`
+	SecretKey         string `json:"secretKey"`
+	StateBucketName   string `json:"stateBucketName,omitempty"`
+	ResultsBucketName string `json:"resultsBucketName,omitempty"`
+	SettingsRegion    string `json:"settingsRegion,omitempty"`
+	DisableNatGateway bool   `json:"disableNatGateway,omitempty"`
+}
+
+// ConnectorConfigAWS struct -- updates
+type ConnectorConfigAWS struct {
+	CustomerRoleARN              string                        `json:"customerRoleARN"`
+	SubAccountRole               string                        `json:"subAccountRole,omitempty"`
+	ExternalIDNonce              string                        `json:"externalIdNonce"`
+	Region                       string                        `json:"region,omitempty"`
+	DiskAnalyzer                 ConnectorAuthConfigAWSOutpost `json:"diskAnalyzer,omitempty"`
+	ExcludedAccounts             []string                      `json:"excludedAccounts,omitempty"`
+	IncludedAccounts             []string                      `json:"includedAccounts,omitempty"`
+	ExcludedOUs                  []string                      `json:"excludedOUs,omitempty"`
+	SkipOrganizationScan         bool                          `json:"skipOrganizationScan"`
+	OptedInRegions               []string                      `json:"optedInRegions,omitempty"`
+	AuditLogMonitorEnabled       bool                          `json:"auditLogMonitorEnabled"`
+	CloudTrailConfig             ConnectorConfigAWSCloudTrail  `json:"cloudTrailConfig,omitempty"`
+	DiskAnalyzerInFlightDisabled bool                          `json:"diskAnalyzerInFlightDisabled"`
+}
+
+// ConnectorAuthConfigAWSOutpost struct -- updates
+type ConnectorAuthConfigAWSOutpost struct {
+	Scanner ConnectorAuthConfigAWSOutpostScanner `json:"scanner"`
+}
+
+// ConnectorAuthConfigAWSOutpostScanner struct -- updates
+type ConnectorAuthConfigAWSOutpostScanner struct {
+	ExternalID string `json:"externalId"`
+	RoleARN    string `json:"roleARN"`
+}
+
+// ConnectorConfigAWSCloudTrail struct -- updates
+type ConnectorConfigAWSCloudTrail struct {
+	BucketName       string `json:"bucketName"`
+	BucketSubAccount string `json:"bucketSubAccount"`
+	TrailOrg         string `json:"trailOrg"`
 }
 
 // AutomationRule struct -- updates
@@ -2295,4 +2344,45 @@ type ClickUpCreateTaskActionTemplateParams struct {
 	ListID string `json:"listId"`
 }
 
-//
+// CreateConnectorInput struct
+type CreateConnectorInput struct {
+	Name        string          `json:"name"`
+	Type        string          `json:"type"` // ID Scalar
+	Enabled     *bool           `json:"enabled,omitempty"`
+	AuthParams  json.RawMessage `json:"authParams"`
+	ExtraConfig json.RawMessage `json:"extraConfig,omitempty"`
+}
+
+// CreateConnectorPayload struct
+type CreateConnectorPayload struct {
+	Connector Connector `json:"connector"`
+}
+
+// UpdateConnectorPayload struct
+type UpdateConnectorPayload struct {
+	Connector Connector `json:"connector"`
+}
+
+// DeleteConnectorPayload struct
+type DeleteConnectorPayload struct {
+	Stub string `json:"_stub"`
+}
+
+// DeleteConnectorInput struct
+type DeleteConnectorInput struct {
+	ID string `json:"id"`
+}
+
+// UpdateConnectorInput struct
+type UpdateConnectorInput struct {
+	ID    string               `json:"id"`
+	Patch UpdateConnectorPatch `json:"patch"`
+}
+
+// UpdateConnectorPatch struct
+type UpdateConnectorPatch struct {
+	Name        string          `json:"name,omitempty"`
+	Enabled     *bool           `json:"enabled,omitempty"`
+	AuthParams  json.RawMessage `json:"authParams,omitempty"`
+	ExtraConfig json.RawMessage `json:"extraConfig,omitempty"`
+}

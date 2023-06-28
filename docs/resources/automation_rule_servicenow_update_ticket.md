@@ -81,5 +81,3 @@ resource "wiz_automation_rule_servicenow_update_ticket" "example" {
 - `action_id` (String) Wiz internal ID for the action.
 - `created_at` (String) The date/time at which the automation rule was created.
 - `id` (String) Wiz internal identifier.
-
-
