@@ -55,3 +55,5 @@ resource "wiz_integration_jira" "default" {
 
 - `created_at` (String) Identifies the date and time when the object was created.
 - `id` (String) Identifier for this object.
+
+
