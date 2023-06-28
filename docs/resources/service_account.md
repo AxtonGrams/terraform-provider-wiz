@@ -184,5 +184,3 @@ resource "wiz_service_account" "helm" {
 - `created_at` (String)
 - `id` (String) Wiz internal identifier.
 - `last_rotated_at` (String) If a change is detected with this value, the service account will be recreated to ensure a valid secret is stored in Terraform state.
-
-

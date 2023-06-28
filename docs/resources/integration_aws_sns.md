@@ -71,5 +71,3 @@ resource "wiz_integration_aws_sns" "specified_role_single_project" {
 
 - `created_at` (String) Identifies the date and time when the object was created.
 - `id` (String) Identifier for this object.
-
-

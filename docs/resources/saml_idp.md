@@ -117,5 +117,3 @@ Required:
 Optional:
 
 - `projects` (List of String) Project mapping
-
-

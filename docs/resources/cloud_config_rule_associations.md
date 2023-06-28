@@ -41,5 +41,3 @@ resource "wiz_cloud_config_rule_associations" "test" {
 ### Read-Only
 
 - `id` (String) Internal identifier for the association.
-
-

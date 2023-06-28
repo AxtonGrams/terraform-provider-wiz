@@ -87,5 +87,3 @@ Optional:
 Read-Only:
 
 - `id` (String) Internal identifier for the security subcategory. Specify an existing identifier to use an existing subcategory. If not provided, a new subcategory will be created.
-
-

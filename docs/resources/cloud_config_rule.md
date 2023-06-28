@@ -117,5 +117,3 @@ Required:
         - KUBERNETES
         - AZURE_RESOURCE_MANAGER
         - DOCKER_FILE
-
-
