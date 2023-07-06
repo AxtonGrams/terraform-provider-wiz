@@ -53,7 +53,6 @@ resource "wiz_automation_rule_jira_transition_ticket" "example" {
 
 ### Required
 
-- `description` (String) Description of the automation rule
 - `filters` (String) Value should be wrapped in jsonencode() to avoid diff detection. This is required even though the API states it is not required.  Validate is performed by the UI.
 - `integration_id` (String) Wiz identifier for the Integration to leverage for this action. Must be resource type integration_jira.
 - `name` (String) Name of the automation rule
@@ -90,5 +89,3 @@ resource "wiz_automation_rule_jira_transition_ticket" "example" {
 - `action_id` (String) Wiz internal ID for the action.
 - `created_at` (String) The date/time at which the automation rule was created.
 - `id` (String) Wiz internal identifier.
-
-

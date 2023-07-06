@@ -37,6 +37,7 @@ resource "wiz_integration_jira" "default" {
 - `jira_is_on_prem` (Boolean) Whether Jira instance is on prem
     - Defaults to `false`.
 - `jira_password` (String, Sensitive) Jira password. (default: none, environment variable: WIZ_INTEGRATION_JIRA_PASSWORD)
+- `jira_pat` (String, Sensitive) Jira personal access token (used for on-prem). (default: none, environment variable: WIZ_INTEGRATION_JIRA_PAT)
 - `jira_server_ca` (String) Jira server CA
 - `jira_server_type` (String) Jira server type
     - Defaults to `CLOUD`.
@@ -55,5 +56,3 @@ resource "wiz_integration_jira" "default" {
 
 - `created_at` (String) Identifies the date and time when the object was created.
 - `id` (String) Identifier for this object.
-
-

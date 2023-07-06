@@ -97,7 +97,7 @@ func resourceWizIntegrationJira() *schema.Resource {
 			},
 			"jira_username": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Email of a Jira user with permissions to create tickets. (default: none, environment variable: WIZ_INTEGRATION_JIRA_USERNAME)",
 				DefaultFunc: schema.EnvDefaultFunc(
 					"WIZ_INTEGRATION_JIRA_USERNAME",
@@ -106,11 +106,21 @@ func resourceWizIntegrationJira() *schema.Resource {
 			},
 			"jira_password": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Sensitive:   true,
 				Description: "Jira password. (default: none, environment variable: WIZ_INTEGRATION_JIRA_PASSWORD)",
 				DefaultFunc: schema.EnvDefaultFunc(
 					"WIZ_INTEGRATION_JIRA_PASSWORD",
+					nil,
+				),
+			},
+			"jira_pat": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Jira personal access token (used for on-prem). (default: none, environment variable: WIZ_INTEGRATION_JIRA_PAT)",
+				DefaultFunc: schema.EnvDefaultFunc(
+					"WIZ_INTEGRATION_JIRA_PAT",
 					nil,
 				),
 			},
@@ -154,6 +164,7 @@ func resourceWizIntegrationJiraCreate(ctx context.Context, d *schema.ResourceDat
 	vars.Params.Jira.TLSConfig.ServerCA = d.Get("jira_server_ca").(string)
 	vars.Params.Jira.Authorization.Username = d.Get("jira_username").(string)
 	vars.Params.Jira.Authorization.Password = d.Get("jira_password").(string)
+	vars.Params.Jira.Authorization.PersonalAccessToken = d.Get("jira_pat").(string)
 
 	// process the request
 	data := &CreateIntegration{}
@@ -216,6 +227,9 @@ func resourceWizIntegrationJiraRead(ctx context.Context, d *schema.ResourceData,
 	            password
 	            username
 	          }
+			  ... on JiraIntegrationTokenBearerAuthorization {
+				token
+			  }
 	        }
 	      }
 	    }
@@ -289,6 +303,10 @@ func resourceWizIntegrationJiraRead(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("jira_pat", d.Get("jira_pat").(string))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 
 	return diags
 }
@@ -325,6 +343,7 @@ func resourceWizIntegrationJiraUpdate(ctx context.Context, d *schema.ResourceDat
 	vars.Patch.Params.Jira.TLSConfig.ClientCertificateAndPrivateKey = d.Get("jira_client_certificate_and_private_key").(string)
 	vars.Patch.Params.Jira.Authorization.Username = d.Get("jira_username").(string)
 	vars.Patch.Params.Jira.Authorization.Password = d.Get("jira_password").(string)
+	vars.Patch.Params.Jira.Authorization.PersonalAccessToken = d.Get("jira_pat").(string)
 
 	// process the request
 	data := &UpdateIntegration{}
