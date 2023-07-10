@@ -27,6 +27,7 @@ resource "wiz_integration_jira" "default" {
 
 ### Required
 
+- `jira_url` (String) Jira URL. (default: none, environment variable: WIZ_INTEGRATION_JIRA_URL)
 - `name` (String) The name of the integration.
 
 ### Optional
@@ -40,7 +41,6 @@ resource "wiz_integration_jira" "default" {
 - `jira_server_ca` (String) Jira server CA
 - `jira_server_type` (String) Jira server type
     - Defaults to `CLOUD`.
-- `jira_url` (String) Jira URL. (default: none, environment variable: WIZ_INTEGRATION_JIRA_URL)
 - `jira_username` (String) Email of a Jira user with permissions to create tickets. (default: none, environment variable: WIZ_INTEGRATION_JIRA_USERNAME)
 - `project_id` (String) The project this action is scoped to.
 - `scope` (String) Scoping to a selected Project makes this Integration accessible only to users with global roles or Project-scoped access to the selected Project. Other users will not be able to see it, use it, or view its results. Integrations restricted to global roles cannot be seen or used by users with Project-scoped roles. 
