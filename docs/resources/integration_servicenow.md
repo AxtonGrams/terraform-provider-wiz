@@ -28,9 +28,6 @@ resource "wiz_integration_servicenow" "default" {
 ### Required
 
 - `name` (String) The name of the integration.
-- `servicenow_password` (String, Sensitive) ServiceNow password. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_PASSWORD)
-- `servicenow_url` (String) ServiceNow URL. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_URL)
-- `servicenow_username` (String) Email of a ServiceNow user with permissions to create tickets. (default: none, environment variable: WIZ_INTEGRATION_SERVICENOW_USERNAME)
 
 ### Optional
 

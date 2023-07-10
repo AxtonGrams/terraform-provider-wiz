@@ -16,7 +16,6 @@ Integrations are reusable, generic connections between Wiz and third-party platf
 resource "wiz_integration_jira" "default" {
   name          = "default"
   jira_url      = var.jira_url
-  jira_server_type    = var.jira_server_type
   jira_username = var.jira_username
   jira_password = var.jira_password
   scope         = "All Resources, Restrict this Integration to global roles only"
