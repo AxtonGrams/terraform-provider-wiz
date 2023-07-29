@@ -1072,6 +1072,7 @@ type CreateUserInput struct {
 	Role               string   `json:"role"`
 	AssignedProjectIDs []string `json:"assignedProjectIds,omitempty"`
 	SendEmailInvite    bool     `json:"sendEmailInvite"`
+	IdpID              string   `json:"idpID,omitempty"`
 }
 
 // CreateUserPayload struct

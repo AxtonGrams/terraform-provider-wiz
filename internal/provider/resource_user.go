@@ -34,6 +34,11 @@ func resourceWizUser() *schema.Resource {
 				Description: "The user email address.",
 				Required:    true,
 			},
+			"idpID": {
+				Type:        schema.TypeString,
+				Description: "IDP ID.",
+				Required:    false,
+			},
 			"role": {
 				Type:        schema.TypeString,
 				Description: "Whether the project is archived/inactive",
@@ -86,9 +91,23 @@ func resourceWizUserCreate(ctx context.Context, d *schema.ResourceData, m interf
 
 	// populate the graphql variables
 	vars := &wiz.CreateUserInput{}
+	vars.IdpID = d.Get("idpID").(string)
+
+	// SAML Users require seperate query for create only
+	if ssoEnabled := vars.IdpID != ""; ssoEnabled {
+		query = `mutation CreateSAMLUser($input: CreateSAMLUserInput!) {
+			createSAMLUser(input: $input) {
+				user {
+					id
+				}
+			}
+		}`
+	}
+
 	vars.Name = d.Get("name").(string)
 	vars.Email = d.Get("email").(string)
 	vars.Role = d.Get("role").(string)
+
 	vars.SendEmailInvite = d.Get("send_email_invite").(bool)
 	vars.AssignedProjectIDs = utils.ConvertListToString(d.Get("assigned_project_ids").([]interface{}))
 
@@ -202,11 +221,22 @@ func resourceWizUserUpdate(ctx context.Context, d *schema.ResourceData, m interf
 
 	// define the graphql query
 	query := `mutation UpdateUser($input: UpdateUserInput!) {
-	    updateUser(input: $input) {
-	        user {
-	            id
-	        }
-	    }
+		updateUser(input: $input) {
+			user {
+				id
+				name
+				email
+				isSuspended
+				effectiveRole {
+					id
+					name
+				}
+				effectiveAssignedProjects {
+					id
+					name
+				}
+			}
+		}
 	}`
 
 	// populate the graphql variables
