@@ -15,6 +15,8 @@ const (
 	TcUser TestCase = "USER"
 	// TcServiceNow test case
 	TcServiceNow TestCase = "SERVICE_NOW"
+	// TcJira test case
+	TcJira TestCase = "JIRA"
 	// TcSubscriptionResourceGroups test case
 	TcSubscriptionResourceGroups TestCase = "SUBSCRIPTION_RESOURCE_GROUPS"
 )
