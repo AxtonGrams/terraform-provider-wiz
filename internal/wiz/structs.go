@@ -2297,7 +2297,7 @@ type PagerDutyActionCreateIncidentTemplateParams struct {
 
 // JiraActionCreateTicketTemplateParams struct
 type JiraActionCreateTicketTemplateParams struct {
-	Fields JiraTicketFields `json:"filds"`
+	Fields JiraTicketFields `json:"fields"`
 }
 
 // JiraActionAddCommentTemplateParams struct
