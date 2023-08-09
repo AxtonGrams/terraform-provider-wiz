@@ -222,6 +222,7 @@ var CloudConfigurationRuleMatcherType = []string{
 	"KUBERNETES",
 	"AZURE_RESOURCE_MANAGER",
 	"DOCKER_FILE",
+	"ADMISSION_CONTROLLER",
 }
 
 // CloudProvider enum
@@ -327,6 +328,7 @@ var CloudConfigurationRuleMatcherTypeFilter = []string{
 	"KUBERNETES",
 	"AZURE_RESOURCE_MANAGER",
 	"DOCKER_FILE",
+	"ADMISSION_CONTROLLER",
 }
 
 // DeploymentModel enum

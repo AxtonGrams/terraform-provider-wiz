@@ -67,6 +67,7 @@ data "wiz_cloud_config_rules" "aws_critical" {
         - KUBERNETES
         - AZURE_RESOURCE_MANAGER
         - DOCKER_FILE
+        - ADMISSION_CONTROLLER
 - `project` (List of String) Search by project.
 - `risk_equals_all` (List of String)
 - `risk_equals_any` (List of String)
