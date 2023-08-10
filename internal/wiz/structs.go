@@ -63,20 +63,23 @@ type CreateProjectPayload struct {
 	Project Project `json:"project"`
 }
 
-// CreateProjectInput struct -- updates
+// CreateProjectInput struct -- updates this resource is incomplete
+// missing KubernetesClusterSetLinks KubernetesClusterTagsLinks KubernetesClusterUniversalLinks ContainerRegistryLinks ResourceTagLinks
 type CreateProjectInput struct {
-	Name                   string                               `json:"name"`
-	Slug                   string                               `json:"slug,omitempty"`
-	Description            string                               `json:"description,omitempty"`
 	Archived               *bool                                `json:"archived,omitempty"`
-	Identifiers            []string                             `json:"identifiers,omitempty"`
 	BusinessUnit           string                               `json:"businessUnit,omitempty"`
-	ProjectOwners          []string                             `json:"projectOwners,omitempty"`
-	SecurityChampion       []string                             `json:"securityChampions,omitempty"`
-	RiskProfile            ProjectRiskProfileInput              `json:"riskProfile"`
-	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks,omitempty"`
 	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks,omitempty"`
+	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks,omitempty"`
+	Description            string                               `json:"description,omitempty"`
+	Identifiers            []string                             `json:"identifiers,omitempty"`
+	IsFolder               *bool                                `json:"isFolder,omitempty"`
 	KubernetesClusterLinks []*ProjectKubernetesClusterLinkInput `json:"kubernetesClusterLinks,omitempty"`
+	Name                   string                               `json:"name"`
+	ParentProjectID        string                               `json:"parentProjectId,omitempty"`
+	ProjectOwners          []string                             `json:"projectOwners,omitempty"`
+	RiskProfile            ProjectRiskProfileInput              `json:"riskProfile"`
+	SecurityChampion       []string                             `json:"securityChampions,omitempty"`
+	Slug                   string                               `json:"slug,omitempty"`
 }
 
 // ProjectCloudOrganizationLinkInput struct
@@ -151,18 +154,19 @@ type UpdateProjectPayload struct {
 // We deviate from the GraphQL schema to include resource links because the update requires an empty value to nullify removed attributes
 // The slug is required in the request in order to override update and deletion contexts
 type UpdateProjectPatch struct {
-	Name                   string                               `json:"name,omitempty"`
 	Archived               *bool                                `json:"archived,omitempty"`
-	Description            string                               `json:"description,omitempty"`
 	BusinessUnit           string                               `json:"businessUnit,omitempty"`
-	SecurityChampions      []string                             `json:"securityChampions,omitempty"`
+	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks"`
+	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks"`
+	Description            string                               `json:"description,omitempty"`
 	Identifiers            []string                             `json:"identifiers,omitempty"`
+	KubernetesClusterLinks []*ProjectKubernetesClusterLinkInput `json:"kubernetesClusterLinks"`
+	Name                   string                               `json:"name,omitempty"`
+	ParentProjectID        string                               `json:"parentProjectId"`
 	ProjectOwners          []string                             `json:"projectOwners,omitempty"`
 	RiskProfile            *ProjectRiskProfileInput             `json:"riskProfile,omitempty"`
+	SecurityChampions      []string                             `json:"securityChampions,omitempty"`
 	Slug                   string                               `json:"slug"`
-	CloudOrganizationLinks []*ProjectCloudOrganizationLinkInput `json:"cloudOrganizationLinks"`
-	CloudAccountLinks      []*ProjectCloudAccountLinkInput      `json:"cloudAccountLinks"`
-	KubernetesClusterLinks []*ProjectKubernetesClusterLinkInput `json:"kubernetesClusterLinks"`
 }
 
 // UpdateSAMLIdentityProviderInput struct
@@ -258,8 +262,10 @@ type DeleteSAMLIdentityProviderPayload struct {
 
 // Project struct
 type Project struct {
+	AncestorProjects        []*Project                      `json:"ancestorProjects"`
 	Archived                bool                            `json:"archived"`
 	BusinessUnit            string                          `json:"businessUnit"`
+	ChildProjectCount       int                             `json:"childProjectCount"`
 	CloudAccountCount       int                             `json:"cloudAccountCount"`
 	CloudAccountLinks       []*ProjectCloudAccountLink      `json:"cloudAccountLinks"`
 	CloudOrganizationCount  int                             `json:"cloudOrganizationCount"`
@@ -269,8 +275,10 @@ type Project struct {
 	Entrypoints             []*ProjectEntrypoint            `json:"entrypoints"`
 	ID                      string                          `json:"id"`
 	Identifiers             []string                        `json:"identifiers"`
+	IsFolder                bool                            `json:"isFolder"`
 	KubernetesClustersLinks []*ProjectKubernetesClusterLink `json:"kubernetesClustersLinks"`
 	Name                    string                          `json:"name"`
+	NestingLevel            int                             `json:"nestingLevel"`
 	ProfileCompletion       int                             `json:"profileCompletion"`
 	ProjectOwners           []*User                         `json:"projectOwners"`
 	RepositoryCount         int                             `json:"repositoryCount"`

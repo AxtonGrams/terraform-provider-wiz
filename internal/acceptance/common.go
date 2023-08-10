@@ -19,4 +19,6 @@ const (
 	TcJira TestCase = "JIRA"
 	// TcSubscriptionResourceGroups test case
 	TcSubscriptionResourceGroups TestCase = "SUBSCRIPTION_RESOURCE_GROUPS"
+	// TcProject test case
+	TcProject TestCase = "PROJECT"
 )

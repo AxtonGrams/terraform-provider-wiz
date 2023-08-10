@@ -8,6 +8,31 @@ resource "wiz_project" "test" {
   business_unit = "Technology"
 }
 
+# Folder projects example
+resource "wiz_project" "root" {
+  name        = "root"
+  description = "root"
+  is_folder   = true
+
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+}
+
+resource "wiz_project" "child" {
+  name              = "project_with_accounts"
+  parent_project_id = wiz_project.root.id
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+  cloud_account_link {
+    cloud_account_id = "477ea00a-4d4d-5bb4-9fa6-634691e68fff"
+    environment      = "PRODUCTION"
+  }
+}
+
 # This resource contains multiple organization links, one with tags and another without
 resource "wiz_project" "test" {
   name        = "Test App"

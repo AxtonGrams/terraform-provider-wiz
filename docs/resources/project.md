@@ -23,6 +23,31 @@ resource "wiz_project" "test" {
   business_unit = "Technology"
 }
 
+# Folder projects example
+resource "wiz_project" "root" {
+  name        = "root"
+  description = "root"
+  is_folder   = true
+
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+}
+
+resource "wiz_project" "child" {
+  name              = "project_with_accounts"
+  parent_project_id = wiz_project.root.id
+  risk_profile {
+    business_impact = "MBI"
+  }
+  business_unit = "Technology"
+  cloud_account_link {
+    cloud_account_id = "477ea00a-4d4d-5bb4-9fa6-634691e68fff"
+    environment      = "PRODUCTION"
+  }
+}
+
 # This resource contains multiple organization links, one with tags and another without
 resource "wiz_project" "test" {
   name        = "Test App"
@@ -102,7 +127,10 @@ resource "wiz_project" "test" {
 - `cloud_organization_link` (Block Set) Associate the project with an organizational link to organize all the subscription resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_organization_link))
 - `description` (String) The project description.
 - `identifiers` (List of String) Identifiers for the project.
+- `is_folder` (Boolean) Whether the project is a folder.
+    - Defaults to `false`.
 - `kubernetes_cluster_link` (Block Set) Associate the project with kubernetes clusters. (see [below for nested schema](#nestedblock--kubernetes_cluster_link))
+- `parent_project_id` (String) The parent project ID.
 - `project_owners` (List of String) A list of project owner IDs.
 - `risk_profile` (Block List, Max: 1) Contains risk profile related properties for the project (see [below for nested schema](#nestedblock--risk_profile))
 - `security_champions` (List of String) A list of security champions IDs.
@@ -287,3 +315,11 @@ Optional:
         - UNKNOWN
 
     - Defaults to `UNKNOWN`.
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import wiz_project.example "848025a0-9c2d-5863-8c4d-b60799294fff"
+```

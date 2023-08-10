@@ -3,10 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
@@ -44,9 +46,20 @@ func resourceWizProject() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 			},
+			"is_folder": {
+				Type:        schema.TypeBool,
+				Description: "Whether the project is a folder.",
+				Optional:    true,
+				Default:     false,
+			},
 			"business_unit": {
 				Type:        schema.TypeString,
 				Description: "The business unit to which the project belongs.",
+				Optional:    true,
+			},
+			"parent_project_id": {
+				Type:        schema.TypeString,
+				Description: "The parent project ID.",
 				Optional:    true,
 			},
 			"project_owners": {
@@ -428,6 +441,36 @@ func resourceWizProject() *schema.Resource {
 				},
 			},
 		},
+		CustomizeDiff: customdiff.All(
+			// projects cannot be changed from folder to non-folder or vice versa.
+			// to accommodate for importing resources into state, we can't use `ForceNew` in the schema definition.
+			customdiff.ForceNewIfChange("is_folder", func(ctx context.Context, old, new, meta any) bool {
+				return old.(bool) != new.(bool)
+			},
+			),
+			func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+				var errMsgs []string
+
+				if isFolder, ok := diff.Get("is_folder").(bool); ok && isFolder {
+					resources := []string{"cloud_account_link", "cloud_organization_link", "kubernetes_cluster_link"}
+					for _, link := range resources {
+						if _, ok := diff.GetOk(link); ok {
+							errMsgs = append(errMsgs, fmt.Sprintf("'%s' cannot be set if 'is_folder' is true", link))
+						}
+					}
+				}
+				if len(errMsgs) > 0 {
+					var sb strings.Builder
+					for _, errMsg := range errMsgs {
+						sb.WriteString(errMsg)
+						sb.WriteString("; ")
+					}
+					// Remove the last delimiters "; "
+					return fmt.Errorf(sb.String()[:sb.Len()-2])
+				}
+				return nil
+			},
+		),
 		CreateContext: resourceWizProjectCreate,
 		ReadContext:   resourceWizProjectRead,
 		UpdateContext: resourceWizProjectUpdate,
@@ -561,6 +604,9 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	// populate the graphql variables
 	vars := &wiz.CreateProjectInput{}
+	isFolder := d.Get("is_folder").(bool)
+	vars.IsFolder = &isFolder
+
 	vars.Name = d.Get("name").(string)
 	vars.Description = d.Get("description").(string)
 	vars.BusinessUnit = d.Get("business_unit").(string)
@@ -578,6 +624,7 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 	vars.RiskProfile.IsRegulated = d.Get("risk_profile.0.is_regulated").(string)
 	vars.RiskProfile.SensitiveDataTypes = utils.ConvertListToString(d.Get("risk_profile.0.sensitive_data_types").([]interface{}))
 	vars.RiskProfile.RegulatoryStandards = utils.ConvertListToString(d.Get("risk_profile.0.regulatory_standards").([]interface{}))
+	vars.ParentProjectID = d.Get("parent_project_id").(string)
 	vars.ProjectOwners = utils.ConvertListToString(d.Get("project_owners").([]interface{}))
 	vars.SecurityChampion = utils.ConvertListToString(d.Get("security_champions").([]interface{}))
 	vars.Slug = uuid.New().String()
@@ -597,7 +644,7 @@ func resourceWizProjectCreate(ctx context.Context, d *schema.ResourceData, m int
 }
 
 func flattenRiskProfile(ctx context.Context, riskProfile *wiz.ProjectRiskProfile) []interface{} {
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 	riskProfileMap := make(map[string]interface{})
 	riskProfileMap["business_impact"] = riskProfile.BusinessImpact
 	riskProfileMap["is_actively_developed"] = riskProfile.IsActivelyDeveloped
@@ -608,14 +655,14 @@ func flattenRiskProfile(ctx context.Context, riskProfile *wiz.ProjectRiskProfile
 	riskProfileMap["stores_data"] = riskProfile.StoresData
 	riskProfileMap["is_regulated"] = riskProfile.IsRegulated
 
-	var sensitiveDataTypes = make([]interface{}, 0, 0)
+	var sensitiveDataTypes = make([]interface{}, 0)
 	for _, a := range riskProfile.SensitiveDataTypes {
 		tflog.Trace(ctx, fmt.Sprintf("a: %T %s", a, utils.PrettyPrint(a)))
 		sensitiveDataTypes = append(sensitiveDataTypes, a)
 	}
 	riskProfileMap["sensitive_data_types"] = sensitiveDataTypes
 
-	var regulatoryStandards = make([]interface{}, 0, 0)
+	var regulatoryStandards = make([]interface{}, 0)
 	for _, a := range riskProfile.RegulatoryStandards {
 		tflog.Trace(ctx, fmt.Sprintf("a: %T %s", a, utils.PrettyPrint(a)))
 		regulatoryStandards = append(regulatoryStandards, a)
@@ -627,7 +674,7 @@ func flattenRiskProfile(ctx context.Context, riskProfile *wiz.ProjectRiskProfile
 }
 
 func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []*wiz.ProjectCloudOrganizationLink) []interface{} {
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 
 	for _, b := range cloudOrganizationLink {
 		cloudOrganizatinLinksMap := make(map[string]interface{})
@@ -635,7 +682,7 @@ func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []
 		cloudOrganizatinLinksMap["shared"] = b.Shared
 		cloudOrganizatinLinksMap["environment"] = b.Environment
 
-		var resourceTags = make([]interface{}, 0, 0)
+		var resourceTags = make([]interface{}, 0)
 		for _, d := range b.ResourceTags {
 			var resourceTag = make(map[string]interface{})
 			resourceTag["key"] = d.Key
@@ -643,7 +690,7 @@ func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []
 			resourceTags = append(resourceTags, resourceTag)
 		}
 
-		var resourceGroups = make([]interface{}, 0, 0)
+		var resourceGroups = make([]interface{}, 0)
 		for _, d := range b.ResourceGroups {
 			resourceGroups = append(resourceGroups, d)
 		}
@@ -657,7 +704,7 @@ func flattenCloudOrganizationLinks(ctx context.Context, cloudOrganizationLink []
 }
 
 func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*wiz.ProjectCloudAccountLink) []interface{} {
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 
 	for _, b := range cloudAccountLink {
 		cloudAccountLinksMap := make(map[string]interface{})
@@ -665,7 +712,7 @@ func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*wiz.Proje
 		cloudAccountLinksMap["shared"] = b.Shared
 		cloudAccountLinksMap["environment"] = b.Environment
 
-		var resourceTags = make([]interface{}, 0, 0)
+		var resourceTags = make([]interface{}, 0)
 		for _, d := range b.ResourceTags {
 			var resourceTag = make(map[string]interface{})
 			resourceTag["key"] = d.Key
@@ -673,7 +720,7 @@ func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*wiz.Proje
 			resourceTags = append(resourceTags, resourceTag)
 		}
 
-		var resourceGroups = make([]interface{}, 0, 0)
+		var resourceGroups = make([]interface{}, 0)
 		for _, d := range b.ResourceGroups {
 			resourceGroups = append(resourceGroups, d)
 		}
@@ -687,7 +734,7 @@ func flattenCloudAccountLinks(ctx context.Context, cloudAccountLink []*wiz.Proje
 }
 
 func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []*wiz.ProjectKubernetesClusterLink) []interface{} {
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 
 	for _, b := range kubernetesClusterLink {
 		clusterLinksMap := make(map[string]interface{})
@@ -695,7 +742,7 @@ func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []
 		clusterLinksMap["shared"] = b.Shared
 		clusterLinksMap["environment"] = b.Environment
 
-		var namespaces = make([]interface{}, 0, 0)
+		var namespaces = make([]interface{}, 0)
 		for _, d := range b.Namespaces {
 			namespaces = append(namespaces, d)
 		}
@@ -707,7 +754,7 @@ func flattenKubernetesClusterLinks(ctx context.Context, kubernetesClusterLink []
 }
 
 func flattenUserIds(ctx context.Context, userIds []*wiz.User) []interface{} {
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 	for _, b := range userIds {
 		output = append(output, b.ID)
 	}
@@ -736,6 +783,10 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 	    ) {
 	        id
 	        name
+	        isFolder
+	        ancestorProjects {
+	          id
+	        }	
 	        description
 	        identifiers
 	        slug
@@ -819,6 +870,19 @@ func resourceWizProjectRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("is_folder", data.Project.IsFolder)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	// the parent project will be the first element of the list of ancestor projects
+	if len(data.Project.AncestorProjects) > 0 {
+		err = d.Set("parent_project_id", data.Project.AncestorProjects[0].ID)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
+	}
+
 	err = d.Set("description", data.Project.Description)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -904,6 +968,7 @@ func resourceWizProjectUpdate(ctx context.Context, d *schema.ResourceData, m int
 	vars.Override.BusinessUnit = d.Get("business_unit").(string)
 	vars.Override.Identifiers = utils.ConvertListToString((d.Get("identifiers")).([]interface{}))
 	vars.Override.Slug = d.Get("slug").(string)
+	vars.Override.ParentProjectID = d.Get("parent_project_id").(string)
 
 	// The API treats a patch to riskProfile as an override so we set all values
 	riskProfile := &wiz.ProjectRiskProfileInput{}

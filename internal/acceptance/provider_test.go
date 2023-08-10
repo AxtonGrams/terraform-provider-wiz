@@ -41,6 +41,8 @@ func testAccPreCheck(t *testing.T, tc TestCase) {
 		envVars = append(commonEnvVars, "WIZ_INTEGRATION_JIRA_URL", "WIZ_INTEGRATION_JIRA_USERNAME", "WIZ_INTEGRATION_JIRA_PASSWORD", "WIZ_INTEGRATION_JIRA_PROJECT")
 	case TcSubscriptionResourceGroups:
 		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
+	case TcProject:
+		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
 	default:
 		t.Fatalf("unknown testCase: %s", tc)
 	}
