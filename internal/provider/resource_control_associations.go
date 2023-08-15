@@ -237,8 +237,8 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 	// iterate over each control
 	tflog.Debug(ctx, fmt.Sprintf("control_ids for read: %s", d.Get("control_ids").([]interface{})))
-	resourceControlIds := d.Get("control_ids").([]interface{})
-	for _, b := range resourceControlIds {
+	resourceControlIDs := d.Get("control_ids").([]interface{})
+	for _, b := range resourceControlIDs {
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, b))
 
 		// populate the graphql variables
@@ -282,14 +282,14 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 	// terraform presents a diff even when the values and their order are the same, so long as Set() is called
 	tflog.Debug(ctx, "Ensuring that we only set control IDs when they have different lengths, or when the orders are different.")
 	var newControlIds []string
-	resourceControlIdsLen := len(resourceControlIds)
+	resourceControlIDsLen := len(resourceControlIDs)
 	cleanControlsLen := len(cleanControls)
-	if resourceControlIdsLen != cleanControlsLen {
+	if resourceControlIDsLen != cleanControlsLen {
 		newControlIds = cleanControls
 	} else {
-		for i, resourceControlId := range resourceControlIds {
-			cleanControlId := cleanControls[i]
-			if resourceControlId != cleanControlId {
+		for i, resourceControlID := range resourceControlIDs {
+			cleanControlID := cleanControls[i]
+			if resourceControlID != cleanControlID {
 				newControlIds = cleanControls
 				break
 			}
