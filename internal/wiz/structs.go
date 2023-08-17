@@ -607,7 +607,7 @@ type ConnectorConfigGCP struct {
 	ClientEmail                  string                      `json:"client_email"`
 	ClientID                     string                      `json:"client_id"`
 	ClientX509CertURL            string                      `json:"client_x509_cert_url"`
-	DelegateUser                 string                      `json:"delegate_user"`
+	DelegateUser                 string                      `json:"delegateUser"`
 	DiskAnalyzerInFlightDisabled bool                        `json:"diskAnalyzerInFlightDisabled"`
 	ExcludedFolders              []string                    `json:"excludedFolders"`
 	ExcludedProjects             []string                    `json:"excludedProjects"`
@@ -630,7 +630,7 @@ type ConnectorConfigGCPAuditLogs struct {
 
 // ConnectorConfigGCPPubSub struct -- updates
 type ConnectorConfigGCPPubSub struct {
-	SubscriptionID string `json:"subscriptionId"`
+	SubscriptionID string `json:"subscriptionID"`
 	TopicName      string `json:"topicName"`
 }
 
