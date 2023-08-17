@@ -33,7 +33,6 @@ func resourceWizControlAssociations() *schema.Resource {
 			"control_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
-				ForceNew:    true,
 				Description: "List of control IDs.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -217,7 +216,7 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 	// read current sub-categories for each control
 	// if a sub-category is missing from a control, taint the resource by removing the control from the state
-	tflog.Debug(ctx, fmt.Sprintf("Control IDs: %T %s", d.Get("control_ids"), utils.PrettyPrint(d.Get("control_ids"))))
+	tflog.Debug(ctx, fmt.Sprintf("Control IDs for resource %s: %T %s", d.Get("id"), d.Get("control_ids"), utils.PrettyPrint(d.Get("control_ids"))))
 
 	// define the graphql query
 	query := `query Control (
@@ -238,7 +237,8 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 	// iterate over each control
 	tflog.Debug(ctx, fmt.Sprintf("control_ids for read: %s", d.Get("control_ids").([]interface{})))
-	for _, b := range d.Get("control_ids").([]interface{}) {
+	resourceControlIDs := d.Get("control_ids").([]interface{})
+	for _, b := range resourceControlIDs {
 		tflog.Debug(ctx, fmt.Sprintf("b: %T %s", b, b))
 
 		// populate the graphql variables
@@ -279,9 +279,28 @@ func resourceWizControlAssociationsRead(ctx context.Context, d *schema.ResourceD
 
 	tflog.Debug(ctx, fmt.Sprintf("Clean controls from read operation: %T %s", cleanControls, utils.PrettyPrint(cleanControls)))
 
-	err = d.Set("control_ids", cleanControls)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+	// terraform presents a diff even when the values and their order are the same, so long as Set() is called
+	tflog.Debug(ctx, "Ensuring that we only set control IDs when they have different lengths, or when the orders are different.")
+	var newControlIds []string
+	resourceControlIDsLen := len(resourceControlIDs)
+	cleanControlsLen := len(cleanControls)
+	if resourceControlIDsLen != cleanControlsLen {
+		newControlIds = cleanControls
+	} else {
+		for i, resourceControlID := range resourceControlIDs {
+			cleanControlID := cleanControls[i]
+			if resourceControlID != cleanControlID {
+				newControlIds = cleanControls
+				break
+			}
+		}
+	}
+
+	if len(newControlIds) > 0 {
+		err = d.Set("control_ids", newControlIds)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	return diags
