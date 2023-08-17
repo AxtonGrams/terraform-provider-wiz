@@ -598,6 +598,42 @@ type OutpostAWSConfig struct {
 	DisableNatGateway bool   `json:"disableNatGateway,omitempty"`
 }
 
+// ConnectorConfigGCP struct -- updates
+type ConnectorConfigGCP struct {
+	AuthProviderX509CertURL      string                      `json:"auth_provider_x509_cert_url"`
+	AuthURI                      string                      `json:"auth_uri"`
+	AuditLogMonitorEnabled       bool                        `json:"auditLogMonitorEnabled"`
+	AuditLogsConfig              ConnectorConfigGCPAuditLogs `json:"auditLogsConfig"`
+	ClientEmail                  string                      `json:"client_email"`
+	ClientID                     string                      `json:"client_id"`
+	ClientX509CertURL            string                      `json:"client_x509_cert_url"`
+	DelegateUser                 string                      `json:"delegate_user"`
+	DiskAnalyzerInFlightDisabled bool                        `json:"diskAnalyzerInFlightDisabled"`
+	ExcludedFolders              []string                    `json:"excludedFolders"`
+	ExcludedProjects             []string                    `json:"excludedProjects"`
+	FolderID                     string                      `json:"folder_id"`
+	IncludedFolders              []string                    `json:"includedFolders"`
+	IsManagedIdentity            bool                        `json:"isManagedIdentity"`
+	OrganizationID               string                      `json:"organization_id"`
+	PrivateKey                   string                      `json:"private_key"`
+	PrivateKeyID                 string                      `json:"private_key_id"`
+	ProjectID                    string                      `json:"project_id"`
+	Projects                     []string                    `json:"projects"`
+	TokenURI                     string                      `json:"token_uri"`
+	Type                         string                      `json:"type"`
+}
+
+// ConnectorConfigGCPAuditLogs struct -- updates
+type ConnectorConfigGCPAuditLogs struct {
+	PubSub ConnectorConfigGCPPubSub `json:"pub_sub"`
+}
+
+// ConnectorConfigGCPPubSub struct -- updates
+type ConnectorConfigGCPPubSub struct {
+	SubscriptionID string `json:"subscriptionId"`
+	TopicName      string `json:"topicName"`
+}
+
 // ConnectorConfigAWS struct -- updates
 type ConnectorConfigAWS struct {
 	CustomerRoleARN              string                        `json:"customerRoleARN"`
