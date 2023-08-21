@@ -3,7 +3,7 @@ module wiz.io/hashicorp/terraform-provider-wiz
 go 1.18
 
 require (
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/hashicorp/go-retryablehttp v0.7.4
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
