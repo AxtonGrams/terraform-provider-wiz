@@ -169,7 +169,8 @@ resource "wiz_service_account" "helm" {
         - write:security_scans
         - write:service_accounts
 - `type` (String) Service account type, for Helm use `BROKER` type.`
-    - Allowed values: 
+    - Allowed values:
+        - FIRST_PARTY
         - THIRD_PARTY
         - SENSOR
         - KUBERNETES_ADMISSION_CONTROLLER
