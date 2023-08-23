@@ -168,6 +168,7 @@ var AutomationRuleTriggerType = []string{
 
 // ServiceAccountType enum
 var ServiceAccountType = []string{
+	"FIRST_PARTY",
 	"THIRD_PARTY",
 	"SENSOR",
 	"KUBERNETES_ADMISSION_CONTROLLER",
