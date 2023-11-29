@@ -86,3 +86,31 @@ jobs:
         cache: true
       id: go
     - run: go test -v -cover ./internal/provider/... ./internal/client/... ./internal/config/... ./internal/utils/...
+  codeowners:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Check for CODEOWNERS file
+        uses: andstor/file-existence-action@v2
+        id: check_codeowners_1
+        with:
+          files: CODEOWNERS
+      - name: Check for CODEOWNERS file
+        uses: andstor/file-existence-action@v2
+        id: check_codeowners_2
+        with:
+          files: docs/CODEOWNERS
+      - name: Check for CODEOWNERS file
+        uses: andstor/file-existence-action@v2
+        id: check_codeowners_3
+        with:
+          files: .github/CODEOWNERS
+      - name: Validate CODEOWNERS
+        uses: mszostok/codeowners-validator@v0.7.4
+        if: steps.check_codeowners_1.outputs.files_exists || steps.check_codeowners_2.outputs.files_exists ||steps.check_codeowners_3.outputs.files_exists
+        with:
+          checks: "files,owners,duppatterns,syntax"
+          github_access_token: ${{ secrets.CODEOWNERS_PAT}}
