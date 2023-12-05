@@ -192,6 +192,24 @@ var IACScanSeverity = []string{
 	"CRITICAL",
 }
 
+const ReportTypeGraphQuery = "GRAPH_QUERY"
+
+type ReportType string
+
+var ReportTypes = []string{
+	ReportTypeGraphQuery,
+}
+
+const CSVDelimiterUS = "US"
+const CSVDelimiterEU = "EU"
+
+type CSVDelimiter string
+
+var ReportCsvDelimiters = []string{
+	CSVDelimiterUS,
+	CSVDelimiterEU,
+}
+
 // Severity enum
 var Severity = []string{
 	"INFORMATIONAL",
