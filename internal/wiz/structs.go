@@ -2396,6 +2396,11 @@ type UpdateConnectorPatch struct {
 	ExtraConfig json.RawMessage `json:"extraConfig,omitempty"`
 }
 
+// CreateControlPayload struct
+type CreateReportPayload struct {
+	Report Report `json:"report,omitempty"`
+}
+
 type CreateReportInput struct {
 	Name               string                               `json:"name"`
 	Type               string                               `json:"type"`
@@ -2403,6 +2408,7 @@ type CreateReportInput struct {
 	RunIntervalHours   *int                                 `json:"runIntervalHours,omitempty"`
 	RunStartsAt        *time.Time                           `json:"runStartsAt,omitempty"`
 	EmailTargetParams  *EmailTargetParams                   `json:"emailTargetParams,omitempty"`
+	GraphQueryParams   *CreateReportGraphQueryParamsInput   `json:"graphQueryParams,omitempty"`
 	ColumnSelection    []string                             `json:"columnSelection,omitempty"`
 	CSVDelimiter       *CSVDelimiter                        `json:"csvDelimiter,omitempty"`
 	ExportDestinations []CreateReportExportDestinationInput `json:"exportDestinations,omitempty"`
@@ -2429,10 +2435,10 @@ type CreateReportGraphQueryParamsInput struct {
 }
 
 // Define GraphEntityQueryValue as per your application's needs
-type GraphEntityQueryValue string
+type GraphEntityQueryValue = json.RawMessage
 
 // Define GraphEntityTypeValue as per your application's needs
-type GraphEntityTypeValue string
+type GraphEntityTypeValue = string
 
 type CreateReportGraphQueryEntityOptions struct {
 	EntityType      GraphEntityTypeValue                    `json:"entityType"`
@@ -2469,6 +2475,12 @@ type ReportExportDestination interface{}
 
 type ReportRun struct{}
 
+type ReportType struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+}
+
 type EmailTarget struct{}
 
 type ReportExportDestinationSnowflake struct {
@@ -2488,14 +2500,32 @@ type UpdateReportChange struct {
 	RunIntervalHours   *int                                 `json:"runIntervalHours,omitempty"`
 	RunStartsAt        *time.Time                           `json:"runStartsAt,omitempty"`
 	EmailTargetParams  *EmailTargetParams                   `json:"emailTargetParams,omitempty"`
+	GraphQueryParams   *UpdateReportGraphQueryParamsInput   `json:"graphQueryParams,omitempty"`
 	ColumnSelection    []string                             `json:"columnSelection,omitempty"`
 	CSVDelimiter       *CSVDelimiter                        `json:"csvDelimiter,omitempty"`
 	ExportDestinations []UpdateReportExportDestinationInput `json:"exportDestinations,omitempty"`
 }
 
+type UpdateReportGraphQueryParamsInput struct {
+	Query         GraphEntityQueryValue                 `json:"query"`
+	EntityOptions []UpdateReportGraphQueryEntityOptions `json:"entityOptions"`
+	Type          *GraphSearchExportType                `json:"type,omitempty"`
+}
+
 type UpdateReportExportDestinationInput struct {
 	Snowflake *UpdateReportExportDestinationSnowflakeInput `json:"snowflake,omitempty"`
 }
+
+type UpdateReportGraphQueryEntityOptions struct {
+	EntityType      GraphEntityTypeValue                    `json:"entityType"`
+	PropertyOptions []UpdateReportGraphQueryPropertyOptions `json:"propertyOptions"`
+}
+
+type UpdateReportGraphQueryPropertyOptions struct {
+	Key string `json:"key"`
+}
+
+type GraphSearchExportType = string
 
 type UpdateReportExportDestinationSnowflakeInput struct {
 	IntegrationID string `json:"integrationId"`

@@ -192,12 +192,12 @@ var IACScanSeverity = []string{
 	"CRITICAL",
 }
 
-const ReportTypeGraphQuery = "GRAPH_QUERY"
+const ReportTypeNameGraphQuery = "GRAPH_QUERY"
 
-type ReportType string
+type ReportTypeName string
 
-var ReportTypes = []string{
-	ReportTypeGraphQuery,
+var ReportTypeNames = []string{
+	ReportTypeNameGraphQuery,
 }
 
 const CSVDelimiterUS = "US"

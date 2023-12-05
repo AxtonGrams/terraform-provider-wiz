@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -24,27 +25,10 @@ func resourceWizReport() *schema.Resource {
 				Required:    true,
 				Description: "Name of the Report.",
 			},
-			"column_selection": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Custom columns to include in the report. When disabled, the default columns will be included.",
-			},
-			"csv_delimiter": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Delimiter to use for the CSV output.",
-				ValidateDiagFunc: validation.ToDiagFunc(
-					validation.StringInSlice(
-						wiz.ReportCsvDelimiters,
-						false,
-					),
-				),
-			},
 			"project_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The ID of the project that this report belongs to.",
-				Default:     false,
 			},
 			"query": {
 				Type:        schema.TypeString,
@@ -68,21 +52,21 @@ func resourceWizReport() *schema.Resource {
 				Description: fmt.Sprintf(
 					"Type for this report.\n    - Allowed values: %s",
 					utils.SliceOfStringToMDUList(
-						wiz.ReportTypes,
+						wiz.ReportTypeNames,
 					),
 				),
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringInSlice(
-						wiz.ReportTypes,
+						wiz.ReportTypeNames,
 						false,
 					),
 				),
 			},
 		},
-		CreateContext: resourceWizProjectCreate,
-		ReadContext:   resourceWizProjectRead,
-		UpdateContext: resourceWizProjectUpdate,
-		DeleteContext: resourceWizProjectDelete,
+		CreateContext: resourceWizReportCreate,
+		ReadContext:   resourceWizReportRead,
+		UpdateContext: resourceWizReportUpdate,
+		DeleteContext: resourceWizReportDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -91,7 +75,7 @@ func resourceWizReport() *schema.Resource {
 
 // CreateReport struct
 type CreateReport struct {
-	CreateReport *wiz.Report `json:"createReport"`
+	CreateReport wiz.CreateReportPayload `json:"createReport"`
 }
 
 func resourceWizReportCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -104,7 +88,7 @@ func resourceWizReportCreate(ctx context.Context, d *schema.ResourceData, m inte
 	    createReport(
 	        input: $input
 	    ) {
-	        control {
+	        report {
 	            id
 	        }
 	    }
@@ -113,16 +97,19 @@ func resourceWizReportCreate(ctx context.Context, d *schema.ResourceData, m inte
 	// populate the graphql variables
 	vars := &wiz.CreateReportInput{}
 	vars.Name = d.Get("name").(string)
-
-	csvDelimiter, _ := d.Get("csv_delimiter").(wiz.CSVDelimiter)
-	vars.CSVDelimiter = &csvDelimiter
-	columnSelection, hasVal := d.GetOk("column_selection")
-	if hasVal {
-		vars.ColumnSelection = columnSelection.([]string)
-	}
-
 	projectID, _ := d.Get("project_id").(string)
 	vars.ProjectID = &projectID
+
+	vars.Type = d.Get("type").(string)
+	switch vars.Type {
+	case wiz.ReportTypeNameGraphQuery:
+		query := json.RawMessage(d.Get("query").(string))
+		vars.GraphQueryParams = &wiz.CreateReportGraphQueryParamsInput{
+			Query: query,
+		}
+	default:
+		return append(diags, diag.FromErr(fmt.Errorf("unsupported report type, %s", vars.Type))...)
+	}
 
 	// process the request
 	data := &CreateReport{}
@@ -133,7 +120,7 @@ func resourceWizReportCreate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	// set the id
-	d.SetId(data.CreateReport.ID)
+	d.SetId(data.CreateReport.Report.ID)
 
 	return resourceWizReportRead(ctx, d, m)
 }
@@ -155,21 +142,27 @@ func resourceWizReportRead(ctx context.Context, d *schema.ResourceData, m interf
 	query := `query Report (
 	    $id: ID!
 	){
-	    control(
+	    report(
 	        id: $id
 	    ) {
 	        id
 	        name
 	        params {
-		  query
-		  entityOptions {
-		    entityType
-		    propertyOptions {
-		      key
+		  ... on ReportParamsGraphQuery {
+		    query
+		    entityOptions {
+		      entityType
+		      propertyOptions {
+		        key
+		      }
 		    }
 		  }
 		}
-	        type
+	        type {
+		  id
+		  name
+		  description
+		}
 	        project {
 	            id
 	            name
@@ -180,6 +173,8 @@ func resourceWizReportRead(ctx context.Context, d *schema.ResourceData, m interf
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.ID = d.Id()
+
+	tflog.Info(ctx, fmt.Sprintf("report ID during read: %s", vars.ID))
 
 	// process the request
 	// this query returns http 200 with a payload that contains errors and a null data body
@@ -204,7 +199,7 @@ func resourceWizReportRead(ctx context.Context, d *schema.ResourceData, m interf
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("type", data.Report.Type)
+	err = d.Set("type", data.Report.Type.ID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -236,8 +231,9 @@ func resourceWizReportUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	    updateReport(
 		input: $input
 	    ) {
-		control {
+		report {
 		    id
+		    name
 		}
 	    }
 	}`
@@ -245,6 +241,10 @@ func resourceWizReportUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	// populate the graphql variables
 	vars := &wiz.UpdateReportInput{}
 	vars.ID = d.Id()
+	vars.Override = &wiz.UpdateReportChange{}
+	vars.Override.GraphQueryParams = &wiz.UpdateReportGraphQueryParamsInput{}
+	reportQuery, _ := d.Get("query").(string)
+	vars.Override.GraphQueryParams.Query = json.RawMessage(reportQuery)
 
 	if d.HasChange("name") {
 		vars.Override.Name = d.Get("name").(string)
@@ -291,7 +291,7 @@ func resourceWizReportDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 	// process the request
 	data := &UpdateReport{}
-	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "control", "delete")
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "report", "delete")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags

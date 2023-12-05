@@ -274,6 +274,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_integration_aws_sns":                      resourceWizIntegrationAwsSNS(),
 				"wiz_integration_servicenow":                   resourceWizIntegrationServiceNow(),
 				"wiz_integration_jira":                         resourceWizIntegrationJira(),
+				"wiz_report":                                   resourceWizReport(),
 				"wiz_project":                                  resourceWizProject(),
 				"wiz_saml_idp":                                 resourceWizSAMLIdP(),
 				"wiz_security_framework":                       resourceWizSecurityFramework(),
