@@ -2396,11 +2396,12 @@ type UpdateConnectorPatch struct {
 	ExtraConfig json.RawMessage `json:"extraConfig,omitempty"`
 }
 
-// CreateControlPayload struct
+// CreateReportPayload struct
 type CreateReportPayload struct {
 	Report Report `json:"report,omitempty"`
 }
 
+// CreateReportInput struct
 type CreateReportInput struct {
 	Name               string                               `json:"name"`
 	Type               string                               `json:"type"`
@@ -2414,14 +2415,20 @@ type CreateReportInput struct {
 	ExportDestinations []CreateReportExportDestinationInput `json:"exportDestinations,omitempty"`
 }
 
+// CSVDelimiter alias
+type CSVDelimiter = string
+
+// EmailTargetParams struct
 type EmailTargetParams struct {
 	To []string `json:"to"`
 }
 
+// CreateReportExportDestinationInput struct
 type CreateReportExportDestinationInput struct {
 	Snowflake *CreateReportExportDestinationSnowflakeInput `json:"snowflake,omitempty"`
 }
 
+// CreateReportExportDestinationSnowflakeInput struct
 type CreateReportExportDestinationSnowflakeInput struct {
 	IntegrationID string `json:"integrationId"`
 	Database      string `json:"database"`
@@ -2429,24 +2436,30 @@ type CreateReportExportDestinationSnowflakeInput struct {
 	Table         string `json:"table"`
 }
 
+// CreateReportGraphQueryParamsInput struct
 type CreateReportGraphQueryParamsInput struct {
 	Query         GraphEntityQueryValue                 `json:"query"`
 	EntityOptions []CreateReportGraphQueryEntityOptions `json:"entityOptions,omitempty"`
 }
 
+// GraphEntityQueryValue alias
 type GraphEntityQueryValue = json.RawMessage
 
+// GraphEntityTypeValue alias
 type GraphEntityTypeValue = string
 
+// CreateReportGraphQueryEntityOptions struct
 type CreateReportGraphQueryEntityOptions struct {
 	EntityType      GraphEntityTypeValue                    `json:"entityType"`
 	PropertyOptions []CreateReportGraphQueryPropertyOptions `json:"propertyOptions"`
 }
 
+// CreateReportGraphQueryPropertyOptions struct
 type CreateReportGraphQueryPropertyOptions struct {
 	Key string `json:"key"`
 }
 
+// Report struct
 type Report struct {
 	ID                 string                    `json:"id"`
 	Name               string                    `json:"name"`
@@ -2465,27 +2478,35 @@ type Report struct {
 	ExportDestinations []ReportExportDestination `json:"exportDestinations"`
 }
 
+// ReportParams interface
 type ReportParams interface{}
 
+// ReportParamsGraphQuery struct
 type ReportParamsGraphQuery struct {
 	Query         GraphEntityQueryValue           `json:"query"`
 	EntityOptions []ReportGraphQueryEntityOptions `json:"entityOptions,omitempty"`
 }
 
+// ReportGraphQueryEntityOptions interface
 type ReportGraphQueryEntityOptions interface{}
 
+// ReportExportDestination interface
 type ReportExportDestination interface{}
 
+// ReportRun struct
 type ReportRun struct{}
 
+// ReportType struct
 type ReportType struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
 }
 
+// EmailTarget struct
 type EmailTarget struct{}
 
+// ReportExportDestinationSnowflake struct
 type ReportExportDestinationSnowflake struct {
 	Integration Integration `json:"integration"`
 	Database    string      `json:"database"`
@@ -2493,11 +2514,13 @@ type ReportExportDestinationSnowflake struct {
 	Table       string      `json:"table"`
 }
 
+// UpdateReportInput struct
 type UpdateReportInput struct {
 	ID       string              `json:"id"`
 	Override *UpdateReportChange `json:"override,omitempty"`
 }
 
+// UpdateReportChange struct
 type UpdateReportChange struct {
 	Name               string                               `json:"name"`
 	RunIntervalHours   *int                                 `json:"runIntervalHours,omitempty"`
@@ -2509,27 +2532,33 @@ type UpdateReportChange struct {
 	ExportDestinations []UpdateReportExportDestinationInput `json:"exportDestinations,omitempty"`
 }
 
+// UpdateReportGraphQueryParamsInput struct
 type UpdateReportGraphQueryParamsInput struct {
 	Query         GraphEntityQueryValue                 `json:"query"`
 	EntityOptions []UpdateReportGraphQueryEntityOptions `json:"entityOptions"`
 	Type          *GraphSearchExportType                `json:"type,omitempty"`
 }
 
+// UpdateReportExportDestinationInput struct
 type UpdateReportExportDestinationInput struct {
 	Snowflake *UpdateReportExportDestinationSnowflakeInput `json:"snowflake,omitempty"`
 }
 
+// UpdateReportGraphQueryEntityOptions struct
 type UpdateReportGraphQueryEntityOptions struct {
 	EntityType      GraphEntityTypeValue                    `json:"entityType"`
 	PropertyOptions []UpdateReportGraphQueryPropertyOptions `json:"propertyOptions"`
 }
 
+// UpdateReportGraphQueryPropertyOptions struct
 type UpdateReportGraphQueryPropertyOptions struct {
 	Key string `json:"key"`
 }
 
+// GraphSearchExportType alias
 type GraphSearchExportType = string
 
+// UpdateReportExportDestinationSnowflakeInput struct
 type UpdateReportExportDestinationSnowflakeInput struct {
 	IntegrationID string `json:"integrationId"`
 	Database      string `json:"database"`
@@ -2537,10 +2566,12 @@ type UpdateReportExportDestinationSnowflakeInput struct {
 	Table         string `json:"table"`
 }
 
+// DeleteReportPayload struct
 type DeleteReportPayload struct {
 	Stub string `json:"_stub"`
 }
 
+// DeleteReportInput struct
 type DeleteReportInput struct {
 	ID string `json:"id"`
 }

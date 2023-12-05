@@ -192,23 +192,8 @@ var IACScanSeverity = []string{
 	"CRITICAL",
 }
 
+// ReportTypeNameGraphQuery alias
 const ReportTypeNameGraphQuery = "GRAPH_QUERY"
-
-type ReportTypeName string
-
-var ReportTypeNames = []string{
-	ReportTypeNameGraphQuery,
-}
-
-const CSVDelimiterUS = "US"
-const CSVDelimiterEU = "EU"
-
-type CSVDelimiter string
-
-var ReportCsvDelimiters = []string{
-	CSVDelimiterUS,
-	CSVDelimiterEU,
-}
 
 // Severity enum
 var Severity = []string{
