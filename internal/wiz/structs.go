@@ -2469,7 +2469,12 @@ type Report struct {
 
 type ReportParams interface{}
 
-type ReportParamsGraphQuery struct{}
+type ReportParamsGraphQuery struct {
+	Query         GraphEntityQueryValue           `json:"query"`
+	EntityOptions []ReportGraphQueryEntityOptions `json:"entityOptions,omitempty"`
+}
+
+type ReportGraphQueryEntityOptions interface{}
 
 type ReportExportDestination interface{}
 
