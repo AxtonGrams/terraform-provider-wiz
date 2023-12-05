@@ -52,7 +52,6 @@ func resourceWizReportGraphQuery() *schema.Resource {
 func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizReportGraphQueryCreate called...")
 
-	// define the graphql query
 	query := `mutation createReport(
 	    $input: CreateReportInput!
 	) {
@@ -65,7 +64,6 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 	    }
 	}`
 
-	// populate the graphql variables
 	vars := &wiz.CreateReportInput{}
 	vars.Name = d.Get("name").(string)
 	projectID, _ := d.Get("project_id").(string)
@@ -76,7 +74,6 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 		Query: reportQuery,
 	}
 
-	// process the request
 	data := &CreateReport{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "report", "create")
 	diags = append(diags, requestDiags...)
@@ -84,7 +81,6 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 		return diags
 	}
 
-	// set the id
 	d.SetId(data.CreateReport.Report.ID)
 
 	return resourceWizReportGraphQueryRead(ctx, d, m)
@@ -93,12 +89,10 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizReportGraphQueryRead called...")
 
-	// check the id
 	if d.Id() == "" {
 		return nil
 	}
 
-	// define the graphql query
 	query := `query Report (
 	    $id: ID!
 	){
@@ -130,15 +124,11 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	    }
 	}`
 
-	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.ID = d.Id()
 
 	tflog.Info(ctx, fmt.Sprintf("report ID during read: %s", vars.ID))
 
-	// process the request
-	// this query returns http 200 with a payload that contains errors and a null data body
-	// error message: oops! an internal error has occurred. for reference purposes, this is your request id
 	data := &ReadReportPayload{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "report", "read")
 	diags = append(diags, requestDiags...)
@@ -154,7 +144,6 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 		return diags
 	}
 
-	// set the resource parameters
 	err := d.Set("name", data.Report.Name)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
@@ -178,12 +167,10 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
 	tflog.Info(ctx, "resourceWizReportGraphQueryUpdate called...")
 
-	// check the id
 	if d.Id() == "" {
 		return nil
 	}
 
-	// define the graphql query
 	query := `mutation UpdateReport(
 	    $input: UpdateReportInput!
 	) {
@@ -197,7 +184,6 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 	    }
 	}`
 
-	// populate the graphql variables
 	vars := &wiz.UpdateReportInput{}
 	vars.ID = d.Id()
 	vars.Override = &wiz.UpdateReportChange{}
@@ -206,7 +192,6 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 	vars.Override.GraphQueryParams.Query = json.RawMessage(reportQuery)
 	vars.Override.Name = d.Get("name").(string)
 
-	// process the request
 	data := &UpdateReport{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "report", "update")
 	diags = append(diags, requestDiags...)
