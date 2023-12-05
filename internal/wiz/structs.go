@@ -2434,10 +2434,8 @@ type CreateReportGraphQueryParamsInput struct {
 	EntityOptions []CreateReportGraphQueryEntityOptions `json:"entityOptions,omitempty"`
 }
 
-// Define GraphEntityQueryValue as per your application's needs
 type GraphEntityQueryValue = json.RawMessage
 
-// Define GraphEntityTypeValue as per your application's needs
 type GraphEntityTypeValue = string
 
 type CreateReportGraphQueryEntityOptions struct {
