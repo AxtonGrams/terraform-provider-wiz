@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"testing"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -10,13 +11,14 @@ import (
 
 func TestAccResourceWizReportGraphQuery_basic(t *testing.T) {
 	rName := acctest.RandomWithPrefix(ResourcePrefix)
+	projectID := os.Getenv("WIZ_PROJECT_ID")
 
 	resource.UnitTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t, TestCase(TcProject)) },
+		PreCheck:          func() { testAccPreCheck(t, TestCase(TcReportGraphQuery)) },
 		ProviderFactories: providerFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testResourceWizReportGraphQueryBasic(rName),
+				Config: testResourceWizReportGraphQueryBasic(rName, projectID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"wiz_report_graph_query.foo",
@@ -26,12 +28,12 @@ func TestAccResourceWizReportGraphQuery_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"wiz_report_graph_query.foo",
 						"project_id",
-						"2c38b8fa-c315-57ea-9de4-e3a19592d796",
+						projectID,
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_report_graph_query.foo",
 						"query",
-						"{\"select\": true, \"type\": [\"CONTAINER_IMAGE\"], \"where\": {\"name\": {\"CONTAINS\": [\"atlantis\"]}}}",
+						"{\"select\": true, \"type\": [\"CONTAINER_IMAGE\"], \"where\": {\"name\": {\"CONTAINS\": [\"foo\"]}}}",
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_report_graph_query.foo",
@@ -41,7 +43,7 @@ func TestAccResourceWizReportGraphQuery_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"wiz_report_graph_query.foo",
 						"run_starts_at",
-						"2023-12-06 16:30:00 +0000 UTC",
+						"2023-12-06 16:00:00 +0000 UTC",
 					),
 				),
 			},
@@ -49,14 +51,14 @@ func TestAccResourceWizReportGraphQuery_basic(t *testing.T) {
 	})
 }
 
-func testResourceWizReportGraphQueryBasic(rName string) string {
+func testResourceWizReportGraphQueryBasic(rName, projectID string) string {
 	return fmt.Sprintf(`
 resource "wiz_report_graph_query" "foo" {
   name = "%s"
-  project_id = "6c3858fa-c807-57ea-9de4-d3e19536d796"
+  project_id = "%s"
   run_interval_hours = 48
-  run_starts_at = "2023-12-06 16:30:00 +0000 UTC"
+  run_starts_at = "2023-12-06 16:00:00 +0000 UTC"
   query = "{\"select\": true, \"type\": [\"CONTAINER_IMAGE\"], \"where\": {\"name\": {\"CONTAINS\": [\"foo\"]}}}"
 }
-`, rName)
+`, rName, projectID)
 }

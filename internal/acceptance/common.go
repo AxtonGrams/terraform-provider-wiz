@@ -21,6 +21,8 @@ const (
 	TcSubscriptionResourceGroups TestCase = "SUBSCRIPTION_RESOURCE_GROUPS"
 	// TcProject test case
 	TcProject TestCase = "PROJECT"
+	// TcReportGraphQuery test case
+	TcReportGraphQuery TestCase = "REPORT_GRAPH_QUERY"
 	// TcCloudConfigRule test case
 	TcCloudConfigRule TestCase = "CLOUD_CONFIG_RULE"
 )
