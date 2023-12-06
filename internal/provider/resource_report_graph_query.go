@@ -17,6 +17,8 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
+const reportRunStartsAtLayout = "2006-01-02 15:04:05 +0000 UTC"
+
 func resourceWizReportGraphQuery() *schema.Resource {
 	return &schema.Resource{
 		Description: "TBD.",
@@ -45,9 +47,12 @@ func resourceWizReportGraphQuery() *schema.Resource {
 				Description: "Run interval for scheduled reports (in hours).",
 			},
 			"run_starts_at": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "ISO8601 string representing the time and date when the scheduling should start (required when run_interval_hours is set).",
+				Type:     schema.TypeString,
+				Optional: true,
+				Description: fmt.Sprintf(
+					"String representing the time and date when the scheduling should start (required when run_interval_hours is set). Must be in the following format: %s",
+					reportRunStartsAtLayout,
+				),
 			},
 		},
 		CreateContext: resourceWizReportGraphQueryCreate,
@@ -70,7 +75,30 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 	        input: $input
 	    ) {
 	        report {
-	            id
+			id
+			name
+			params {
+			  ... on ReportParamsGraphQuery {
+			    query
+			    entityOptions {
+			      entityType
+			      propertyOptions {
+				key
+			      }
+			    }
+			  }
+			}
+			type {
+			  id
+			  name
+			  description
+			}
+			project {
+			    id
+			    name
+			}
+			runIntervalHours
+			runStartsAt
 	        }
 	    }
 	}`
@@ -95,9 +123,9 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		runStartsAtVal, _ := runStartsAt.(string)
-		dt, err := time.Parse(time.RFC3339, runStartsAtVal)
+		dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
 		if err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s is not a valid IS08601 timestamp", runStartsAtVal))...)
+			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout", runStartsAtVal, reportRunStartsAtLayout))...)
 		}
 
 		vars.RunStartsAt = &dt
@@ -151,6 +179,7 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	            name
 	        }
 		runIntervalHours
+		runStartsAt
 	    }
 	}`
 
@@ -186,7 +215,9 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("run_starts_at", data.Report.RunStartsAt)
+
+	runStartsAt := data.Report.RunStartsAt.Format(reportRunStartsAtLayout)
+	err = d.Set("run_starts_at", runStartsAt)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -216,8 +247,30 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 		input: $input
 	    ) {
 		report {
-		    id
-		    name
+			id
+			name
+			params {
+			  ... on ReportParamsGraphQuery {
+			    query
+			    entityOptions {
+			      entityType
+			      propertyOptions {
+				key
+			      }
+			    }
+			  }
+			}
+			type {
+			  id
+			  name
+			  description
+			}
+			project {
+			    id
+			    name
+			}
+			runIntervalHours
+			runStartsAt
 		}
 	    }
 	}`
@@ -240,9 +293,9 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		runStartsAtVal, _ := runStartsAt.(string)
-		dt, err := time.Parse(time.RFC3339, runStartsAtVal)
+		dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
 		if err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s is not a valid IS08601 timestamp", runStartsAtVal))...)
+			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout", runStartsAtVal, reportRunStartsAtLayout))...)
 		}
 
 		vars.Override.RunStartsAt = &dt
