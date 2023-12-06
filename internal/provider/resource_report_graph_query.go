@@ -125,7 +125,7 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 		runStartsAtVal, _ := runStartsAt.(string)
 		dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
 		if err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout", runStartsAtVal, reportRunStartsAtLayout))...)
+			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout %s", runStartsAtVal, reportRunStartsAtLayout))...)
 		}
 
 		vars.RunStartsAt = &dt
@@ -295,7 +295,7 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 		runStartsAtVal, _ := runStartsAt.(string)
 		dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
 		if err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout", runStartsAtVal, reportRunStartsAtLayout))...)
+			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout %s", runStartsAtVal, reportRunStartsAtLayout))...)
 		}
 
 		vars.Override.RunStartsAt = &dt
