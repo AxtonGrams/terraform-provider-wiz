@@ -2,8 +2,8 @@ package acceptance
 
 import (
 	"fmt"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
