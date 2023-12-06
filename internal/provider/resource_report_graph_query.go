@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -37,6 +38,16 @@ func resourceWizReportGraphQuery() *schema.Resource {
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringIsJSON,
 				),
+			},
+			"run_interval_hours": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Run interval for scheduled reports (in hours).",
+			},
+			"run_starts_at": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "ISO8601 string representing the time and date when the scheduling should start (required when run_interval_hours is set).",
 			},
 		},
 		CreateContext: resourceWizReportGraphQueryCreate,
@@ -72,6 +83,24 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 	reportQuery := json.RawMessage(d.Get("query").(string))
 	vars.GraphQueryParams = &wiz.CreateReportGraphQueryParamsInput{
 		Query: reportQuery,
+	}
+	runIntervalHours, hasOk := d.GetOk("run_interval_hours")
+	if hasOk {
+		runIntervalHoursVal, _ := runIntervalHours.(int)
+		vars.RunIntervalHours = &runIntervalHoursVal
+
+		runStartsAt, hasOk := d.GetOk("run_starts_at")
+		if !hasOk {
+			return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set for scheduling"))...)
+		}
+
+		runStartsAtVal, _ := runStartsAt.(string)
+		dt, err := time.Parse(time.RFC3339, runStartsAtVal)
+		if err != nil {
+			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s is not a valid IS08601 timestamp", runStartsAtVal))...)
+		}
+
+		vars.RunStartsAt = &dt
 	}
 
 	data := &CreateReport{}
@@ -121,6 +150,7 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	            id
 	            name
 	        }
+		runIntervalHours
 	    }
 	}`
 
@@ -149,6 +179,14 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 		return append(diags, diag.FromErr(err)...)
 	}
 	err = d.Set("project_id", data.Report.Project.ID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("run_interval_hours", data.Report.RunIntervalHours)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("run_starts_at", data.Report.RunStartsAt)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -191,6 +229,24 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 	reportQuery, _ := d.Get("query").(string)
 	vars.Override.GraphQueryParams.Query = json.RawMessage(reportQuery)
 	vars.Override.Name = d.Get("name").(string)
+	runIntervalHours, hasOk := d.GetOk("run_interval_hours")
+	if hasOk {
+		runIntervalHoursVal, _ := runIntervalHours.(int)
+		vars.Override.RunIntervalHours = &runIntervalHoursVal
+
+		runStartsAt, hasOk := d.GetOk("run_starts_at")
+		if !hasOk {
+			return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set for scheduling"))...)
+		}
+
+		runStartsAtVal, _ := runStartsAt.(string)
+		dt, err := time.Parse(time.RFC3339, runStartsAtVal)
+		if err != nil {
+			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s is not a valid IS08601 timestamp", runStartsAtVal))...)
+		}
+
+		vars.Override.RunStartsAt = &dt
+	}
 
 	data := &UpdateReport{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "report", "update")

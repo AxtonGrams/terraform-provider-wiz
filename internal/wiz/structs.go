@@ -2471,7 +2471,7 @@ type Report struct {
 	RunStartsAt        *time.Time                `json:"runStartsAt"`
 	EmailTarget        *EmailTarget              `json:"emailTarget"`
 	NextRunAt          *time.Time                `json:"nextRunAt"`
-	RunIntervalHours   int                       `json:"runIntervalHours"`
+	RunIntervalHours   *int                      `json:"runIntervalHours"`
 	CreatedBy          User                      `json:"createdBy"`
 	ColumnSelection    []string                  `json:"columnSelection"`
 	CSVDelimiter       *CSVDelimiter             `json:"csvDelimiter"`
