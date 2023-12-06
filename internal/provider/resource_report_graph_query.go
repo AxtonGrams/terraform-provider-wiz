@@ -119,7 +119,7 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 
 		runStartsAt, hasOk := d.GetOk("run_starts_at")
 		if !hasOk {
-			return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set for scheduling"))...)
+			return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set to enable scheduling"))...)
 		}
 
 		runStartsAtVal, _ := runStartsAt.(string)
