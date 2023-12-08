@@ -64,13 +64,14 @@ EOF
 ### Required
 
 - `name` (String) Name of the Report.
-- `project_id` (String) The ID of the project that this report belongs to.
 - `query` (String) The query that the report will run. Required by the GRAPH_QUERY report type.
 
 ### Optional
 
+- `project_id` (String) The ID of the project that this report belongs to (changing this requires re-creatting the report).
+    - Defaults to `*`.
 - `run_interval_hours` (Number) Run interval for scheduled reports (in hours).
-- `run_starts_at` (String) String representing the time and date when the scheduling should start (required when run_interval_hours is set). Must be in the following format: 2006-01-02 15:04:05 +0000 UTC
+- `run_starts_at` (String) String representing the time and date when the scheduling should start (required when run_interval_hours is set). Must be in the following format: 2006-01-02 15:04:05 +0000 UTC. Also, Wiz will always round this down by the hour.
 
 ### Read-Only
 
