@@ -2424,6 +2424,7 @@ type EmailTargetParams struct {
 }
 
 // CreateReportExportDestinationInput struct
+// NOTE: this is incomplete, and there is no CreateReportExportDestinationCloudStorageInput yet
 type CreateReportExportDestinationInput struct {
 	Snowflake *CreateReportExportDestinationSnowflakeInput `json:"snowflake,omitempty"`
 }
