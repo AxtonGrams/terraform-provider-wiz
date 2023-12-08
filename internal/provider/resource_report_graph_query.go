@@ -227,12 +227,12 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	projectId := "*"
+	projectID := "*"
 	if data.Report.Project != nil {
-		projectId = data.Report.Project.ID
+		projectID = data.Report.Project.ID
 	}
 
-	err = d.Set("project_id", projectId)
+	err = d.Set("project_id", projectID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
