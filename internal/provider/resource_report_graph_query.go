@@ -30,8 +30,10 @@ func resourceWizReportGraphQuery() *schema.Resource {
 			},
 			"project_id": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The ID of the project that this report belongs to.",
+				ForceNew: true,
+				Optional:    true,
+				Default: "*",
+				Description: "The ID of the project that this report belongs to (changing this requires re-creatting the report).",
 			},
 			"query": {
 				Type:        schema.TypeString,
@@ -50,7 +52,7 @@ func resourceWizReportGraphQuery() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Description: fmt.Sprintf(
-					"String representing the time and date when the scheduling should start (required when run_interval_hours is set). Must be in the following format: %s",
+					"String representing the time and date when the scheduling should start (required when run_interval_hours is set). Must be in the following format: %s. Also, Wiz will always round this down by the hour.",
 					reportRunStartsAtLayout,
 				),
 			},
@@ -207,7 +209,12 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("project_id", data.Report.Project.ID)
+	projectId := "*"
+	if data.Report.Project != nil {
+		projectId = data.Report.Project.ID
+	}
+
+	err = d.Set("project_id", projectId)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
