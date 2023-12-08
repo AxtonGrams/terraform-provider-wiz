@@ -30,9 +30,9 @@ func resourceWizReportGraphQuery() *schema.Resource {
 			},
 			"project_id": {
 				Type:        schema.TypeString,
-				ForceNew: true,
+				ForceNew:    true,
 				Optional:    true,
-				Default: "*",
+				Default:     "*",
 				Description: "The ID of the project that this report belongs to (changing this requires re-creatting the report).",
 			},
 			"query": {
@@ -65,6 +65,38 @@ func resourceWizReportGraphQuery() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
+}
+
+func setScheduling(diags diag.Diagnostics, d *schema.ResourceData, vars interface{}) diag.Diagnostics {
+	runIntervalHours, hasOk := d.GetOk("run_interval_hours")
+	if !hasOk {
+		return nil
+	}
+
+	runIntervalHoursVal, _ := runIntervalHours.(int)
+	runStartsAt, hasOk := d.GetOk("run_starts_at")
+	if !hasOk {
+		return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set to enable scheduling"))...)
+	}
+
+	runStartsAtVal, _ := runStartsAt.(string)
+	dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
+	if err != nil {
+		return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout %s", runStartsAtVal, reportRunStartsAtLayout))...)
+	}
+
+	switch vars := vars.(type) {
+	case *wiz.CreateReportInput:
+		vars.RunIntervalHours = &runIntervalHoursVal
+		vars.RunStartsAt = &dt
+	case *wiz.UpdateReportInput:
+		vars.Override.RunIntervalHours = &runIntervalHoursVal
+		vars.Override.RunStartsAt = &dt
+	default:
+		return append(diags, diag.FromErr(fmt.Errorf("vars is an invalid ReportInput type"))...)
+	}
+
+	return nil
 }
 
 func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -114,23 +146,9 @@ func resourceWizReportGraphQueryCreate(ctx context.Context, d *schema.ResourceDa
 	vars.GraphQueryParams = &wiz.CreateReportGraphQueryParamsInput{
 		Query: reportQuery,
 	}
-	runIntervalHours, hasOk := d.GetOk("run_interval_hours")
-	if hasOk {
-		runIntervalHoursVal, _ := runIntervalHours.(int)
-		vars.RunIntervalHours = &runIntervalHoursVal
 
-		runStartsAt, hasOk := d.GetOk("run_starts_at")
-		if !hasOk {
-			return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set to enable scheduling"))...)
-		}
-
-		runStartsAtVal, _ := runStartsAt.(string)
-		dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
-		if err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout %s", runStartsAtVal, reportRunStartsAtLayout))...)
-		}
-
-		vars.RunStartsAt = &dt
+	if diags := setScheduling(diags, d, vars); diags != nil {
+		return diags
 	}
 
 	data := &CreateReport{}
@@ -218,15 +236,20 @@ func resourceWizReportGraphQueryRead(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("run_interval_hours", data.Report.RunIntervalHours)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+
+	if data.Report.RunIntervalHours != nil {
+		err = d.Set("run_interval_hours", data.Report.RunIntervalHours)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 	}
 
-	runStartsAt := data.Report.RunStartsAt.Format(reportRunStartsAtLayout)
-	err = d.Set("run_starts_at", runStartsAt)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
+	if data.Report.RunStartsAt != nil {
+		runStartsAt := data.Report.RunStartsAt.Format(reportRunStartsAtLayout)
+		err = d.Set("run_starts_at", runStartsAt)
+		if err != nil {
+			return append(diags, diag.FromErr(err)...)
+		}
 	}
 
 	switch params := data.Report.Params.(type) {
@@ -289,23 +312,9 @@ func resourceWizReportGraphQueryUpdate(ctx context.Context, d *schema.ResourceDa
 	reportQuery, _ := d.Get("query").(string)
 	vars.Override.GraphQueryParams.Query = json.RawMessage(reportQuery)
 	vars.Override.Name = d.Get("name").(string)
-	runIntervalHours, hasOk := d.GetOk("run_interval_hours")
-	if hasOk {
-		runIntervalHoursVal, _ := runIntervalHours.(int)
-		vars.Override.RunIntervalHours = &runIntervalHoursVal
 
-		runStartsAt, hasOk := d.GetOk("run_starts_at")
-		if !hasOk {
-			return append(diags, diag.FromErr(fmt.Errorf("both run_interval_hours ad run_starts_at must be set for scheduling"))...)
-		}
-
-		runStartsAtVal, _ := runStartsAt.(string)
-		dt, err := time.Parse(reportRunStartsAtLayout, runStartsAtVal)
-		if err != nil {
-			return append(diags, diag.FromErr(fmt.Errorf("run_starts_at %s does not match layout %s", runStartsAtVal, reportRunStartsAtLayout))...)
-		}
-
-		vars.Override.RunStartsAt = &dt
+	if diags := setScheduling(diags, d, vars); diags != nil {
+		return diags
 	}
 
 	data := &UpdateReport{}
