@@ -1,6 +1,6 @@
 module wiz.io/hashicorp/terraform-provider-wiz
 
-go 1.21.5
+go 1.21
 
 require (
 	github.com/google/uuid v1.4.0
