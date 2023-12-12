@@ -192,6 +192,9 @@ var IACScanSeverity = []string{
 	"CRITICAL",
 }
 
+// ReportTypeNameGraphQuery alias
+const ReportTypeNameGraphQuery = "GRAPH_QUERY"
+
 // Severity enum
 var Severity = []string{
 	"INFORMATIONAL",
