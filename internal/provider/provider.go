@@ -11,7 +11,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/config"
+	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
+
+// CreateConnector struct
+type CreateConnector struct {
+	CreateConnector wiz.CreateConnectorPayload `json:"createConnector"`
+}
+
+// ReadConnectorPayload struct
+type ReadConnectorPayload struct {
+	Connector wiz.Connector `json:"connector"`
+}
+
+// UpdateConnector struct
+type UpdateConnector struct {
+	UpdateConnector wiz.UpdateConnectorPayload `json:"updateConnector"`
+}
+
+// DeleteConnector struct
+type DeleteConnector struct {
+	DeleteConnector wiz.DeleteConnectorPayload `json:"_stub"`
+}
 
 // New creates a new provider
 func New(version string) func() *schema.Provider {
@@ -270,6 +291,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_control":                                  resourceWizControl(),
 				"wiz_control_associations":                     resourceWizControlAssociations(),
 				"wiz_connector_aws":                            resourceWizConnectorAws(),
+				"wiz_connector_gcp":                            resourceWizConnectorGcp(),
 				"wiz_host_config_rule_associations":            resourceWizHostConfigRuleAssociations(),
 				"wiz_integration_aws_sns":                      resourceWizIntegrationAwsSNS(),
 				"wiz_integration_servicenow":                   resourceWizIntegrationServiceNow(),
