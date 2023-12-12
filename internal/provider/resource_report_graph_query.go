@@ -21,7 +21,7 @@ const reportRunStartsAtLayout = "2006-01-02 15:04:05 +0000 UTC"
 
 func resourceWizReportGraphQuery() *schema.Resource {
 	return &schema.Resource{
-		Description: "TBD.",
+		Description: "A GraphQL Query Report is an automated query that can be scheduled to run at hourly intervals.",
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
@@ -33,7 +33,7 @@ func resourceWizReportGraphQuery() *schema.Resource {
 				ForceNew:    true,
 				Optional:    true,
 				Default:     "*",
-				Description: "The ID of the project that this report belongs to (changing this requires re-creatting the report).",
+				Description: "The ID of the project that this report belongs to (changing this requires re-creatting the report). Defaults to all projects.",
 			},
 			"query": {
 				Type:        schema.TypeString,
