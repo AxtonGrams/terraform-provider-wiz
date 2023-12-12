@@ -17,9 +17,20 @@ import (
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
 
-func resourceWizConnectorAws() *schema.Resource {
+const (
+	auditLogMonitorEnabledKey = "auditLogMonitorEnabled"
+	auditLogsConfigKey        = "auditLogsConfig"
+	pubSubKey                 = "pub_sub"
+	projectIDKey              = "project_id"
+	topicIDKey                = "topic_id"
+	subscriptionIDKey         = "subscription_id"
+	topicNameKey              = "topicName"
+	subscriptionIDNameKey     = "subscriptionID"
+)
+
+func resourceWizConnectorGcp() *schema.Resource {
 	return &schema.Resource{
-		Description: "Connectors are used to connect AWS resources to Wiz.",
+		Description: "Connectors are used to connect GCP resources to Wiz.",
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -37,22 +48,48 @@ func resourceWizConnectorAws() *schema.Resource {
 				Optional:    true,
 				Default:     true,
 			},
-			"customer_role_arn": {
+			"is_managed_identity": {
 				Type:        schema.TypeString,
-				Description: "The AWS customer role arn for Wiz to assume.",
+				Description: "Is managed identity?",
 				Computed:    true,
 			},
-			"excluded_accounts": {
+			"folder_id": {
+				Type:        schema.TypeString,
+				Description: "The GCP folder ID.",
+				Computed:    true,
+			},
+			"organization_id": {
+				Type:        schema.TypeString,
+				Description: "The GCP organization ID.",
+				Computed:    true,
+			},
+			"projects": {
 				Type:        schema.TypeList,
-				Description: "The AWS accounts excluded from the connector.",
+				Description: "The GCP projects to target with the connector.",
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
-			"excluded_ous": {
+			"excluded_projects": {
 				Type:        schema.TypeList,
-				Description: "The AWS OUs excluded from the connector.",
+				Description: "The GCP projects excluded by the connector.",
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"included_folders": {
+				Type:        schema.TypeList,
+				Description: "The GCP folders included by the connector.",
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"excluded_folders": {
+				Type:        schema.TypeList,
+				Description: "The GCP folders excluded by the connector.",
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -68,42 +105,14 @@ func resourceWizConnectorAws() *schema.Resource {
 				Description: "If using Outpost, whether disk analyzer inflight scanning is disabled.",
 				Computed:    true,
 			},
-			"skip_organization_scan": {
-				Type:        schema.TypeBool,
-				Description: "Whether to skip the organization scan (account-scoped only).",
-				Computed:    true,
-			},
-			"external_id_nonce": {
+			"events_topic_name": {
 				Type:        schema.TypeString,
-				Description: "The AWS external ID / nonce, this will be used for IAM-related dependencies (`sts:ExternalId` conditional trust policies).",
+				Description: "If using Wiz Cloud Events, the Topic Name in format `projects/<project_id>/topics/<topic_id>`.",
 				Computed:    true,
 			},
-			"opted_in_regions": {
-				Type:        schema.TypeList,
-				Description: "The AWS regions opted in for the connector.",
-				Computed:    true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"region": {
+			"events_pub_sub_subscription_id": {
 				Type:        schema.TypeString,
-				Description: "The AWS region for the connector.",
-				Computed:    true,
-			},
-			"events_cloudtrail_bucket_name": {
-				Type:        schema.TypeString,
-				Description: "If using Wiz Cloud Events, the CloudTrail bucket name.",
-				Computed:    true,
-			},
-			"events_cloudtrail_bucket_sub_account": {
-				Type:        schema.TypeString,
-				Description: "If using Wiz Cloud Events and CloudTrail is organizational, the CloudTrail bucket sub account.",
-				Computed:    true,
-			},
-			"events_cloudtrail_organization": {
-				Type:        schema.TypeString,
-				Description: "If using Wiz Cloud Events and CloudTrail is deployed to AWS organizations, the organizational ID.",
+				Description: "If using Wiz Cloud Events, the Pub/Sub Subscription ID.",
 				Computed:    true,
 			},
 			"auth_params": {
@@ -137,18 +146,18 @@ func resourceWizConnectorAws() *schema.Resource {
 			},
 			),
 		),
-		CreateContext: resourceWizConnectorAwsCreate,
-		ReadContext:   resourceWizConnectorAwsRead,
-		UpdateContext: resourceWizConnectorAwsUpdate,
-		DeleteContext: resourceWizConnectorAwsDelete,
+		CreateContext: resourceWizConnectorGcpCreate,
+		ReadContext:   resourceWizConnectorGcpRead,
+		UpdateContext: resourceWizConnectorGcpUpdate,
+		DeleteContext: resourceWizConnectorGcpDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
 }
 
-func resourceWizConnectorAwsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizConnectorAwsCreate called...")
+func resourceWizConnectorGcpCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizConnectorGcpCreate called...")
 
 	query := `mutation CreateConnector($input: CreateConnectorInput!) {
 				createConnector(input: $input) {
@@ -162,7 +171,7 @@ func resourceWizConnectorAwsCreate(ctx context.Context, d *schema.ResourceData, 
 	vars := &wiz.CreateConnectorInput{}
 	vars.Name = d.Get("name").(string)
 	enabled := d.Get("enabled").(bool)
-	vars.Type = "aws"
+	vars.Type = "gcp"
 	vars.Enabled = &enabled
 
 	vars.AuthParams = json.RawMessage(d.Get("auth_params").(string))
@@ -179,11 +188,11 @@ func resourceWizConnectorAwsCreate(ctx context.Context, d *schema.ResourceData, 
 	// set the id
 	d.SetId(data.CreateConnector.Connector.ID)
 
-	return resourceWizConnectorAwsRead(ctx, d, m)
+	return resourceWizConnectorGcpRead(ctx, d, m)
 }
 
-func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizConnectorAwsRead called...")
+func resourceWizConnectorGcpRead(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizConnectorGcpRead called...")
 
 	// check the id
 	if d.Id() == "" {
@@ -199,34 +208,37 @@ func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m 
 	      authParams
 	      extraConfig
 	      config {
-	        ... on ConnectorConfigAWS {
-	          region
-	          diskAnalyzerInFlightDisabled
-	          excludedAccounts
-	          excludedOUs
-	          externalIdNonce
-	          optedInRegions
-	          customerRoleARN
+	        ... on ConnectorConfigGCP {
 	          auditLogMonitorEnabled
-	          skipOrganizationScan
-	          cloudTrailConfig {
-	            bucketName
-	            bucketSubAccount
-	            trailOrg
+	          diskAnalyzerInFlightDisabled
+	          includedFolders
+	          excludedFolders
+	          excludedProjects
+	          delegateUser
+	          projects
+	          organization_id
+	          project_id
+	          folder_id
+	          auditLogMonitorEnabled
+	          auditLogsConfig {
+	            pub_sub {
+	              topicName
+	              subscriptionID
+	            }
 	          }
 	        }
 	      }
 	      type {
 	        ...ConnectorTypeFrag
-	      }
-	    }
-	  }
+	     }
+	   }
+	 }
 
-	  fragment ConnectorTypeFrag on ConnectorType {
-	    id
-	    name
-	    authorizeUrls
-	  }
+	 fragment ConnectorTypeFrag on ConnectorType {
+	 id
+	 name
+	 authorizeUrls
+	}
 `
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
@@ -235,8 +247,7 @@ func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m 
 	// process the request
 	data := &ReadConnectorPayload{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "connector", "read")
-	diags = append(diags, requestDiags...,
-	)
+	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		tflog.Info(ctx, "Error from API call, checking if resource was deleted outside Terraform.")
 		tflog.Debug(ctx, fmt.Sprintf("Response: (%T) %s", data, utils.PrettyPrint(data)))
@@ -265,52 +276,16 @@ func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m 
 		return append(diags, diag.FromErr(err)...)
 	}
 
-	var mapExtraConfig map[string]interface{}
-	err = json.Unmarshal(data.Connector.ExtraConfig, &mapExtraConfig)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-
-	// When certain fields are deprecated, vendor returns null and/or empty string (i.e. cloudTrailConfig)
-	// We need to handle to avoid unwanted diffs, below traverses the map to a maximum depth of 5 levels
-	utils.RemoveNullAndEmptyValues(mapExtraConfig, 5)
-
-	extraConfig, err := json.Marshal(mapExtraConfig)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-
-	err = d.Set("extra_config", string(extraConfig))
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-
-	var connectorConfig wiz.ConnectorConfigAWS
+	var connectorConfig wiz.ConnectorConfigGCP
 	connectorConfigBytes, err := json.Marshal(data.Connector.Config)
 	if err != nil {
-		return append(diags, diag.Errorf("unable to marshal ConnectorConfigAWS: %v", err)...)
+		return append(diags, diag.Errorf("unable to marshal ConnectorConfigGCP: %v", err)...)
 	}
 	if err := json.Unmarshal(connectorConfigBytes, &connectorConfig); err != nil {
-		return append(diags, diag.Errorf("unable to unmarshal ConnectorConfigAWS: %v", err)...)
+		return append(diags, diag.Errorf("unable to unmarshal ConnectorConfigGCP: %v", err)...)
 	}
 
-	err = d.Set("events_cloudtrail_bucket_name", connectorConfig.CloudTrailConfig.BucketName)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("events_cloudtrail_bucket_sub_account", connectorConfig.CloudTrailConfig.BucketSubAccount)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("events_cloudtrail_organization", connectorConfig.CloudTrailConfig.TrailOrg)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("external_id_nonce", connectorConfig.ExternalIDNonce)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("customer_role_arn", connectorConfig.CustomerRoleARN)
+	err = d.Set("projects", utils.ConvertSliceToGenericArray(connectorConfig.Projects))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
@@ -322,32 +297,45 @@ func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m 
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("skip_organization_scan", connectorConfig.SkipOrganizationScan)
+	err = d.Set("organization_id", connectorConfig.OrganizationID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("excluded_accounts", utils.ConvertSliceToGenericArray(connectorConfig.ExcludedAccounts))
+	err = d.Set("folder_id", connectorConfig.FolderID)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("excluded_ous", utils.ConvertSliceToGenericArray(connectorConfig.ExcludedOUs))
+	err = d.Set("excluded_folders", utils.ConvertSliceToGenericArray(connectorConfig.ExcludedFolders))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("opted_in_regions", utils.ConvertSliceToGenericArray(connectorConfig.OptedInRegions))
+	err = d.Set("included_folders", utils.ConvertSliceToGenericArray(connectorConfig.IncludedFolders))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
-	err = d.Set("region", connectorConfig.Region)
+	err = d.Set("excluded_projects", utils.ConvertSliceToGenericArray(connectorConfig.ExcludedProjects))
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("events_topic_name", connectorConfig.AuditLogsConfig.PubSub.TopicName)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+	err = d.Set("events_pub_sub_subscription_id", connectorConfig.AuditLogsConfig.PubSub.SubscriptionID)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	diagsExtraConfig := updateExtraConfig(ctx, *data, d, diags)
+	if diagsExtraConfig != nil {
+		return append(diags, diagsExtraConfig...)
 	}
 
 	return diags
 }
 
-func resourceWizConnectorAwsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizConnectorUpdate called...")
+func resourceWizConnectorGcpUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizConnectorGcpUpdate called...")
 
 	// check the id
 	if d.Id() == "" {
@@ -389,11 +377,11 @@ func resourceWizConnectorAwsUpdate(ctx context.Context, d *schema.ResourceData, 
 		return diags
 	}
 
-	return resourceWizConnectorAwsRead(ctx, d, m)
+	return resourceWizConnectorGcpRead(ctx, d, m)
 }
 
-func resourceWizConnectorAwsDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
-	tflog.Info(ctx, "resourceWizConnectorDelete called...")
+func resourceWizConnectorGcpDelete(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
+	tflog.Info(ctx, "resourceWizConnectorGcpDelete called...")
 
 	// check the id
 	if d.Id() == "" {
@@ -420,4 +408,72 @@ func resourceWizConnectorAwsDelete(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	return diags
+}
+
+// Wiz API limitations prevent nullifying the `auditLogsConfig/pub_sub` field. For example, disabling `auditLogMonitorEnabled`
+// will results in perpetual drift detection of extraConfig as the related pub_sub information will always be in the response once set.
+// Furthermore, additional `pub_sub `fields require normalization and removal of unnecessary fields.
+func updateExtraConfig(ctx context.Context, data ReadConnectorPayload, d *schema.ResourceData, diags diag.Diagnostics) diag.Diagnostics {
+	tflog.Info(ctx, "updateExtraConfig called...")
+
+	var mapExtraConfig map[string]interface{}
+	err := json.Unmarshal(data.Connector.ExtraConfig, &mapExtraConfig)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	auditLogMonitoringEnabled, ok := mapExtraConfig[auditLogMonitorEnabledKey].(bool)
+	if !ok {
+		auditLogMonitoringEnabled = true
+	}
+
+	if auditLogMonitoringEnabled {
+		if pubSubConfig, ok := mapExtraConfig[auditLogsConfigKey].(map[string]interface{})[pubSubKey].(map[string]interface{}); ok {
+			projectID, ok := pubSubConfig[projectIDKey].(string)
+			if !ok {
+				return addFieldError(diags, projectIDKey, pubSubKey)
+			}
+			topicID, ok := pubSubConfig[topicIDKey].(string)
+			if !ok {
+				return addFieldError(diags, topicIDKey, pubSubKey)
+			}
+			topicName := fmt.Sprintf("projects/%s/topics/%s", projectID, topicID)
+			subscriptionID, ok := pubSubConfig[subscriptionIDKey].(string)
+			if !ok {
+				return addFieldError(diags, subscriptionIDKey, pubSubKey)
+			}
+
+			pubSubConfig[topicNameKey] = topicName
+			pubSubConfig[subscriptionIDNameKey] = subscriptionID
+			delete(pubSubConfig, projectIDKey)
+			delete(pubSubConfig, topicIDKey)
+			delete(pubSubConfig, subscriptionIDKey)
+
+			mapExtraConfig[auditLogsConfigKey].(map[string]interface{})[pubSubKey] = pubSubConfig
+
+		}
+	} else {
+		delete(mapExtraConfig, auditLogsConfigKey)
+	}
+	tflog.Debug(ctx, fmt.Sprintf("mapExtraConfig: %s", mapExtraConfig))
+
+	extraConfig, err := json.Marshal(mapExtraConfig)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	err = d.Set("extra_config", string(extraConfig))
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
+
+	return diags
+}
+
+func addFieldError(diags diag.Diagnostics, fieldName, keyName string) diag.Diagnostics {
+	return append(diags, diag.Diagnostic{
+		Severity: diag.Error,
+		Summary:  "An issue was encountered while processing the `extraConfig` field.",
+		Detail:   fmt.Sprintf("missing or invalid %s field in %s", fieldName, keyName),
+	})
 }
