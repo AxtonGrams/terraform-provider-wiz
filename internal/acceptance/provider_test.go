@@ -45,6 +45,8 @@ func testAccPreCheck(t *testing.T, tc TestCase) {
 		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
 	case TcCloudConfigRule:
 		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
+	case TcReportGraphQuery:
+		envVars = append(commonEnvVars, "WIZ_PROJECT_ID")
 	default:
 		t.Fatalf("unknown testCase: %s", tc)
 	}
