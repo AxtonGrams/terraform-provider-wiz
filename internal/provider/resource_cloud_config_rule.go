@@ -329,6 +329,10 @@ func resourceWizCloudConfigurationRuleRead(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
+	err = d.Set("opa_policy", data.CloudConfigurationRule.OPAPolicy)
+	if err != nil {
+		return append(diags, diag.FromErr(err)...)
+	}
 	err = d.Set("severity", data.CloudConfigurationRule.Severity)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
