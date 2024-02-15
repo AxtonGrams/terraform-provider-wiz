@@ -95,17 +95,17 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Check for CODEOWNERS file
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         id: check_codeowners_1
         with:
           files: CODEOWNERS
       - name: Check for CODEOWNERS file
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         id: check_codeowners_2
         with:
           files: docs/CODEOWNERS
       - name: Check for CODEOWNERS file
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         id: check_codeowners_3
         with:
           files: .github/CODEOWNERS
