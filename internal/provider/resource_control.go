@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -68,6 +69,12 @@ func resourceWizControl() *schema.Resource {
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringIsJSON,
 				),
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					var ov, nv interface{}
+					_ = json.Unmarshal([]byte(oldValue), &ov)
+					_ = json.Unmarshal([]byte(newValue), &nv)
+					return reflect.DeepEqual(ov, nv)
+				},
 			},
 			"scope_query": {
 				Type:        schema.TypeString,
@@ -76,6 +83,12 @@ func resourceWizControl() *schema.Resource {
 				ValidateDiagFunc: validation.ToDiagFunc(
 					validation.StringIsJSON,
 				),
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					var ov, nv interface{}
+					_ = json.Unmarshal([]byte(oldValue), &ov)
+					_ = json.Unmarshal([]byte(newValue), &nv)
+					return reflect.DeepEqual(ov, nv)
+				},
 			},
 			"severity": {
 				Type:     schema.TypeString,
