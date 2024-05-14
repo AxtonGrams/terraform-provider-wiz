@@ -164,6 +164,7 @@ func resourceWizSAMLIdPCreate(ctx context.Context, d *schema.ResourceData, m int
 	// populate the graphql variables
 	vars := &wiz.CreateSAMLIdentityProviderInput{}
 	vars.Name = d.Get("name").(string)
+	vars.IssuerURL = d.Get("issuer_url").(string)
 	vars.LoginURL = d.Get("login_url").(string)
 	vars.LogoutURL = d.Get("logout_url").(string)
 	vars.UseProviderManagedRoles = d.Get("use_provider_managed_roles").(bool)
