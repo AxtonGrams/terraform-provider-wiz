@@ -198,6 +198,7 @@ type UpdateSAMLIdentityProviderPayload struct {
 
 // SAMLGroupMappingUpdateInput struct
 type SAMLGroupMappingUpdateInput struct {
+	Description     string   `json:"description"`
 	ProviderGroupID string   `json:"providerGroupId"`
 	Role            string   `json:"role"`
 	Projects        []string `json:"projects"`
@@ -224,6 +225,7 @@ type CreateSAMLIdentityProviderPayload struct {
 
 // SAMLGroupMappingCreateInput struct -- updates
 type SAMLGroupMappingCreateInput struct {
+	Description     string   `json:"description"`
 	ProviderGroupID string   `json:"providerGroupId"`
 	Role            string   `json:"role"`
 	Projects        []string `json:"projects"`
@@ -246,6 +248,7 @@ type SAMLIdentityProvider struct {
 
 // SAMLGroupMapping struct -- updates
 type SAMLGroupMapping struct {
+	Description     string    `json:"description"`
 	Projects        []Project `json:"projects"`
 	ProviderGroupID string    `json:"providerGroupId"`
 	Role            UserRole  `json:"role"`
