@@ -17,6 +17,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 
 	expected := []interface{}{
 		map[string]interface{}{
+			"description": "mapping should be in place until x date",
 			"projects": []interface{}{
 				"cb95ced6-3ed6-5fd5-a68a-1059556fc909",
 				"69229a09-f831-484e-9d3c-21f2a984a014",
@@ -25,6 +26,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 			"role":              "PROJECT_READER",
 		},
 		map[string]interface{}{
+			"description": "mapping should be in place until y date",
 			"projects": []interface{}{
 				"69229a09-f831-484e-9d3c-21f2a984a014",
 			},
@@ -32,6 +34,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 			"role":              "PROJECT_ADMIN",
 		},
 		map[string]interface{}{
+			"description":       "mapping should be in place until z date",
 			"projects":          []interface{}{},
 			"provider_group_id": "Wiz-Global-Admin",
 			"role":              "GLOBAL_ADMIN",
@@ -40,6 +43,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 
 	// verify multiple projects
 	var groupMapping1 = &wiz.SAMLGroupMapping{
+		Description:     "mapping should be in place until x date",
 		ProviderGroupID: "Wiz-Project-Reader",
 		Role: wiz.UserRole{
 			ID: "PROJECT_READER",
@@ -56,6 +60,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 
 	// verify single project
 	var groupMapping2 = &wiz.SAMLGroupMapping{
+		Description:     "mapping should be in place until y date",
 		ProviderGroupID: "Wiz-Project-Admin",
 		Role: wiz.UserRole{
 			ID: "PROJECT_ADMIN",
@@ -69,6 +74,7 @@ func TestFlattenGroupMapping(t *testing.T) {
 
 	// verify no projects
 	var groupMapping3 = &wiz.SAMLGroupMapping{
+		Description:     "mapping should be in place until z date",
 		ProviderGroupID: "Wiz-Global-Admin",
 		Role: wiz.UserRole{
 			ID: "GLOBAL_ADMIN",

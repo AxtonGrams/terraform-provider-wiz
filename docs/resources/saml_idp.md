@@ -116,4 +116,6 @@ Required:
 
 Optional:
 
+- `description` (String) Description
+    - Defaults to ``.
 - `projects` (List of String) Project mapping

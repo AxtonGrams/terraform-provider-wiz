@@ -78,6 +78,12 @@ func resourceWizSAMLIdP() *schema.Resource {
 				Description: "Group mappings",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"description": {
+							Type:        schema.TypeString,
+							Description: "Description",
+							Optional:    true,
+							Default:     "",
+						},
 						"provider_group_id": {
 							Type:        schema.TypeString,
 							Description: "Provider group ID",
@@ -125,6 +131,8 @@ func getGroupMappingVar(ctx context.Context, d *schema.ResourceData) []*wiz.SAML
 			tflog.Trace(ctx, fmt.Sprintf("b: %T %s", b, b))
 			tflog.Trace(ctx, fmt.Sprintf("c: %T %s", c, c))
 			switch b {
+			case "description":
+				localGroupMapping.Description = c.(string)
 			case "role":
 				localGroupMapping.Role = c.(string)
 			case "provider_group_id":
@@ -190,16 +198,17 @@ func resourceWizSAMLIdPCreate(ctx context.Context, d *schema.ResourceData, m int
 
 func flattenGroupMapping(ctx context.Context, samlGroupMapping []*wiz.SAMLGroupMapping) []interface{} {
 	tflog.Info(ctx, "flattenGroupMapping called...")
-	var output = make([]interface{}, 0, 0)
+	var output = make([]interface{}, 0)
 	for _, b := range samlGroupMapping {
 		tflog.Trace(ctx, fmt.Sprintf("b: %T %s", b, utils.PrettyPrint(b)))
 		var mapping = make(map[string]interface{})
-		var projects = make([]interface{}, 0, 0)
+		var projects = make([]interface{}, 0)
 		for _, d := range b.Projects {
 			tflog.Trace(ctx, fmt.Sprintf("d: %T %s", d, utils.PrettyPrint(d)))
 			projects = append(projects, d.ID)
 		}
 		mapping["projects"] = projects
+		mapping["description"] = b.Description
 		mapping["provider_group_id"] = b.ProviderGroupID
 		mapping["role"] = b.Role.ID
 		tflog.Trace(ctx, fmt.Sprintf("projects: %s", projects))
@@ -239,6 +248,7 @@ func resourceWizSAMLIdPRead(ctx context.Context, d *schema.ResourceData, m inter
 	        domains
 	        mergeGroupsMappingByRole
 	        groupMapping {
+	            description
 	            providerGroupId
 	            role {
 	                id
@@ -361,6 +371,8 @@ func resourceWizSAMLIdPUpdate(ctx context.Context, d *schema.ResourceData, m int
 		for c, d := range b.(map[string]interface{}) {
 			tflog.Trace(ctx, fmt.Sprintf("c:d: %s %s", c, d))
 			switch c {
+			case "description":
+				myMap.Description = d.(string)
 			case "role":
 				myMap.Role = d.(string)
 			case "provider_group_id":
