@@ -1,0 +1,2 @@
+# The id for importing a wiz_project_cloud_account_link has to be in this format: 'link|<project_id>|<cloud_account_id>'
+terraform import wiz_project_cloud_account_link.example_import "link|ee25cc95-82b0-4543-8934-5bc655b86786|5cc3a684-44cb-4cd5-b78f-f029c25dc617"
