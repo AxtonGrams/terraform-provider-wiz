@@ -343,7 +343,7 @@ func resourceWizProjectCloudAccountLinkCreate(ctx context.Context, d *schema.Res
 
 	// process the request
 	data := &UpdateProject{}
-	requestDiags = client.ProcessRequest(ctx, m, vars, data, query, "LinkCloudAccountToProject", "update")
+	requestDiags = client.ProcessRequest(ctx, m, vars, data, query, "LinkCloudAccountToProject", "create")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
 		return diags
