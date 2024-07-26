@@ -16,13 +16,13 @@ const (
 	value1          = "value1"
 )
 
-var cloudAccountId = uuid.NewString()
+var cloudAccountID = uuid.NewString()
 var resourceGroups = []string{"group1", "group2"}
 var resourceGroupsInterface = []interface{}{"group1", "group2"}
 
 func TestGetAccountLinkVar(t *testing.T) {
 	expected := &wiz.ProjectCloudAccountLinkInput{
-		CloudAccount:   cloudAccountId,
+		CloudAccount:   cloudAccountID,
 		Environment:    environmentProd,
 		Shared:         utils.ConvertBoolToPointer(true),
 		ResourceGroups: resourceGroups,
@@ -38,7 +38,7 @@ func TestGetAccountLinkVar(t *testing.T) {
 		t,
 		resourceWizProjectCloudAccountLink().Schema,
 		map[string]interface{}{
-			"cloud_account_id": cloudAccountId,
+			"cloud_account_id": cloudAccountID,
 			"environment":      environmentProd,
 			"shared":           true,
 			"resource_groups":  resourceGroupsInterface,
@@ -51,7 +51,7 @@ func TestGetAccountLinkVar(t *testing.T) {
 		},
 	)
 
-	accountLink := getAccountLinkVar(d, cloudAccountId)
+	accountLink := getAccountLinkVar(d, cloudAccountID)
 	if !reflect.DeepEqual(expected, accountLink) {
 		t.Fatalf(
 			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
@@ -64,7 +64,7 @@ func TestGetAccountLinkVar(t *testing.T) {
 func TestAccountLinkToAccountLinkInput(t *testing.T) {
 	link := &wiz.ProjectCloudAccountLink{
 		CloudAccount: wiz.CloudAccount{
-			ID: cloudAccountId,
+			ID: cloudAccountID,
 		},
 		Environment: environmentProd,
 		ResourceTags: []*wiz.ResourceTag{
@@ -77,7 +77,7 @@ func TestAccountLinkToAccountLinkInput(t *testing.T) {
 	}
 
 	expected := &wiz.ProjectCloudAccountLinkInput{
-		CloudAccount: cloudAccountId,
+		CloudAccount: cloudAccountID,
 		Environment:  environmentProd,
 		ResourceTags: []*wiz.ResourceTagInput{
 			{
@@ -102,7 +102,7 @@ func TestExtractCloudAccountLink(t *testing.T) {
 	cloudAccountLinks := []*wiz.ProjectCloudAccountLink{
 		{
 			CloudAccount: wiz.CloudAccount{
-				ID: cloudAccountId,
+				ID: cloudAccountID,
 			},
 			Environment: environmentProd,
 			Shared:      true,
@@ -118,13 +118,13 @@ func TestExtractCloudAccountLink(t *testing.T) {
 
 	expected := &wiz.ProjectCloudAccountLink{
 		CloudAccount: wiz.CloudAccount{
-			ID: cloudAccountId,
+			ID: cloudAccountID,
 		},
 		Environment: environmentProd,
 		Shared:      true,
 	}
 
-	result, err := extractCloudAccountLink(cloudAccountLinks, cloudAccountId)
+	result, err := extractCloudAccountLink(cloudAccountLinks, cloudAccountID)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -164,15 +164,15 @@ func TestExtractIds(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			projId, cloudId, err := extractIds(tc.input)
+			projID, cloudID, err := extractIDs(tc.input)
 			if (err != nil) != tc.expectErr {
 				t.Errorf("Expected error: %v, got: %v", tc.expectErr, err)
 			}
-			if projId != tc.expectedProj {
-				t.Errorf("Expected project ID: %s, got: %s", tc.expectedProj, projId)
+			if projID != tc.expectedProj {
+				t.Errorf("Expected project ID: %s, got: %s", tc.expectedProj, projID)
 			}
-			if cloudId != tc.expectedCloud {
-				t.Errorf("Expected cloud ID: %s, got: %s", tc.expectedCloud, cloudId)
+			if cloudID != tc.expectedCloud {
+				t.Errorf("Expected cloud ID: %s, got: %s", tc.expectedCloud, cloudID)
 			}
 		})
 	}
