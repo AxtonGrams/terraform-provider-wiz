@@ -229,6 +229,33 @@ type SAMLGroupMappingCreateInput struct {
 	Projects        []string `json:"projects"`
 }
 
+// UpdateSAMLGroupMappingPayload struct
+type UpdateSAMLGroupMappingPayload struct {
+	SAMLGroupMapping SAMLGroupMapping `json:"samlGroupMapping,omitempty"`
+}
+
+// UpdateSAMLGroupMappingInput struct
+type UpdateSAMLGroupMappingInput struct {
+	ID    string                       `json:"id"`
+	Patch UpdateSAMLGroupMappingUpsert `json:"patch"`
+}
+
+// UpdateSAMLGroupMappingUpsert struct
+type UpdateSAMLGroupMappingUpsert struct {
+	Upsert SAMLGroupMappingUpdateInput `json:"upsert"`
+}
+
+// DeleteSAMLGroupMappingInput struct
+type DeleteSAMLGroupMappingInput struct {
+	ID    string                 `json:"id"`
+	Patch DeleteSAMLGroupMapping `json:"patch"`
+}
+
+// DeleteSAMLGroupMapping struct
+type DeleteSAMLGroupMapping struct {
+	Delete []string `json:"delete"`
+}
+
 // SAMLIdentityProvider struct -- updates
 type SAMLIdentityProvider struct {
 	AllowManualRoleOverride  *bool               `json:"allowManualRoleOverride"`
