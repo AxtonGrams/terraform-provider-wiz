@@ -25,4 +25,6 @@ const (
 	TcReportGraphQuery TestCase = "REPORT_GRAPH_QUERY"
 	// TcCloudConfigRule test case
 	TcCloudConfigRule TestCase = "CLOUD_CONFIG_RULE"
+	// TcSAMLGroupMapping test case
+	TcSAMLGroupMapping TestCase = "SAML_GROUP_MAPPING"
 )

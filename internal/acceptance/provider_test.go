@@ -47,6 +47,8 @@ func testAccPreCheck(t *testing.T, tc TestCase) {
 		envVars = append(commonEnvVars, "WIZ_SUBSCRIPTION_ID")
 	case TcReportGraphQuery:
 		envVars = append(commonEnvVars, "WIZ_PROJECT_ID")
+	case TcSAMLGroupMapping:
+		envVars = append(commonEnvVars, "WIZ_PROJECT_ID", "PROVIDER_GROUP_ID", "WIZ_SAML_IDP_ID")
 	default:
 		t.Fatalf("unknown testCase: %s", tc)
 	}

@@ -1,0 +1,55 @@
+package acceptance
+
+import (
+	"fmt"
+	"os"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccResourceWizSAMLGroupMapping_basic(t *testing.T) {
+	samlIdpID := os.Getenv("WIZ_SAML_IDP_ID")
+	providerGroupID := os.Getenv("PROVIDER_GROUP_ID")
+	projectID := os.Getenv("WIZ_PROJECT_ID")
+
+	resource.UnitTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t, TcSAMLGroupMapping) },
+		ProviderFactories: providerFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testResourceWizSAMLGroupMappingBasic(samlIdpID, providerGroupID, projectID),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"wiz_saml_group_mapping.foo",
+						"saml_idp_id",
+						samlIdpID,
+					),
+					resource.TestCheckResourceAttr(
+						"wiz_saml_group_mapping.foo",
+						"provider_group_id",
+						providerGroupID,
+					),
+					resource.TestCheckResourceAttr(
+						"wiz_saml_group_mapping.foo",
+						"projects.0",
+						projectID,
+					),
+				),
+			},
+		},
+	})
+}
+
+func testResourceWizSAMLGroupMappingBasic(samlIdpID string, providerGroupID string, projectID string) string {
+	return fmt.Sprintf(`
+resource "wiz_saml_group_mapping" "foo" {
+  saml_idp_id = "%s"
+  provider_group_id = "%s"
+  role = "PROJECT_READER"
+  projects = [
+    "%s"
+  ]
+}
+`, samlIdpID, providerGroupID, projectID)
+}
