@@ -25,7 +25,7 @@ type CloudAccountSearchResponse struct {
 	GraphSearch struct {
 		Nodes []struct {
 			Entities []struct {
-				Id string `json:"id"`
+				ID string `json:"id"`
 			} `json:"entities"`
 		} `json:"nodes"`
 	} `json:"graphSearch"`
@@ -283,7 +283,7 @@ func searchForCloudAccount(ctx context.Context, externalID string, m interface{}
 		return "", diag.Errorf("cloud account %s not found in wiz inventory", externalID)
 	}
 
-	return respData.GraphSearch.Nodes[0].Entities[0].Id, nil
+	return respData.GraphSearch.Nodes[0].Entities[0].ID, nil
 }
 
 func resourceWizProjectCloudAccountLinkCreate(ctx context.Context, d *schema.ResourceData, m interface{}) (diags diag.Diagnostics) {
@@ -294,9 +294,9 @@ func resourceWizProjectCloudAccountLinkCreate(ctx context.Context, d *schema.Res
 	if v, ok := d.GetOk("cloud_account_id"); ok {
 		cloudAccountWizID = v.(string)
 	} else {
-		cloudAccountUpstreamId := d.Get("external_cloud_account_id").(string)
+		cloudAccountUpstreamID := d.Get("external_cloud_account_id").(string)
 		var diagsSearch diag.Diagnostics
-		cloudAccountWizID, diagsSearch = searchForCloudAccount(ctx, cloudAccountUpstreamId, m)
+		cloudAccountWizID, diagsSearch = searchForCloudAccount(ctx, cloudAccountUpstreamID, m)
 		if len(diagsSearch) > 0 {
 			return diagsSearch
 		}
