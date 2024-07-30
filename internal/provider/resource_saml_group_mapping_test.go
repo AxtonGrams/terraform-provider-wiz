@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestExtractIdsFromSamlIdpGroupMappingImportId(t *testing.T) {
+func TestExtractIDsFromSamlIdpGroupMappingImportID(t *testing.T) {
 	testCases := []struct {
 		name            string
 		input           string
@@ -14,14 +14,14 @@ func TestExtractIdsFromSamlIdpGroupMappingImportId(t *testing.T) {
 	}{
 		{
 			name:            "Valid ID",
-			input:           "link|samlIdpId|providerGroupId|projectId1,projectId2|role",
-			expectedMapping: SAMLGroupMappingsImport{SamlIdpID: "samlIdpId", ProviderGroupID: "providerGroupId", ProjectIDs: []string{"projectId1", "projectId2"}, Role: "role"},
+			input:           "link|samlIdpID|providerGroupID|projectID1,projectID2|role",
+			expectedMapping: SAMLGroupMappingsImport{SamlIdpID: "samlIdpID", ProviderGroupID: "providerGroupID", ProjectIDs: []string{"projectID1", "projectID2"}, Role: "role"},
 			expectErr:       false,
 		},
 		{
 			name:            "Valid ID global mapping",
-			input:           "link|samlIdpId|providerGroupId|global|role",
-			expectedMapping: SAMLGroupMappingsImport{SamlIdpID: "samlIdpId", ProviderGroupID: "providerGroupId", ProjectIDs: nil, Role: "role"},
+			input:           "link|samlIdpID|providerGroupID|global|role",
+			expectedMapping: SAMLGroupMappingsImport{SamlIdpID: "samlIdpID", ProviderGroupID: "providerGroupID", ProjectIDs: nil, Role: "role"},
 			expectErr:       false,
 		},
 		{

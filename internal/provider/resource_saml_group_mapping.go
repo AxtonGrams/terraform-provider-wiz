@@ -3,9 +3,10 @@ package provider
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"slices"
 	"strings"
+
+	"github.com/google/uuid"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
