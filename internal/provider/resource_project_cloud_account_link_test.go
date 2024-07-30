@@ -1,10 +1,11 @@
 package provider
 
 import (
-	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"reflect"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/utils"
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 )
