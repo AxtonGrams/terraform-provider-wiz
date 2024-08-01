@@ -67,8 +67,7 @@ type PatchProjectCloudAccountLinks struct {
 
 func resourceWizProjectCloudAccountLink() *schema.Resource {
 	return &schema.Resource{
-		Description: "Please either use this resource or the embedded set of Cloud Account Links in the wiz_project resource. " +
-			"Link of a Project to a Cloud Account.",
+		Description: "Associate a cloud subscription with a project. Use either this resource or the cloud_account_link block set for the wiz_project, never both.",
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
@@ -375,53 +374,6 @@ func resourceWizProjectCloudAccountLinkRead(ctx context.Context, d *schema.Resou
 	        id: $id
 	    ) {
 	        id
-	        name
-	        isFolder
-	        ancestorProjects {
-	          id
-	        }	
-	        description
-	        identifiers
-	        slug
-	        archived
-	        businessUnit
-	        projectOwners {
-	            id
-	            name
-	            email
-	        }
-	        securityChampions {
-	            id
-	            name
-	            email
-	        }
-	        riskProfile {
-	            businessImpact
-	            isActivelyDeveloped
-	            hasAuthentication
-	            hasExposedAPI
-	            isInternetFacing
-	            isCustomerFacing
-	            storesData
-	            sensitiveDataTypes
-	            isRegulated
-	            regulatoryStandards
-	        }
-	        cloudOrganizationLinks {
-	            cloudOrganization {
-	                externalId
-	                id
-	                name
-	                path
-	            }
-	            resourceTags {
-	                key
-	                value
-	            }
-	            resourceGroups
-	            shared
-	            environment
-	        }
 	        cloudAccountLinks {
 	            cloudAccount {
 	                externalId
@@ -436,14 +388,6 @@ func resourceWizProjectCloudAccountLinkRead(ctx context.Context, d *schema.Resou
 	            shared
 	            environment
 	        }
-	        kubernetesClustersLinks {
-	            kubernetesCluster {
-	                id
-	            }
-	            environment
-	            namespaces
-	            shared
-              }
 	    }
 	}`
 
