@@ -23,13 +23,7 @@ import (
 // CloudAccountSearchResponse represents the response from a cloud account search.
 // It includes a GraphSearch object that contains a list of Nodes, each with a list of Entities.
 type CloudAccountSearchResponse struct {
-	GraphSearch struct {
-		Nodes []struct {
-			Entities []struct {
-				ID string `json:"id"`
-			} `json:"entities"`
-		} `json:"nodes"`
-	} `json:"graphSearch"`
+	GraphSearch wiz.GraphSearchResultConnection `json:"graphSearch"`
 }
 
 // SearchForCloudAccountVars represents the variables for a cloud account search.
@@ -50,19 +44,6 @@ type PartialProjectWithCloudAccountLinks struct {
 // It includes a list of cloud account links.
 type PartialProject struct {
 	CloudAccountLinks []*wiz.ProjectCloudAccountLink
-}
-
-// UpdateProjectCloudAccountLinks represents the input for updating project cloud account links.
-// It includes the ID and a Patch object.
-type UpdateProjectCloudAccountLinks struct {
-	ID    string                        `json:"id"`
-	Patch PatchProjectCloudAccountLinks `json:"patch"`
-}
-
-// PatchProjectCloudAccountLinks represents the patch object for updating project cloud account links.
-// It includes a list of wiz.ProjectCloudAccountLinkInput.
-type PatchProjectCloudAccountLinks struct {
-	CloudAccountLinks []*wiz.ProjectCloudAccountLinkInput `json:"cloudAccountLinks"`
 }
 
 func resourceWizProjectCloudAccountLink() *schema.Resource {
@@ -334,9 +315,9 @@ func resourceWizProjectCloudAccountLinkCreate(ctx context.Context, d *schema.Res
 	}`
 
 	// populate the graphql variables
-	vars := &UpdateProjectCloudAccountLinks{
+	vars := &wiz.UpdateProjectCloudAccountLinks{
 		ID: projectID,
-		Patch: PatchProjectCloudAccountLinks{
+		Patch: wiz.PatchProjectCloudAccountLinks{
 			CloudAccountLinks: newCloudAccountLinksList,
 		},
 	}
@@ -501,9 +482,9 @@ func resourceWizProjectCloudAccountLinkUpdate(ctx context.Context, d *schema.Res
 	}`
 
 	// populate the graphql variables
-	vars := &UpdateProjectCloudAccountLinks{
+	vars := &wiz.UpdateProjectCloudAccountLinks{
 		ID: projectID,
-		Patch: PatchProjectCloudAccountLinks{
+		Patch: wiz.PatchProjectCloudAccountLinks{
 			CloudAccountLinks: newCloudAccountLinksList,
 		},
 	}
@@ -552,9 +533,9 @@ func resourceWizProjectCloudAccountLinkDelete(ctx context.Context, d *schema.Res
 	}`
 
 	// populate the graphql variables
-	vars := &UpdateProjectCloudAccountLinks{
+	vars := &wiz.UpdateProjectCloudAccountLinks{
 		ID: projectID,
-		Patch: PatchProjectCloudAccountLinks{
+		Patch: wiz.PatchProjectCloudAccountLinks{
 			CloudAccountLinks: newCloudAccountLinksList,
 		},
 	}
