@@ -3,12 +3,12 @@
 page_title: "wiz_project_cloud_account_link Resource - terraform-provider-wiz"
 subcategory: ""
 description: |-
-  Please either use this resource or the embedded set of Cloud Account Links in the wiz_project resource. Link of a Project to a Cloud Account.
+  Associate a cloud subscription with a project. Use either this resource or the cloudaccountlink block set for the wiz_project, never both.
 ---
 
 # wiz_project_cloud_account_link (Resource)
 
-Please either use this resource or the embedded set of Cloud Account Links in the wiz_project resource. Link of a Project to a Cloud Account.
+Associate a cloud subscription with a project. Use either this resource or the cloud_account_link block set for the wiz_project, never both.
 
 ## Example Usage
 
