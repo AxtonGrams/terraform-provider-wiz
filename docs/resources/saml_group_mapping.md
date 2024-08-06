@@ -3,12 +3,12 @@
 page_title: "wiz_saml_group_mapping Resource - terraform-provider-wiz"
 subcategory: ""
 description: |-
-  Configure SAML Group Role Mapping. If you use SSO to authenticate to Wiz, you can bind group memberships in SAML tokens to Wiz roles over certain scopes.
+  Configure SAML Group Role Mapping. When using SSO to authenticate with Wiz, you can map group memberships in SAML assertions to Wiz roles across specific scopes.
 ---
 
 # wiz_saml_group_mapping (Resource)
 
-Configure SAML Group Role Mapping. If you use SSO to authenticate to Wiz, you can bind group memberships in SAML tokens to Wiz roles over certain scopes.
+Configure SAML Group Role Mapping. When using SSO to authenticate with Wiz, you can map group memberships in SAML assertions to Wiz roles across specific scopes.
 
 ## Example Usage
 
