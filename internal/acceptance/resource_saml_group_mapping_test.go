@@ -10,7 +10,7 @@ import (
 
 func TestAccResourceWizSAMLGroupMapping_basic(t *testing.T) {
 	samlIdpID := os.Getenv("WIZ_SAML_IDP_ID")
-	providerGroupID := os.Getenv("PROVIDER_GROUP_ID")
+	providerGroupID := os.Getenv("WIZ_PROVIDER_GROUP_ID")
 	projectID := os.Getenv("WIZ_PROJECT_ID")
 
 	resource.UnitTest(t, resource.TestCase{
