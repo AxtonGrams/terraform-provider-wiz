@@ -40,6 +40,22 @@ type SAMLGroupMappingsImport struct {
 	Role            string
 }
 
+// UpdateSAMLGroupMappingPayload struct
+type UpdateSAMLGroupMappingPayload struct {
+	SAMLGroupMapping wiz.SAMLGroupMapping `json:"samlGroupMapping,omitempty"`
+}
+
+// DeleteSAMLGroupMappingInput struct
+type DeleteSAMLGroupMappingInput struct {
+	ID    string                 `json:"id"`
+	Patch DeleteSAMLGroupMapping `json:"patch"`
+}
+
+// DeleteSAMLGroupMapping struct
+type DeleteSAMLGroupMapping struct {
+	Delete []string `json:"delete"`
+}
+
 func resourceWizSAMLGroupMapping() *schema.Resource {
 	return &schema.Resource{
 		Description: "Configure SAML Group Role Mapping. If you use SSO to authenticate to Wiz, you can bind group memberships in SAML tokens to Wiz roles over certain scopes.",
@@ -149,7 +165,7 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
 	vars.Patch.Upsert.Projects = projectIDs
 
 	// process the request
-	data := &wiz.UpdateSAMLGroupMappingPayload{}
+	data := &UpdateSAMLGroupMappingPayload{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "create")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
@@ -268,7 +284,7 @@ func resourceSAMLGroupMappingUpdate(ctx context.Context, d *schema.ResourceData,
 	vars.Patch.Upsert.Projects = projects
 
 	// process the request
-	data := &wiz.UpdateSAMLGroupMappingPayload{}
+	data := &UpdateSAMLGroupMappingPayload{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "update")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
@@ -297,12 +313,12 @@ func resourceSAMLGroupMappingDelete(ctx context.Context, d *schema.ResourceData,
 	providerGroupID := d.Get("provider_group_id").(string)
 
 	// populate the graphql variables
-	vars := &wiz.DeleteSAMLGroupMappingInput{}
+	vars := &DeleteSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
 	vars.Patch.Delete = []string{providerGroupID}
 
 	// process the request
-	data := &wiz.UpdateSAMLGroupMappingPayload{}
+	data := &UpdateSAMLGroupMappingPayload{}
 	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "delete")
 	diags = append(diags, requestDiags...)
 	if len(diags) > 0 {
