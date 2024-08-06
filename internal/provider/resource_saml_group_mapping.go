@@ -58,7 +58,7 @@ type DeleteSAMLGroupMapping struct {
 
 func resourceWizSAMLGroupMapping() *schema.Resource {
 	return &schema.Resource{
-		Description: "Configure SAML Group Role Mapping. If you use SSO to authenticate to Wiz, you can bind group memberships in SAML tokens to Wiz roles over certain scopes.",
+		Description: "Configure SAML Group Role Mapping. When using SSO to authenticate with Wiz, you can map group memberships in SAML assertions to Wiz roles across specific scopes.",
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
