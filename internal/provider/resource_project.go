@@ -317,9 +317,10 @@ func resourceWizProject() *schema.Resource {
 				},
 			},
 			"cloud_account_link": {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				Description: "Associate the project directly with a cloud account by wiz identifier UID to organize all the subscription resources, issues, and findings within this project.",
+				Type:     schema.TypeSet,
+				Optional: true,
+				Description: "Please either use this embedded set or the resource wiz_project_cloud_account_link. " +
+					"Associate the project directly with a cloud account by wiz identifier UID to organize all the subscription resources, issues, and findings within this project.",
 
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
