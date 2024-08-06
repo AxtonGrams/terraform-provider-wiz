@@ -328,7 +328,7 @@ func resourceSAMLGroupMappingDelete(ctx context.Context, d *schema.ResourceData,
 	return diags
 }
 
-func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string, providerGroupID string, roleId string, projectIDs []string) (*wiz.SAMLGroupMapping, diag.Diagnostics) {
+func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string, providerGroupID string, roleID string, projectIDs []string) (*wiz.SAMLGroupMapping, diag.Diagnostics) {
 	// define the graphql query
 	query := `query samlIdentityProviderGroupMappings ($id: ID!, $first: Int! $after: String){
 	    samlIdentityProviderGroupMappings (
@@ -374,7 +374,7 @@ func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string
 		for _, node := range nodes {
 			nodeProjectIDs := extractProjectIDs(node.Projects)
 			// If we find a match, store the node and break the loop
-			if node.ProviderGroupID == providerGroupID && node.Role.ID == roleId && slices.Equal(projectIDs, nodeProjectIDs) {
+			if node.ProviderGroupID == providerGroupID && node.Role.ID == roleID && slices.Equal(projectIDs, nodeProjectIDs) {
 				matchingNode = node
 				break
 			}
