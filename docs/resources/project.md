@@ -123,7 +123,7 @@ resource "wiz_project" "test" {
 - `archived` (Boolean) Whether the project is archived/inactive
     - Defaults to `false`.
 - `business_unit` (String) The business unit to which the project belongs.
-- `cloud_account_link` (Block Set) Associate the project directly with a cloud account by wiz identifier UID to organize all the subscription resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_account_link))
+- `cloud_account_link` (Block Set) Please either use this embedded set or the resource wiz_project_cloud_account_link. Associate the project directly with a cloud account by wiz identifier UID to organize all the subscription resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_account_link))
 - `cloud_organization_link` (Block Set) Associate the project with an organizational link to organize all the subscription resources, issues, and findings within this project. (see [below for nested schema](#nestedblock--cloud_organization_link))
 - `description` (String) The project description.
 - `identifiers` (List of String) Identifiers for the project.

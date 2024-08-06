@@ -170,6 +170,21 @@ type UpdateProjectPatch struct {
 	Slug                   string                               `json:"slug"`
 }
 
+// UpdateProjectCloudAccountLinks represents the input for updating project cloud account links.
+// It includes the ID and a Patch object. The type was initially considered to be UpdateProjectInput,
+// but due to potential breaking changes with the addition of 'omitempty' to certain fields, this separate struct is used.
+type UpdateProjectCloudAccountLinks struct {
+	ID    string                        `json:"id"`
+	Patch PatchProjectCloudAccountLinks `json:"patch"`
+}
+
+// PatchProjectCloudAccountLinks represents the patch object for updating project cloud account links.
+// It includes a list of wiz.ProjectCloudAccountLinkInput. This struct is used instead of directly using UpdateProjectInput
+// to avoid potential breaking changes with the addition of 'omitempty' to certain fields.
+type PatchProjectCloudAccountLinks struct {
+	CloudAccountLinks []*ProjectCloudAccountLinkInput `json:"cloudAccountLinks"`
+}
+
 // UpdateSAMLIdentityProviderInput struct
 type UpdateSAMLIdentityProviderInput struct {
 	ID    string                          `json:"id"`

@@ -302,6 +302,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_security_framework":                       resourceWizSecurityFramework(),
 				"wiz_service_account":                          resourceWizServiceAccount(),
 				"wiz_user":                                     resourceWizUser(),
+				"wiz_project_cloud_account_link":               resourceWizProjectCloudAccountLink(),
 			},
 		}
 		p.ConfigureContextFunc = configure(version, p)

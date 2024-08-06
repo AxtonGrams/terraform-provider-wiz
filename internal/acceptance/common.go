@@ -25,4 +25,6 @@ const (
 	TcReportGraphQuery TestCase = "REPORT_GRAPH_QUERY"
 	// TcCloudConfigRule test case
 	TcCloudConfigRule TestCase = "CLOUD_CONFIG_RULE"
+	// TcProjectCloudAccountLink test case
+	TcProjectCloudAccountLink = "PROJECT_CLOUD_ACCOUNT_LINK"
 )
