@@ -357,35 +357,28 @@ func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string
 	vars.ID = samlIdpID
 	vars.First = 100
 
-	var matchingNode *wiz.SAMLGroupMapping
-	// Since we can't filter by providerGroupId server side we have to do it client side
-	// Execute the query in a loop until we found the group we are looking for, or all pages have been fetched
+	// Call ProcessPagedRequest
+	diags, allData := client.ProcessPagedRequest(ctx, m, vars, &ReadSAMLGroupMappings{}, query, "saml_idp", "read", 0)
+	if diags.HasError() {
+		return nil, diags
+	}
 
-	found := false
-	for !found {
-		data := &ReadSAMLGroupMappings{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_idp", "read")
-		if len(requestDiags) > 0 {
-			return nil, requestDiags
+	var matchingNode *wiz.SAMLGroupMapping
+	// Process the data...
+	for _, data := range allData {
+		typedData, ok := data.(*ReadSAMLGroupMappings)
+		if !ok {
+			return nil, diag.Errorf("data is not of type *ReadSAMLGroupMappings")
 		}
-		// Process the data...
-		for _, node := range data.SAMLGroupMappings.Nodes {
+		nodes := typedData.SAMLGroupMappings.Nodes
+		for _, node := range nodes {
 			nodeProjectIDs := extractProjectIDs(node.Projects)
 			// If we find a match, store the node and break the loop
 			if node.ProviderGroupID == providerGroupID && node.Role.ID == roleId && slices.Equal(projectIDs, nodeProjectIDs) {
 				matchingNode = node
-				found = true
 				break
 			}
 		}
-
-		// If there are no more pages, break the loop
-		if !data.SAMLGroupMappings.PageInfo.HasNextPage {
-			break
-		}
-
-		// Set the cursor for the next page
-		vars.After = data.SAMLGroupMappings.PageInfo.EndCursor
 	}
 
 	return matchingNode, nil
