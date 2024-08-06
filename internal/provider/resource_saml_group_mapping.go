@@ -343,11 +343,7 @@ func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string
 	        nodes {
 			  providerGroupId
 			  role {
-				description
 				id
-				isProjectScoped
-				name
-				scopes
 			  }
 			  projects {
 				id
