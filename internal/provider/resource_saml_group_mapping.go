@@ -45,17 +45,6 @@ type UpdateSAMLGroupMappingPayload struct {
 	SAMLGroupMapping wiz.SAMLGroupMapping `json:"samlGroupMapping,omitempty"`
 }
 
-// DeleteSAMLGroupMappingInput struct
-type DeleteSAMLGroupMappingInput struct {
-	ID    string                 `json:"id"`
-	Patch DeleteSAMLGroupMapping `json:"patch"`
-}
-
-// DeleteSAMLGroupMapping struct
-type DeleteSAMLGroupMapping struct {
-	Delete []string `json:"delete"`
-}
-
 func resourceWizSAMLGroupMapping() *schema.Resource {
 	return &schema.Resource{
 		Description: "Configure SAML Group Role Mapping. When using SSO to authenticate with Wiz, you can map group memberships in SAML assertions to Wiz roles across specific scopes.",
@@ -160,9 +149,13 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
 	// populate the graphql variables
 	vars := &wiz.UpdateSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
-	vars.Patch.Upsert.ProviderGroupID = providerGroupID
-	vars.Patch.Upsert.Role = role
-	vars.Patch.Upsert.Projects = projectIDs
+	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
+		Upsert: &wiz.SAMLGroupMappingDetailsInput{
+			ProviderGroupID: providerGroupID,
+			Role:            role,
+			Projects:        projectIDs,
+		},
+	}
 
 	// process the request
 	data := &UpdateSAMLGroupMappingPayload{}
@@ -279,9 +272,13 @@ func resourceSAMLGroupMappingUpdate(ctx context.Context, d *schema.ResourceData,
 	// populate the graphql variables
 	vars := &wiz.UpdateSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
-	vars.Patch.Upsert.ProviderGroupID = providerGroupID
-	vars.Patch.Upsert.Role = role
-	vars.Patch.Upsert.Projects = projects
+	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
+		Upsert: &wiz.SAMLGroupMappingDetailsInput{
+			ProviderGroupID: providerGroupID,
+			Role:            role,
+			Projects:        projects,
+		},
+	}
 
 	// process the request
 	data := &UpdateSAMLGroupMappingPayload{}
@@ -313,9 +310,9 @@ func resourceSAMLGroupMappingDelete(ctx context.Context, d *schema.ResourceData,
 	providerGroupID := d.Get("provider_group_id").(string)
 
 	// populate the graphql variables
-	vars := &DeleteSAMLGroupMappingInput{}
+	vars := &wiz.UpdateSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
-	vars.Patch.Delete = []string{providerGroupID}
+	vars.Patch.Delete = &[]string{providerGroupID}
 
 	// process the request
 	data := &UpdateSAMLGroupMappingPayload{}

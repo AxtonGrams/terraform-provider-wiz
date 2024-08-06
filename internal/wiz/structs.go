@@ -250,9 +250,17 @@ type UpdateSAMLGroupMappingInput struct {
 	Patch ModifySAMLGroupMappingPatch `json:"patch"`
 }
 
+// SAMLGroupMappingDetailsInput struct
+type SAMLGroupMappingDetailsInput struct {
+	ProviderGroupID string   `json:"providerGroupId"`
+	Role            string   `json:"role"`
+	Projects        []string `json:"projects"`
+}
+
 // ModifySAMLGroupMappingPatch struct
 type ModifySAMLGroupMappingPatch struct {
-	Upsert SAMLGroupMappingUpdateInput `json:"upsert"`
+	Upsert *SAMLGroupMappingDetailsInput `json:"upsert,omitempty"`
+	Delete *[]string                     `json:"delete,omitempty"`
 }
 
 // SAMLIdentityProvider struct -- updates
