@@ -263,6 +263,12 @@ type ModifySAMLGroupMappingPatch struct {
 	Delete *[]string                     `json:"delete,omitempty"`
 }
 
+// SAMLIdentityProviderGroupMappingsConnection struct
+type SAMLIdentityProviderGroupMappingsConnection struct {
+	PageInfo PageInfo            `json:"pageInfo"`
+	Nodes    []*SAMLGroupMapping `json:"nodes,omitempty"`
+}
+
 // SAMLIdentityProvider struct -- updates
 type SAMLIdentityProvider struct {
 	AllowManualRoleOverride  *bool               `json:"allowManualRoleOverride"`

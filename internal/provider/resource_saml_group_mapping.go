@@ -19,16 +19,9 @@ import (
 )
 
 // ReadSAMLGroupMappings represents the structure of a SAML group mappings read operation.
-// It includes a SAMLGroupMappings object.
+// It includes a SAMLIdentityProviderGroupMappingsConnection object.
 type ReadSAMLGroupMappings struct {
-	SAMLGroupMappings SAMLGroupMappings `json:"samlIdentityProviderGroupMappings"`
-}
-
-// SAMLGroupMappings represents the structure of SAML group mappings.
-// It includes PageInfo and a list of Nodes.
-type SAMLGroupMappings struct {
-	PageInfo wiz.PageInfo            `json:"pageInfo"`
-	Nodes    []*wiz.SAMLGroupMapping `json:"nodes,omitempty"`
+	SAMLGroupMappings wiz.SAMLIdentityProviderGroupMappingsConnection `json:"samlIdentityProviderGroupMappings"`
 }
 
 // SAMLGroupMappingsImport represents the structure of a SAML group mapping import.
