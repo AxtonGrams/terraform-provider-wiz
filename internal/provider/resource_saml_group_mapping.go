@@ -24,6 +24,12 @@ type ReadSAMLGroupMappings struct {
 	SAMLGroupMappings wiz.SAMLIdentityProviderGroupMappingsConnection `json:"samlIdentityProviderGroupMappings"`
 }
 
+// UpdateSAMLGroupMappingInput struct
+type UpdateSAMLGroupMappingInput struct {
+	ID    string                          `json:"id"`
+	Patch wiz.ModifySAMLGroupMappingPatch `json:"patch"`
+}
+
 // SAMLGroupMappingsImport represents the structure of a SAML group mapping import.
 // It includes the SAML IdP ID, provider group ID, project IDs, and role.
 type SAMLGroupMappingsImport struct {
@@ -140,10 +146,10 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
           }
 	}`
 	// populate the graphql variables
-	vars := &wiz.UpdateSAMLGroupMappingInput{}
+	vars := &UpdateSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
 	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
-		Upsert: &wiz.SAMLGroupMappingDetailsInput{
+		Upsert: &wiz.SAMLGroupDetailsInput{
 			ProviderGroupID: providerGroupID,
 			Role:            role,
 			Projects:        projectIDs,
@@ -263,10 +269,10 @@ func resourceSAMLGroupMappingUpdate(ctx context.Context, d *schema.ResourceData,
 	projects := utils.ConvertListToString(d.Get("projects").([]interface{}))
 
 	// populate the graphql variables
-	vars := &wiz.UpdateSAMLGroupMappingInput{}
+	vars := &UpdateSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
 	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
-		Upsert: &wiz.SAMLGroupMappingDetailsInput{
+		Upsert: &wiz.SAMLGroupDetailsInput{
 			ProviderGroupID: providerGroupID,
 			Role:            role,
 			Projects:        projects,
@@ -303,7 +309,7 @@ func resourceSAMLGroupMappingDelete(ctx context.Context, d *schema.ResourceData,
 	providerGroupID := d.Get("provider_group_id").(string)
 
 	// populate the graphql variables
-	vars := &wiz.UpdateSAMLGroupMappingInput{}
+	vars := &UpdateSAMLGroupMappingInput{}
 	vars.ID = samlIdpID
 	vars.Patch.Delete = &[]string{providerGroupID}
 

@@ -244,14 +244,9 @@ type SAMLGroupMappingCreateInput struct {
 	Projects        []string `json:"projects"`
 }
 
-// UpdateSAMLGroupMappingInput struct
-type UpdateSAMLGroupMappingInput struct {
-	ID    string                      `json:"id"`
-	Patch ModifySAMLGroupMappingPatch `json:"patch"`
-}
-
-// SAMLGroupMappingDetailsInput struct
-type SAMLGroupMappingDetailsInput struct {
+// SAMLGroupDetailsInput struct
+// Incomplete because 'description' field is missing as in the schema
+type SAMLGroupDetailsInput struct {
 	ProviderGroupID string   `json:"providerGroupId"`
 	Role            string   `json:"role"`
 	Projects        []string `json:"projects"`
@@ -259,8 +254,8 @@ type SAMLGroupMappingDetailsInput struct {
 
 // ModifySAMLGroupMappingPatch struct
 type ModifySAMLGroupMappingPatch struct {
-	Upsert *SAMLGroupMappingDetailsInput `json:"upsert,omitempty"`
-	Delete *[]string                     `json:"delete,omitempty"`
+	Upsert *SAMLGroupDetailsInput `json:"upsert,omitempty"`
+	Delete *[]string              `json:"delete,omitempty"`
 }
 
 // SAMLIdentityProviderGroupMappingsConnection struct
