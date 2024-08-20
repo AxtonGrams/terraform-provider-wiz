@@ -30,6 +30,7 @@ type UpdateSAMLGroupMappingInput struct {
 	Patch wiz.ModifySAMLGroupMappingPatch `json:"patch"`
 }
 
+// SAMLGroupMappingsImport struct
 type SAMLGroupMappingsImport struct {
 	SamlIdpID     string
 	GroupMappings []wiz.SAMLGroupDetailsInput

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"reflect"
+
 	"wiz.io/hashicorp/terraform-provider-wiz/internal/wiz"
 
 	"testing"
