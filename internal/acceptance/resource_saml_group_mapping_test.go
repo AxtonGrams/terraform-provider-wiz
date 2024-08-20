@@ -27,12 +27,12 @@ func TestAccResourceWizSAMLGroupMapping_basic(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_saml_group_mapping.foo",
-						"provider_group_id",
+						"group_mapping.0.provider_group_id",
 						providerGroupID,
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_saml_group_mapping.foo",
-						"projects.0",
+						"group_mapping.0.projects.0",
 						projectID,
 					),
 				),
@@ -43,13 +43,14 @@ func TestAccResourceWizSAMLGroupMapping_basic(t *testing.T) {
 
 func testResourceWizSAMLGroupMappingBasic(samlIdpID string, providerGroupID string, projectID string) string {
 	return fmt.Sprintf(`
-resource "wiz_saml_group_mapping" "foo" {
-  saml_idp_id = "%s"
-  provider_group_id = "%s"
-  role = "PROJECT_READER"
-  projects = [
-    "%s"
-  ]
-}
-`, samlIdpID, providerGroupID, projectID)
+		resource "wiz_saml_group_mapping" "foo" {
+		  saml_idp_id = "%s"
+		  group_mapping {
+			provider_group_id = "%s"
+			role = "PROJECT_READER"
+			projects = [
+			  "%s"
+			]
+		  }
+		}`, samlIdpID, providerGroupID, projectID)
 }
