@@ -128,6 +128,7 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
 	samlIdpID := d.Get("saml_idp_id").(string)
 	groupMappings := d.Get("group_mapping").(*schema.Set).List()
 
+	var upsertGroupMappings []wiz.SAMLGroupDetailsInput
 	for _, item := range groupMappings {
 		groupMapping := item.(map[string]interface{})
 		providerGroupID := groupMapping["provider_group_id"].(string)
@@ -147,31 +148,34 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
 			}
 		}
 
-		// define the graphql query
-		query := `mutation SetSAMLGroupMapping ($input: ModifySAMLGroupMappingInput!) {
-		  modifySAMLIdentityProviderGroupMappings(input: $input) {
-				_stub
-			  }
-		}`
-
-		// populate the graphql variables
-		vars := &UpdateSAMLGroupMappingInput{}
-		vars.ID = samlIdpID
-		vars.Patch = wiz.ModifySAMLGroupMappingPatch{
-			Upsert: &wiz.SAMLGroupDetailsInput{
-				ProviderGroupID: providerGroupID,
-				Role:            role,
-				Projects:        projectIDs,
-			},
+		upsertGroupMapping := wiz.SAMLGroupDetailsInput{
+			ProviderGroupID: providerGroupID,
+			Role:            role,
+			Projects:        projectIDs,
 		}
+		upsertGroupMappings = append(upsertGroupMappings, upsertGroupMapping)
+	}
 
-		// process the request
-		data := &UpdateSAMLGroupMappingPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "create")
-		diags = append(diags, requestDiags...)
-		if len(diags) > 0 {
-			return diags
-		}
+	// define the graphql query
+	query := `mutation SetSAMLGroupMapping ($input: ModifySAMLGroupMappingInput!) {
+	  modifySAMLIdentityProviderGroupMappings(input: $input) {
+			_stub
+		  }
+	}`
+
+	// populate the graphql variables
+	vars := &UpdateSAMLGroupMappingInput{}
+	vars.ID = samlIdpID
+	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
+		Upsert: &upsertGroupMappings,
+	}
+
+	// process the request
+	data := &UpdateSAMLGroupMappingPayload{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "create")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
 	}
 
 	// set the id
@@ -287,38 +291,40 @@ func resourceSAMLGroupMappingUpdate(ctx context.Context, d *schema.ResourceData,
 
 	samlIdpID := d.Get("saml_idp_id").(string)
 	groupMappings := d.Get("group_mapping").(*schema.Set).List()
-
-	// define the graphql query
-	query := `mutation SetSAMLGroupMapping ($input: ModifySAMLGroupMappingInput!) {
-	  modifySAMLIdentityProviderGroupMappings(input: $input) {
-            _stub
-          }
-	}`
-
+	var upsertGroupMappings []wiz.SAMLGroupDetailsInput
 	for _, item := range groupMappings {
 		groupMapping := item.(map[string]interface{})
 		providerGroupID := groupMapping["provider_group_id"].(string)
 		role := groupMapping["role"].(string)
 		projects := utils.ConvertListToString(groupMapping["projects"].([]interface{}))
-
-		// populate the graphql variables
-		vars := &UpdateSAMLGroupMappingInput{}
-		vars.ID = samlIdpID
-		vars.Patch = wiz.ModifySAMLGroupMappingPatch{
-			Upsert: &wiz.SAMLGroupDetailsInput{
-				ProviderGroupID: providerGroupID,
-				Role:            role,
-				Projects:        projects,
-			},
+		upsertGroupMapping := wiz.SAMLGroupDetailsInput{
+			ProviderGroupID: providerGroupID,
+			Role:            role,
+			Projects:        projects,
 		}
+		upsertGroupMappings = append(upsertGroupMappings, upsertGroupMapping)
+	}
 
-		// process the request
-		data := &UpdateSAMLGroupMappingPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "update")
-		diags = append(diags, requestDiags...)
-		if len(diags) > 0 {
-			return diags
-		}
+	// define the graphql query
+	query := `mutation SetSAMLGroupMapping ($input: ModifySAMLGroupMappingInput!) {
+	  modifySAMLIdentityProviderGroupMappings(input: $input) {
+			_stub
+		  }
+	}`
+
+	// populate the graphql variables
+	vars := &UpdateSAMLGroupMappingInput{}
+	vars.ID = samlIdpID
+	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
+		Upsert: &upsertGroupMappings,
+	}
+
+	// process the request
+	data := &UpdateSAMLGroupMappingPayload{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "update")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
 	}
 
 	return resourceSAMLGroupMappingRead(ctx, d, m)
@@ -335,29 +341,33 @@ func resourceSAMLGroupMappingDelete(ctx context.Context, d *schema.ResourceData,
 	samlIdpID := d.Get("saml_idp_id").(string)
 	groupMappings := d.Get("group_mapping").(*schema.Set).List()
 
-	// define the graphql query
-	query := `mutation SetSAMLGroupMapping ($input: ModifySAMLGroupMappingInput!) {
-	  modifySAMLIdentityProviderGroupMappings(input: $input) {
-            _stub
-          }
-	}`
-
+	var deleteGroupMappings []string
 	for _, item := range groupMappings {
 		groupMapping := item.(map[string]interface{})
 		providerGroupID := groupMapping["provider_group_id"].(string)
+		deleteGroupMappings = append(deleteGroupMappings, providerGroupID)
+	}
 
-		// populate the graphql variables
-		vars := &UpdateSAMLGroupMappingInput{}
-		vars.ID = samlIdpID
-		vars.Patch.Delete = &[]string{providerGroupID}
+	// define the graphql query
+	query := `mutation SetSAMLGroupMapping ($input: ModifySAMLGroupMappingInput!) {
+	  modifySAMLIdentityProviderGroupMappings(input: $input) {
+			_stub
+		  }
+	}`
 
-		// process the request
-		data := &UpdateSAMLGroupMappingPayload{}
-		requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "delete")
-		diags = append(diags, requestDiags...)
-		if len(diags) > 0 {
-			return diags
-		}
+	// populate the graphql variables
+	vars := &UpdateSAMLGroupMappingInput{}
+	vars.ID = samlIdpID
+	vars.Patch = wiz.ModifySAMLGroupMappingPatch{
+		Delete: &deleteGroupMappings,
+	}
+
+	// process the request
+	data := &UpdateSAMLGroupMappingPayload{}
+	requestDiags := client.ProcessRequest(ctx, m, vars, data, query, "saml_group_mapping", "delete")
+	diags = append(diags, requestDiags...)
+	if len(diags) > 0 {
+		return diags
 	}
 
 	return diags

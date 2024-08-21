@@ -254,8 +254,8 @@ type SAMLGroupDetailsInput struct {
 
 // ModifySAMLGroupMappingPatch struct
 type ModifySAMLGroupMappingPatch struct {
-	Upsert *SAMLGroupDetailsInput `json:"upsert,omitempty"`
-	Delete *[]string              `json:"delete,omitempty"`
+	Upsert *[]SAMLGroupDetailsInput `json:"upsert,omitempty"`
+	Delete *[]string                `json:"delete,omitempty"`
 }
 
 // SAMLIdentityProviderGroupMappingsConnection struct
