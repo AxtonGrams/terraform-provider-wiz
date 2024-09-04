@@ -3,7 +3,7 @@
 page_title: "wiz_security_framework Resource - terraform-provider-wiz"
 subcategory: ""
 description: |-
-  Configure Security Frameworks and associated resources (Categories and Subcategories). Support for extended fields has not been implemented due to issues with the API. This includes: category.externalid, category.subcategory.resolutionrecommendation, and category.subcategory.external_id.
+  Configure Security Frameworks and associated resources (Categories and Subcategories). Support for extended fields has not been implemented due to issues with the API. This includes: category.external_id, category.sub_category.resolution_recommendation, and category.sub_category.external_id.
 ---
 
 # wiz_security_framework (Resource)
