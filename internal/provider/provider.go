@@ -299,6 +299,7 @@ yLyKQXhw2W2Xs0qLeC1etA+jTGDK4UfLeC0SF7FSi8o5LL21L8IzApar2pR/
 				"wiz_report_graph_query":                       resourceWizReportGraphQuery(),
 				"wiz_project":                                  resourceWizProject(),
 				"wiz_saml_idp":                                 resourceWizSAMLIdP(),
+				"wiz_saml_group_mapping":                       resourceWizSAMLGroupMapping(),
 				"wiz_security_framework":                       resourceWizSecurityFramework(),
 				"wiz_service_account":                          resourceWizServiceAccount(),
 				"wiz_user":                                     resourceWizUser(),

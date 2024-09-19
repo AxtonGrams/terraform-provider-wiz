@@ -27,4 +27,6 @@ const (
 	TcCloudConfigRule TestCase = "CLOUD_CONFIG_RULE"
 	// TcProjectCloudAccountLink test case
 	TcProjectCloudAccountLink = "PROJECT_CLOUD_ACCOUNT_LINK"
+	// TcSAMLGroupMapping test case
+	TcSAMLGroupMapping TestCase = "SAML_GROUP_MAPPING"
 )

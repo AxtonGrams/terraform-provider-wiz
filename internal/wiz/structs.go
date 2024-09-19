@@ -244,6 +244,26 @@ type SAMLGroupMappingCreateInput struct {
 	Projects        []string `json:"projects"`
 }
 
+// SAMLGroupDetailsInput struct
+// Incomplete because 'description' field is missing as in the schema
+type SAMLGroupDetailsInput struct {
+	ProviderGroupID string   `json:"providerGroupId"`
+	Role            string   `json:"role"`
+	Projects        []string `json:"projects"`
+}
+
+// ModifySAMLGroupMappingPatch struct
+type ModifySAMLGroupMappingPatch struct {
+	Upsert *[]SAMLGroupDetailsInput `json:"upsert,omitempty"`
+	Delete *[]string                `json:"delete,omitempty"`
+}
+
+// SAMLIdentityProviderGroupMappingsConnection struct
+type SAMLIdentityProviderGroupMappingsConnection struct {
+	PageInfo PageInfo            `json:"pageInfo"`
+	Nodes    []*SAMLGroupMapping `json:"nodes,omitempty"`
+}
+
 // SAMLIdentityProvider struct -- updates
 type SAMLIdentityProvider struct {
 	AllowManualRoleOverride  *bool               `json:"allowManualRoleOverride"`
