@@ -400,7 +400,7 @@ func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string
 	// populate the graphql variables
 	vars := &internal.QueryVariables{}
 	vars.ID = samlIdpID
-	vars.First = 100
+	vars.First = 500
 
 	// Call ProcessPagedRequest
 	diags, allData := client.ProcessPagedRequest(ctx, m, vars, &ReadSAMLGroupMappings{}, query, "saml_idp", "read", 0)
