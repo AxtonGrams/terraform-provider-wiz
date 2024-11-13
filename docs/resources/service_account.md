@@ -174,6 +174,8 @@ resource "wiz_service_account" "helm" {
         - SENSOR
         - KUBERNETES_ADMISSION_CONTROLLER
         - BROKER
+        - KUBERNETES_CONNECTOR
+        - FIRST_PARTY
 
     - Defaults to `THIRD_PARTY`.
 
