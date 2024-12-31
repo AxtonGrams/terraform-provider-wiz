@@ -100,11 +100,7 @@ func resourceWizConnectorGcp() *schema.Resource {
 				Description: "Whether audit log monitor is enabled. Note an advanced license is required.",
 				Computed:    true,
 			},
-			"disk_analyzer_inflight_disabled": {
-				Type:        schema.TypeBool,
-				Description: "If using Outpost, whether disk analyzer inflight scanning is disabled.",
-				Computed:    true,
-			},
+
 			"events_topic_name": {
 				Type:        schema.TypeString,
 				Description: "If using Wiz Cloud Events, the Topic Name in format `projects/<project_id>/topics/<topic_id>`.",
@@ -210,7 +206,6 @@ func resourceWizConnectorGcpRead(ctx context.Context, d *schema.ResourceData, m 
 	      config {
 	        ... on ConnectorConfigGCP {
 	          auditLogMonitorEnabled
-	          diskAnalyzerInFlightDisabled
 	          includedFolders
 	          excludedFolders
 	          excludedProjects
@@ -286,10 +281,6 @@ func resourceWizConnectorGcpRead(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	err = d.Set("projects", utils.ConvertSliceToGenericArray(connectorConfig.Projects))
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("disk_analyzer_inflight_disabled", connectorConfig.DiskAnalyzerInFlightDisabled)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
