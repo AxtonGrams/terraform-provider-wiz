@@ -27,7 +27,6 @@ resource "wiz_connector_gcp" "example" {
       "excludedProjects" : [],
       "includedFolders" : [],
       "excludedFolders" : [],
-      "diskAnalyzerInFlightDisabled" : false,
       "auditLogMonitorEnabled" : false
     }
   )
@@ -47,7 +46,6 @@ resource "wiz_connector_gcp" "example" {
       "excludedProjects" : [],
       "includedFolders" : [],
       "excludedFolders" : [],
-      "diskAnalyzerInFlightDisabled" : false,
       "auditLogMonitorEnabled" : false
     }
   )
@@ -71,7 +69,6 @@ resource "wiz_connector_gcp" "example" {
 ### Read-Only
 
 - `audit_log_monitor_enabled` (Boolean) Whether audit log monitor is enabled. Note an advanced license is required.
-- `disk_analyzer_inflight_disabled` (Boolean) If using Outpost, whether disk analyzer inflight scanning is disabled.
 - `events_pub_sub_subscription_id` (String) If using Wiz Cloud Events, the Pub/Sub Subscription ID.
 - `events_topic_name` (String) If using Wiz Cloud Events, the Topic Name in format `projects/<project_id>/topics/<topic_id>`.
 - `excluded_folders` (List of String) The GCP folders excluded by the connector.

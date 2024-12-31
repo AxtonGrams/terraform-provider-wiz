@@ -643,7 +643,6 @@ type ConnectorConfigGCP struct {
 	ClientID                     string                      `json:"client_id"`
 	ClientX509CertURL            string                      `json:"client_x509_cert_url"`
 	DelegateUser                 string                      `json:"delegateUser"`
-	DiskAnalyzerInFlightDisabled bool                        `json:"diskAnalyzerInFlightDisabled"`
 	ExcludedFolders              []string                    `json:"excludedFolders"`
 	ExcludedProjects             []string                    `json:"excludedProjects"`
 	FolderID                     string                      `json:"folder_id"`
