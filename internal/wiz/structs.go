@@ -635,26 +635,26 @@ type OutpostAWSConfig struct {
 
 // ConnectorConfigGCP struct -- updates
 type ConnectorConfigGCP struct {
-	AuthProviderX509CertURL      string                      `json:"auth_provider_x509_cert_url"`
-	AuthURI                      string                      `json:"auth_uri"`
-	AuditLogMonitorEnabled       bool                        `json:"auditLogMonitorEnabled"`
-	AuditLogsConfig              ConnectorConfigGCPAuditLogs `json:"auditLogsConfig"`
-	ClientEmail                  string                      `json:"client_email"`
-	ClientID                     string                      `json:"client_id"`
-	ClientX509CertURL            string                      `json:"client_x509_cert_url"`
-	DelegateUser                 string                      `json:"delegateUser"`
-	ExcludedFolders              []string                    `json:"excludedFolders"`
-	ExcludedProjects             []string                    `json:"excludedProjects"`
-	FolderID                     string                      `json:"folder_id"`
-	IncludedFolders              []string                    `json:"includedFolders"`
-	IsManagedIdentity            bool                        `json:"isManagedIdentity"`
-	OrganizationID               string                      `json:"organization_id"`
-	PrivateKey                   string                      `json:"private_key"`
-	PrivateKeyID                 string                      `json:"private_key_id"`
-	ProjectID                    string                      `json:"project_id"`
-	Projects                     []string                    `json:"projects"`
-	TokenURI                     string                      `json:"token_uri"`
-	Type                         string                      `json:"type"`
+	AuthProviderX509CertURL string                      `json:"auth_provider_x509_cert_url"`
+	AuthURI                 string                      `json:"auth_uri"`
+	AuditLogMonitorEnabled  bool                        `json:"auditLogMonitorEnabled"`
+	AuditLogsConfig         ConnectorConfigGCPAuditLogs `json:"auditLogsConfig"`
+	ClientEmail             string                      `json:"client_email"`
+	ClientID                string                      `json:"client_id"`
+	ClientX509CertURL       string                      `json:"client_x509_cert_url"`
+	DelegateUser            string                      `json:"delegateUser"`
+	ExcludedFolders         []string                    `json:"excludedFolders"`
+	ExcludedProjects        []string                    `json:"excludedProjects"`
+	FolderID                string                      `json:"folder_id"`
+	IncludedFolders         []string                    `json:"includedFolders"`
+	IsManagedIdentity       bool                        `json:"isManagedIdentity"`
+	OrganizationID          string                      `json:"organization_id"`
+	PrivateKey              string                      `json:"private_key"`
+	PrivateKeyID            string                      `json:"private_key_id"`
+	ProjectID               string                      `json:"project_id"`
+	Projects                []string                    `json:"projects"`
+	TokenURI                string                      `json:"token_uri"`
+	Type                    string                      `json:"type"`
 }
 
 // ConnectorConfigGCPAuditLogs struct -- updates
