@@ -69,7 +69,6 @@ func testResourceWizConnectorGcpBasic(rName string) string {
 			"excludedProjects" : [],
 			"includedFolders" : [],
 			"excludedFolders" : [],
-			"diskAnalyzerInFlightDisabled" : false,
 			"auditLogMonitorEnabled" : false,
 		  }
 		)
