@@ -46,13 +46,8 @@ func TestAccResourceWizConnectorGcp_basic(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_connector_gcp.foo",
-						"disk_analyzer_inflight_disabled",
-						"false",
-					),
-					resource.TestCheckResourceAttr(
-						"wiz_connector_gcp.foo",
 						"extra_config",
-						"{\"auditLogMonitorEnabled\":false,\"diskAnalyzerInFlightDisabled\":false,\"excludedFolders\":[],\"excludedProjects\":[],\"includedFolders\":[],\"projects\":[]}",
+						"{\"auditLogMonitorEnabled\":false,\"excludedFolders\":[],\"excludedProjects\":[],\"includedFolders\":[],\"projects\":[]}",
 					),
 				),
 			},
@@ -74,7 +69,6 @@ func testResourceWizConnectorGcpBasic(rName string) string {
 			"excludedProjects" : [],
 			"includedFolders" : [],
 			"excludedFolders" : [],
-			"diskAnalyzerInFlightDisabled" : false,
 			"auditLogMonitorEnabled" : false,
 		  }
 		)

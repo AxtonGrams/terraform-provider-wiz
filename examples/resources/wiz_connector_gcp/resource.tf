@@ -12,7 +12,6 @@ resource "wiz_connector_gcp" "example" {
       "excludedProjects" : [],
       "includedFolders" : [],
       "excludedFolders" : [],
-      "diskAnalyzerInFlightDisabled" : false,
       "auditLogMonitorEnabled" : false
     }
   )
@@ -32,7 +31,6 @@ resource "wiz_connector_gcp" "example" {
       "excludedProjects" : [],
       "includedFolders" : [],
       "excludedFolders" : [],
-      "diskAnalyzerInFlightDisabled" : false,
       "auditLogMonitorEnabled" : false
     }
   )
