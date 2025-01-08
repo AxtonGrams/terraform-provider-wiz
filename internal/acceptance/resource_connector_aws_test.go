@@ -61,13 +61,8 @@ func TestAccResourceWizConnectorAws_basic(t *testing.T) {
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_connector_aws.foo",
-						"disk_analyzer_inflight_disabled",
-						"false",
-					),
-					resource.TestCheckResourceAttr(
-						"wiz_connector_aws.foo",
 						"extra_config",
-						"{\"auditLogMonitorEnabled\":false,\"diskAnalyzerInFlightDisabled\":false,\"excludedAccounts\":[\"100000000009\"],\"excludedOUs\":[\"DEV\"],\"optedInRegions\":[\"us-east-1\"],\"skipOrganizationScan\":true}",
+						"{\"auditLogMonitorEnabled\":false,\"excludedAccounts\":[\"100000000009\"],\"excludedOUs\":[\"DEV\"],\"optedInRegions\":[\"us-east-1\"],\"skipOrganizationScan\":true}",
 					),
 					resource.TestCheckResourceAttr(
 						"wiz_connector_aws.foo",
@@ -90,7 +85,6 @@ func testResourceWizConnectorAwsBasic(rName string) string {
 		extra_config = jsonencode(
 			{
 				"skipOrganizationScan" : true,
-				"diskAnalyzerInFlightDisabled" : false,
 				"optedInRegions" : ["us-east-1"],
 				"excludedAccounts" : ["100000000009"],
 				"excludedOUs" : ["DEV"],

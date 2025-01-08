@@ -63,11 +63,6 @@ func resourceWizConnectorAws() *schema.Resource {
 				Description: "Whether audit log monitor is enabled. Note an advanced license is required.",
 				Computed:    true,
 			},
-			"disk_analyzer_inflight_disabled": {
-				Type:        schema.TypeBool,
-				Description: "If using Outpost, whether disk analyzer inflight scanning is disabled.",
-				Computed:    true,
-			},
 			"skip_organization_scan": {
 				Type:        schema.TypeBool,
 				Description: "Whether to skip the organization scan (account-scoped only).",
@@ -201,7 +196,6 @@ func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m 
 	      config {
 	        ... on ConnectorConfigAWS {
 	          region
-	          diskAnalyzerInFlightDisabled
 	          excludedAccounts
 	          excludedOUs
 	          externalIdNonce
@@ -311,10 +305,6 @@ func resourceWizConnectorAwsRead(ctx context.Context, d *schema.ResourceData, m 
 		return append(diags, diag.FromErr(err)...)
 	}
 	err = d.Set("customer_role_arn", connectorConfig.CustomerRoleARN)
-	if err != nil {
-		return append(diags, diag.FromErr(err)...)
-	}
-	err = d.Set("disk_analyzer_inflight_disabled", connectorConfig.DiskAnalyzerInFlightDisabled)
 	if err != nil {
 		return append(diags, diag.FromErr(err)...)
 	}
