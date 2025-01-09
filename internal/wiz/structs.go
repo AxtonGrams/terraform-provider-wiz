@@ -670,19 +670,18 @@ type ConnectorConfigGCPPubSub struct {
 
 // ConnectorConfigAWS struct -- updates
 type ConnectorConfigAWS struct {
-	CustomerRoleARN              string                        `json:"customerRoleARN"`
-	SubAccountRole               string                        `json:"subAccountRole,omitempty"`
-	ExternalIDNonce              string                        `json:"externalIdNonce"`
-	Region                       string                        `json:"region,omitempty"`
-	DiskAnalyzer                 ConnectorAuthConfigAWSOutpost `json:"diskAnalyzer,omitempty"`
-	ExcludedAccounts             []string                      `json:"excludedAccounts,omitempty"`
-	IncludedAccounts             []string                      `json:"includedAccounts,omitempty"`
-	ExcludedOUs                  []string                      `json:"excludedOUs,omitempty"`
-	SkipOrganizationScan         bool                          `json:"skipOrganizationScan"`
-	OptedInRegions               []string                      `json:"optedInRegions,omitempty"`
-	AuditLogMonitorEnabled       bool                          `json:"auditLogMonitorEnabled"`
-	CloudTrailConfig             ConnectorConfigAWSCloudTrail  `json:"cloudTrailConfig,omitempty"`
-	DiskAnalyzerInFlightDisabled bool                          `json:"diskAnalyzerInFlightDisabled"`
+	CustomerRoleARN        string                        `json:"customerRoleARN"`
+	SubAccountRole         string                        `json:"subAccountRole,omitempty"`
+	ExternalIDNonce        string                        `json:"externalIdNonce"`
+	Region                 string                        `json:"region,omitempty"`
+	DiskAnalyzer           ConnectorAuthConfigAWSOutpost `json:"diskAnalyzer,omitempty"`
+	ExcludedAccounts       []string                      `json:"excludedAccounts,omitempty"`
+	IncludedAccounts       []string                      `json:"includedAccounts,omitempty"`
+	ExcludedOUs            []string                      `json:"excludedOUs,omitempty"`
+	SkipOrganizationScan   bool                          `json:"skipOrganizationScan"`
+	OptedInRegions         []string                      `json:"optedInRegions,omitempty"`
+	AuditLogMonitorEnabled bool                          `json:"auditLogMonitorEnabled"`
+	CloudTrailConfig       ConnectorConfigAWSCloudTrail  `json:"cloudTrailConfig,omitempty"`
 }
 
 // ConnectorAuthConfigAWSOutpost struct -- updates

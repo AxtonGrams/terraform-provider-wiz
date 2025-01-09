@@ -8,7 +8,6 @@ resource "wiz_connector_aws" "example" {
   extra_config = jsonencode(
     {
       "skipOrganizationScan" : true,
-      "diskAnalyzerInFlightDisabled" : false,
       "optedInRegions" : ["us-east-1"],
       "excludedAccounts" : [],
       "excludedOUs" : [],
@@ -36,7 +35,6 @@ resource "wiz_connector_aws" "example" {
       "excludedAccounts" : ["100000000009", "100000000010", "100000000013"],
       "excludedOUs" : ["EXCLUDE-ME"],
       "auditLogMonitorEnabled" : false,
-      "diskAnalyzerInFlightDisabled" : false,
       "skipOrganizationScan" : true,
       "optedInRegions" : [],
       "cloudTrailConfig" : {

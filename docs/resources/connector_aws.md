@@ -23,7 +23,6 @@ resource "wiz_connector_aws" "example" {
   extra_config = jsonencode(
     {
       "skipOrganizationScan" : true,
-      "diskAnalyzerInFlightDisabled" : false,
       "optedInRegions" : ["us-east-1"],
       "excludedAccounts" : [],
       "excludedOUs" : [],
@@ -51,7 +50,6 @@ resource "wiz_connector_aws" "example" {
       "excludedAccounts" : ["100000000009", "100000000010", "100000000013"],
       "excludedOUs" : ["EXCLUDE-ME"],
       "auditLogMonitorEnabled" : false,
-      "diskAnalyzerInFlightDisabled" : false,
       "skipOrganizationScan" : true,
       "optedInRegions" : [],
       "cloudTrailConfig" : {
@@ -83,7 +81,6 @@ resource "wiz_connector_aws" "example" {
 
 - `audit_log_monitor_enabled` (Boolean) Whether audit log monitor is enabled. Note an advanced license is required.
 - `customer_role_arn` (String) The AWS customer role arn for Wiz to assume.
-- `disk_analyzer_inflight_disabled` (Boolean) If using Outpost, whether disk analyzer inflight scanning is disabled.
 - `events_cloudtrail_bucket_name` (String) If using Wiz Cloud Events, the CloudTrail bucket name.
 - `events_cloudtrail_bucket_sub_account` (String) If using Wiz Cloud Events and CloudTrail is organizational, the CloudTrail bucket sub account.
 - `events_cloudtrail_organization` (String) If using Wiz Cloud Events and CloudTrail is deployed to AWS organizations, the organizational ID.
