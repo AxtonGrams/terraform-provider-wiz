@@ -35,6 +35,11 @@ func TestAccResourceWizSAMLGroupMapping_basic(t *testing.T) {
 						"group_mapping.0.projects.0",
 						projectID,
 					),
+					resource.TestCheckResourceAttr(
+						"wiz_saml_group_mapping.foo",
+						"group_mapping.0.description",
+						"test mapping.",
+					),
 				),
 			},
 		},
@@ -51,6 +56,7 @@ func testResourceWizSAMLGroupMappingBasic(samlIdpID string, providerGroupID stri
 			projects = [
 			  "%s"
 			]
+			description = "test mapping."
 		  }
 		}`, samlIdpID, providerGroupID, projectID)
 }

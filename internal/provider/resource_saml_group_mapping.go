@@ -79,6 +79,11 @@ func resourceWizSAMLGroupMapping() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"description": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Description:  "Group Mapping description",
+						},
 					},
 				},
 			},
@@ -134,6 +139,7 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
 		providerGroupID := groupMapping["provider_group_id"].(string)
 		role := groupMapping["role"].(string)
 		projectIDs := utils.ConvertListToString(groupMapping["projects"].([]interface{}))
+		description := groupMapping["description"].(string)
 
 		// verify the mapping doesn't already exist
 		matchingNodes, diags := querySAMLGroupMappings(ctx, m, samlIdpID, groupMappings)
@@ -152,6 +158,7 @@ func resourceSAMLGroupMappingCreate(ctx context.Context, d *schema.ResourceData,
 			ProviderGroupID: providerGroupID,
 			Role:            role,
 			Projects:        projectIDs,
+			Description:     description,
 		}
 		upsertGroupMappings = append(upsertGroupMappings, upsertGroupMapping)
 	}
@@ -261,6 +268,7 @@ func resourceSAMLGroupMappingRead(ctx context.Context, d *schema.ResourceData, m
 					"provider_group_id": matchingNode.ProviderGroupID,
 					"role":              matchingNode.Role.ID,
 					"projects":          extractProjectIDs(matchingNode.Projects),
+					"description":       matchingNode.Description,
 				}
 				newGroupMappings = append(newGroupMappings, newGroupMapping)
 			}
@@ -297,10 +305,12 @@ func resourceSAMLGroupMappingUpdate(ctx context.Context, d *schema.ResourceData,
 		providerGroupID := groupMapping["provider_group_id"].(string)
 		role := groupMapping["role"].(string)
 		projects := utils.ConvertListToString(groupMapping["projects"].([]interface{}))
+		description := groupMapping["description"].(string)
 		upsertGroupMapping := wiz.SAMLGroupDetailsInput{
 			ProviderGroupID: providerGroupID,
 			Role:            role,
 			Projects:        projects,
+			Description:     description,
 		}
 		upsertGroupMappings = append(upsertGroupMappings, upsertGroupMapping)
 	}
@@ -393,6 +403,7 @@ func querySAMLGroupMappings(ctx context.Context, m interface{}, samlIdpID string
 			  projects {
 				id
 			  }
+			  description
 			}
 	    }
 	}`
