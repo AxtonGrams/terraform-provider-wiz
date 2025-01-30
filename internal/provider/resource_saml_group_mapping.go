@@ -80,9 +80,9 @@ func resourceWizSAMLGroupMapping() *schema.Resource {
 							},
 						},
 						"description": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Description:  "Group Mapping description",
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Group Mapping description",
 						},
 					},
 				},
