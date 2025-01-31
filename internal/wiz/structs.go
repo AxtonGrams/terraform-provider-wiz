@@ -245,11 +245,11 @@ type SAMLGroupMappingCreateInput struct {
 }
 
 // SAMLGroupDetailsInput struct
-// Incomplete because 'description' field is missing as in the schema
 type SAMLGroupDetailsInput struct {
 	ProviderGroupID string   `json:"providerGroupId"`
 	Role            string   `json:"role"`
 	Projects        []string `json:"projects"`
+	Description     string   `json:"description"`
 }
 
 // ModifySAMLGroupMappingPatch struct
@@ -284,6 +284,7 @@ type SAMLGroupMapping struct {
 	Projects        []Project `json:"projects"`
 	ProviderGroupID string    `json:"providerGroupId"`
 	Role            UserRole  `json:"role"`
+	Description     string    `json:"description"`
 }
 
 // DeleteSAMLIdentityProviderInput struct

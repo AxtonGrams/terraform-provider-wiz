@@ -24,6 +24,18 @@ resource "wiz_saml_group_mapping" "test_global_scope" {
   ]
 }
 
+# Configure SAML Group Role Mapping on a global scope, with optional description
+resource "wiz_saml_group_mapping" "test_global_scope" {
+  saml_idp_id = "test-saml-identity-provider"
+  group_mappings = [
+    {
+      provider_group_id = "global-reader-group-id"
+      role              = "PROJECT_READER"
+      description       = "Global Reader group mapping"
+    }
+  ]
+}
+
 # Configure SAML Group Role Mapping for a single project
 resource "wiz_saml_group_mapping" "test_single_project" {
   saml_idp_id = "test-saml-identity-provider"
@@ -102,6 +114,7 @@ Required:
 
 Optional:
 
+- `description` (String) Group Mapping description
 - `projects` (List of String) Project mapping
 
 ## Import
