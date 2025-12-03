@@ -2,7 +2,11 @@
 
 The Terraform provider for Wiz allows you to manage resources typically managed in the Wiz web interface.
 
-This provider is not yet feature complete and requires development, testing, and polishing.
+## Requested Notice from Wiz
+Wiz requested that this notice be posted for this provider:
+* This is not an official Wiz Terraform provider
+* It has not undergone Wiz security, compliance, or quality review
+* Users should rely on the official Wiz Terraform provider, which is maintained and supported by Wiz
 
 ## Requirements
 
